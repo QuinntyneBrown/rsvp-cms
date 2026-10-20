@@ -204,6 +204,10 @@ export class MemoryStore implements Store {
     return this.guestsOf(eventId).length;
   }
 
+  async guestEmails(eventId: number) {
+    return this.guestsOf(eventId).map((g) => g.email);
+  }
+
   async countNonResponders(eventId: number) {
     return this.guestsOf(eventId).filter((g) => !this.responses.has(g.id)).length;
   }

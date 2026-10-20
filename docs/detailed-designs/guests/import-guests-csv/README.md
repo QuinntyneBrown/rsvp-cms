@@ -25,6 +25,15 @@ The feature sits in the guests subsystem. The import wizard in the organiser app
 - **`ImportBatchRepository`** — persistence component under `src/data` that saves and loads import batches.
 - **`GuestRepository`** — persistence component designed in the manage-guest feature. It creates each guest that an import commits.
 
+The code places each design component as follows.
+
+| Design component | Where it lives |
+|------------------|----------------|
+| `GuestImportWizard`, `ImportReviewTable` | `ImportGuestsPage` in `src/admin/pages/ImportGuests.tsx` at `#/events/:id/import`, reached from Import CSV on the Guests tab and its empty state; the template is built in the browser |
+| `GuestImportController` | `POST /api/events/:id/guests/import/review` and `POST /api/events/:id/guests/import` in `src/api/guests/import.ts`; the file travels base64-encoded in JSON |
+| `CsvGuestParser`, `ImportRow`, `ImportRowStatus`, `GuestCsvTemplate` | `checkImportFile`, `reviewImport`, `parseCsv` and `guestTemplate` in `src/domain/guestImport.ts`; rows are checked with `validateGuest`, as for a guest added by hand |
+| `ImportBatch`, `ImportBatchRepository` | Not stored: review is stateless, and the import checks the file again and creates only the ready rows, so a retry finds the guests it already created as duplicates and adds no one twice (L2-026 AC4) |
+
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |

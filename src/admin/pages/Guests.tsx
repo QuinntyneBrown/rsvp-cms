@@ -99,7 +99,10 @@ export function GuestsTab({ eventId, showToast }: { eventId: number; showToast: 
     <Stack>
       <Cluster justify="between">
         <h2>Guests {data && <Text as="span" tone="muted">· {data.invitees.toLocaleString('en-GB')} invitees</Text>}</h2>
-        <Button variant="primary" onClick={() => setEditing('new')}>Add guest</Button>
+        <Cluster>
+          <Button variant="ghost" href={`#/events/${eventId}/import`}>Import CSV</Button>
+          <Button variant="primary" onClick={() => setEditing('new')}>Add guest</Button>
+        </Cluster>
       </Cluster>
 
       <Cluster>
@@ -138,8 +141,8 @@ export function GuestsTab({ eventId, showToast }: { eventId: number; showToast: 
             compact
             title="No invitees yet"
             headingLevel={3}
-            text="Add people one at a time. Each invitee gets a personal link."
-            actions={<Button variant="primary" onClick={() => setEditing('new')}>Add guest</Button>}
+            text="Import a CSV from a spreadsheet, or add people one at a time. Each invitee gets a personal link."
+            actions={<><Button href={`#/events/${eventId}/import`}>Import CSV</Button><Button variant="primary" onClick={() => setEditing('new')}>Add guest</Button></>}
           />
         </Card>
       )}

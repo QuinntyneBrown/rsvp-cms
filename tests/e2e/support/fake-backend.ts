@@ -2,6 +2,7 @@ import type { BrowserContext, Request, Route } from '@playwright/test';
 import { MAX_BLOCKS, parseBlocks, validateBlocks, type Block } from '../../../src/domain/blocks.js';
 import { normaliseCode } from '../../../src/domain/code.js';
 import { validateNewEvent } from '../../../src/domain/events.js';
+import { checkImportFile, reviewImport } from '../../../src/domain/guestImport.js';
 import { confirmedPlusOnes, PLUS_ONES_BELOW_CONFIRMED, validateGuest } from '../../../src/domain/guests.js';
 import { invitationText, personalLink, SAMPLE_GUEST } from '../../../src/domain/invitations/message.js';
 import { sendTime, validateSchedule, validateSender, type Audience } from '../../../src/domain/invitations/schedule.js';
@@ -348,6 +349,9 @@ export class FakeBackend {
         return this.saveGuest(event, r.body, null);
       case 'PUT /guests/:n':
         return this.saveGuest(event, r.body, subId);
+      case 'POST /guests/import/review':
+      case 'POST /guests/import':
+        return this.importGuests(event, r.body, rest === '/guests/import');
       case 'POST /guests/remove': {
         const ids = Array.isArray(r.body.ids) ? r.body.ids.map(Number) : [];
         const before = this.guests.length;
@@ -512,6 +516,21 @@ export class FakeBackend {
       return ok({ guest: existing });
     }
     return { status: 201, body: { guest: { ...this.addGuest(event.id, v.value), status: 'waiting' } } };
+  }
+
+  /** Mirrors src/api/guests/import.ts with the same domain checks. */
+  private importGuests(event: FakeEvent, body: Json, commit: boolean): Answer {
+    const file = checkImportFile(String(body.fileName ?? ''), Buffer.from(String(body.content ?? ''), 'base64'));
+    if (!file.ok) return { status: 422, body: { errors: { file: file.error } } };
+    const review = reviewImport(file, this.guestsOf(event.id).map((g) => g.email));
+    if (!commit) return ok({ columns: file.columns, ...review });
+    if (review.counts.error && body.skipErrors !== true) return { status: 422, body: { error: 'Fix the rows with errors, or leave them out' } };
+    if (review.rows.some((row) => row.status === 'ready' && row.groupNotice) && body.acceptGroups !== true) {
+      return { status: 422, body: { error: 'Accept the group changes to continue' } };
+    }
+    const ready = review.rows.filter((row) => row.status === 'ready');
+    for (const row of ready) this.addGuest(event.id, { name: row.name, email: row.email, group: row.group, plusOnes: row.plusOnes });
+    return ok({ imported: ready.length, skipped: review.counts.error + review.counts.duplicate, failed: 0 });
   }
 
   private nonResponders(eventId: number) {

@@ -249,6 +249,11 @@ export class PrismaStore implements Store {
     return this.db.guest.count({ where: { eventId } });
   }
 
+  async guestEmails(eventId: number) {
+    const rows = await this.db.guest.findMany({ where: { eventId }, select: { email: true } });
+    return rows.map((g) => g.email);
+  }
+
   countNonResponders(eventId: number) {
     return this.db.guest.count({ where: { eventId, response: { is: null } } });
   }

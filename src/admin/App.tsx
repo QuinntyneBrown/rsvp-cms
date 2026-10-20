@@ -5,6 +5,7 @@ import { Icon, Text } from '../shared/ui/primitives/index.js';
 import { DashboardPage } from './pages/Dashboard.js';
 import { EventShell } from './pages/EventShell.js';
 import { EventsPage } from './pages/Events.js';
+import { ImportGuestsPage } from './pages/ImportGuests.js';
 import { NewEventPage } from './pages/NewEvent.js';
 import { SignInPage } from './pages/SignIn.js';
 import { go, useRoute } from './router.js';
@@ -82,6 +83,8 @@ export function App() {
         <Container as="main" id="main">
           {section === 'events' && id === 'new' ? (
             <NewEventPage />
+          ) : section === 'events' && id && tab === 'import' ? (
+            <ImportGuestsPage eventId={Number(id)} />
           ) : section === 'events' && id ? (
             <EventShell eventId={Number(id)} tab={tab ?? 'overview'} />
           ) : section === 'events' ? (

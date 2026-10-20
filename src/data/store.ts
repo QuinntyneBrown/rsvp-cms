@@ -41,6 +41,8 @@ export interface Store {
   // guests
   listGuests(eventId: number, query: ListQuery): Promise<{ total: number; rows: GuestListRow[] }>;
   countGuests(eventId: number): Promise<number>;
+  /** Every guest email of the event, lower case. */
+  guestEmails(eventId: number): Promise<string[]>;
   countNonResponders(eventId: number): Promise<number>;
   getGuest(id: number): Promise<GuestRecord | null>;
   guestByEmail(eventId: number, email: string): Promise<GuestRecord | null>;
