@@ -7,4 +7,4 @@
 | edit-event-details | 3 days | 0% |
 | list-events | 3 days | 0% |
 | manage-invite-window | 3 days | 20% |
-| regenerate-invitation-links | 3 days | 0% |
+| regenerate-invitation-links | 3 days | 100% |
