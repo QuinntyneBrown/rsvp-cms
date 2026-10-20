@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — View and filter responses
+
+Person(organiser, "Organiser", "Owns the event and reviews every reply")
+System(invitely, "Invitely", "RSVP content management system for event invitations")
+Person_Ext(guest, "Guest", "Sends replies through the public RSVP page")
+
+Rel(organiser, invitely, "Reviews, searches and filters replies in", "HTTPS")
+Rel(guest, invitely, "Saves replies through the public RSVP page", "HTTPS")
+@enduml

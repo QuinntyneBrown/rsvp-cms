@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Meet API response-time targets
+
+Container_Boundary(adminApp, "Organiser admin app") {
+  Component(listClient, "GuestListClient", "<TO SUPPLY>", "Requests one page of guests from src/admin")
+}
+
+Container_Boundary(api, "API application") {
+  Component(guestCtrl, "GuestsController", "<TO SUPPLY>", "Exposes the guest endpoints under src/api/guests")
+  Component(pagedQuery, "PagedQuery", "<TO SUPPLY>", "Validates page size and sort order under src/shared/query")
+  Component(readSvc, "GuestListReadService", "<TO SUPPLY>", "Returns one page of guests under src/domain/guests")
+  Component(writeSvc, "GuestWriteService", "<TO SUPPLY>", "Saves a single guest record under src/domain/guests")
+  ComponentDb(store, "Guest repository", "<TO SUPPLY>", "Reads and writes guests through indexed event and sort keys under src/data")
+}
+
+Rel(listClient, guestCtrl, "Sends list requests to", "HTTPS")
+Rel(guestCtrl, pagedQuery, "Builds the page request with")
+Rel(guestCtrl, readSvc, "Reads the page through")
+Rel(guestCtrl, writeSvc, "Saves single records through")
+Rel(readSvc, store, "Queries", "<TO SUPPLY>")
+Rel(writeSvc, store, "Writes", "<TO SUPPLY>")
+@enduml

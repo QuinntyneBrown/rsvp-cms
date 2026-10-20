@@ -1,0 +1,71 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Compose the public page from blocks
+
+enum BlockType {
+  Hero
+  Details
+  Schedule
+  Map
+  RsvpForm
+  Faq
+  PhotoGallery
+  GiftList
+}
+
+class PageBlock {
+  +UUID Id
+  +BlockType Type
+  +int Position
+  +bool IsCollapsed
+  +IDictionary<string, string> Fields
+}
+
+class PageDraft {
+  +UUID EventId
+  +int MaxBlocks = 12
+  +IReadOnlyList<PageBlock> Blocks
+  +AddBlock(type: BlockType): PageBlock
+  +MoveBlock(blockId: UUID, direction: MoveDirection): void
+  +UpdateBlock(blockId: UUID, fields: IDictionary<string, string>): void
+  +RemoveBlock(blockId: UUID): void
+}
+
+class BlockFieldRules {
+  +Validate(type: BlockType, fields: IDictionary<string, string>): IReadOnlyList<FieldError>
+}
+
+class PageBlockCatalogue {
+  +All(): IReadOnlyList<BlockTypeInfo>
+}
+
+class PageDraftRepository {
+  +Load(eventId: UUID): PageDraft
+  +Save(draft: PageDraft): void
+}
+
+class PageBlocksController {
+  +AddBlock(eventId: UUID, request: AddBlockRequest): PageBlockResponse
+  +UpdateBlock(eventId: UUID, blockId: UUID, request: UpdateBlockRequest): PageBlockResponse
+  +MoveBlock(eventId: UUID, blockId: UUID, request: MoveBlockRequest): void
+  +RemoveBlock(eventId: UUID, blockId: UUID): void
+}
+
+PageDraft "1" *-- "0..12" PageBlock : owns
+PageBlock --> BlockType : has
+PageDraft ..> BlockFieldRules : validates with
+PageBlocksController ..> PageDraft : applies commands to
+PageBlocksController ..> PageDraftRepository : loads and saves
+PageBlockCatalogue ..> BlockType : lists
+@enduml

@@ -1,0 +1,13 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Manage account settings
+
+Person(organiser, "Organiser", "Edits their profile, preferences and password")
+System(invitely, "Invitely", "RSVP content management system for organisers and guests")
+System_Ext(email, "Email provider", "Delivers the email change confirmation")
+
+Rel(organiser, invitely, "Edits account settings in", "HTTPS")
+Rel(invitely, email, "Sends the confirmation link via", "<TO SUPPLY>")
+Rel(email, organiser, "Delivers the confirmation link to the new address")
+@enduml

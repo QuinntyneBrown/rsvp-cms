@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System Context — Adapt the organiser layout to viewport width
+
+Person(organiser, "Organiser", "Signed-in user who manages events on a phone, tablet or desktop")
+System(invitely, "Invitely", "RSVP CMS for organisers and guests")
+System_Ext(browser, "Web browser", "Renders pages at the current viewport width")
+
+Rel(organiser, invitely, "Manages events using")
+Rel(invitely, browser, "Renders the organiser layout in")
+@enduml

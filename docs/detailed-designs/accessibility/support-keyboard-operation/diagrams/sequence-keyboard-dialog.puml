@@ -1,0 +1,39 @@
+@startuml
+title UML sequence behaviour — Support keyboard operation and focus
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "Dialog" as dialog
+end box
+box "Frontend — Shared accessibility library" #E0F2FE
+  participant "FocusManager" as focus
+  participant "FocusTrap" as trap
+end box
+actor -> dialog : Press Enter on the opening control
+dialog -> focus : Remember opener and move focus into dialog
+focus --> dialog : Focus is on the first focusable element
+actor -> dialog : Press Tab
+dialog -> trap : NextFocus(current, reverse = false)
+trap --> dialog : Next focusable element inside the dialog (L2-086 criterion 2)
+actor -> dialog : Press Escape
+alt Request is in progress
+  dialog --> actor : Dialog stays open
+else No request is in progress
+  dialog -> focus : RestoreOpener()
+  focus --> dialog : Focus is back on the opening control
+  dialog --> actor : Dialog is closed (L2-086 criterion 2)
+end
+@enduml

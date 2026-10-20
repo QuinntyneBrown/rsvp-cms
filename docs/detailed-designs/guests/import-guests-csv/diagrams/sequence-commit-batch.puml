@@ -1,0 +1,51 @@
+@startuml
+title UML sequence behaviour — Commit a reviewed import batch
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "ImportReviewTable" as review
+end box
+box "Backend — API application" #D1FADF
+  participant "GuestImportController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "ImportBatch" as batch
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Application database" as db
+end box
+
+actor -> review : Confirm the import
+review --> actor : Import is disabled while any row has an error (L2-026)
+review -> controller : POST commit for batch
+controller -> batch : Commit(guests)
+batch -> db : Read rows already created for this batch
+db --> batch : Created row numbers
+loop Each row not yet created
+  alt Row email already exists in the event (L2-026)
+    batch -> batch : Mark row Duplicate and skip it
+  else Row is valid
+    batch -> db : Insert guest and record its row number
+    db --> batch : Commit result
+  end
+end
+batch -> db : Mark batch committed
+db --> batch : Commit result
+batch --> controller : Imported, skipped and failed counts
+controller --> review : Result counts
+review --> actor : Done step with counts and a link to the Guests page (L2-026)
+note over batch : A retry after a network failure creates no guest twice (L2-026)
+@enduml

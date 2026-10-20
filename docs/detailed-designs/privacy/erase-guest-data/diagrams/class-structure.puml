@@ -1,0 +1,70 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Erase guest personal data on deletion and retention
+
+class GuestErasureService {
+  +EraseGuest(eventId: UUID, guestId: UUID, userId: UUID): void
+}
+
+class PersonalDataEraser {
+  +EraseEvent(eventId: UUID, deadline: DateTime): void
+}
+
+class ErasureJob {
+  +UUID Id
+  +UUID EventId
+  +DateTime Deadline
+  +JobStatus Status
+}
+
+class RetentionPlan {
+  +UUID EventId
+  +DateTime EndedAt
+  +DateTime EligibleAt
+  +DateTime NoticeDueAt
+  +DateTime NoticeSentAt
+}
+
+class RetentionScanner {
+  +Scan(now: DateTime): RetentionPlan[]
+}
+
+class RetentionNoticeService {
+  +SendNotice(plan: RetentionPlan): void
+}
+
+class Guest {
+  +UUID Id
+  +UUID EventId
+  +string Name
+  +string Email
+}
+
+class Response {
+  +UUID Id
+  +UUID GuestId
+  +string Reply
+  +string DietaryNote
+}
+
+GuestErasureService ..> Guest : erases
+GuestErasureService ..> Response : erases
+PersonalDataEraser ..> ErasureJob : runs
+PersonalDataEraser ..> Guest : erases
+PersonalDataEraser ..> Response : erases
+RetentionScanner ..> RetentionPlan : creates
+RetentionScanner --> RetentionNoticeService : requests notice from
+RetentionScanner --> PersonalDataEraser : requests erasure from
+Guest "1" --> "0..*" Response : replies
+@enduml

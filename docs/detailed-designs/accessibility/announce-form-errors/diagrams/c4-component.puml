@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Label form controls and announce errors
+
+Person(organiser, "Organiser", "Submits a form and reads the errors")
+Container_Boundary(shared, "Shared UI library") {
+  Component(state, "FormState", "<TO SUPPLY>", "Holds the submission state and the list of field errors of one form")
+  Component(field, "FormField", "<TO SUPPLY>", "Associates a visible label and a field error with one form control")
+  Component(error, "FieldError", "<TO SUPPLY>", "Holds the message for one field and the element identifier that describes the field")
+  Component(summary, "ErrorSummary", "<TO SUPPLY>", "Lists every error at the top of the form and receives focus")
+  Component(announcer, "LiveRegionAnnouncer", "<TO SUPPLY>", "Announces a status message through an aria-live region")
+}
+Container_Boundary(admin, "Organiser web application") {
+  Component(eventForm, "EventForm", "<TO SUPPLY>", "Organiser form for event details built from FormField blocks")
+  Component(toast, "Toast", "<TO SUPPLY>", "Shows a status message such as Changes saved")
+}
+
+Rel(organiser, eventForm, "Submits")
+Rel(eventForm, state, "Holds submission state in")
+Rel(eventForm, field, "Renders each control with")
+Rel(state, summary, "Shows errors in")
+Rel(state, error, "Holds")
+Rel(field, error, "Links the message to the control with")
+Rel(toast, announcer, "Announces its message through")
+@enduml

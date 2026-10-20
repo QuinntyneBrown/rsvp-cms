@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Support keyboard operation and focus
+
+Person(organiser, "Organiser", "Presses Tab, Enter, Escape and arrow keys")
+Container_Boundary(shared, "Shared UI library") {
+  Component(skip, "SkipLink", "<TO SUPPLY>", "First focusable element on each page; moves focus to the main content region")
+  Component(focus, "FocusManager", "<TO SUPPLY>", "Moves focus into an opened dialog and returns it to the opening control")
+  Component(trap, "FocusTrap", "<TO SUPPLY>", "Determines the next focusable element inside an open dialog")
+  Component(roving, "RovingFocusGroup", "<TO SUPPLY>", "Moves focus between rows and row actions with the arrow keys")
+  Component(ring, "FocusRing", "<TO SUPPLY>", "Draws the visible focus indicator of at least 2 px with 3:1 contrast")
+}
+Container_Boundary(admin, "Organiser web application") {
+  Component(dialog, "Dialog", "<TO SUPPLY>", "Modal container that handles Escape and refuses to close while a request is in progress")
+  Component(list, "GuestTable", "<TO SUPPLY>", "Guest list whose rows use the roving focus group")
+}
+
+Rel(organiser, skip, "Presses Tab to reach")
+Rel(organiser, dialog, "Presses Enter and Escape in")
+Rel(organiser, list, "Moves between rows with arrow keys in")
+Rel(dialog, focus, "Moves focus with")
+Rel(dialog, trap, "Cycles Tab within the dialog with")
+Rel(list, roving, "Moves focus between rows and actions with")
+Rel(dialog, ring, "Shows the focus ring from")
+Rel(list, ring, "Shows the focus ring from")
+@enduml

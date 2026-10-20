@@ -1,0 +1,22 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — List and find events
+
+Container_Boundary(admin, "Organiser app") {
+  Component(page, "EventsListPage", "<TO SUPPLY>", "Renders rows and states in src/admin/events")
+  Component(client, "EventsClient", "<TO SUPPLY>", "Requests pages in src/admin/events")
+}
+Container_Boundary(api, "API application") {
+  Component(ctrl, "EventsController", "<TO SUPPLY>", "Exposes GET /events in src/api/events")
+  Component(spec, "EventListSpecification", "<TO SUPPLY>", "Holds page size, sort keys and search rule in src/domain/events")
+  Component(reader, "EventListReader", "<TO SUPPLY>", "Reads events in src/data/events")
+  ComponentDb(db, "Event store", "<TO SUPPLY>", "Holds events and replies")
+}
+
+Rel(page, client, "Requests rows through")
+Rel(client, ctrl, "Sends GET /events to", "HTTPS, JSON")
+Rel(ctrl, spec, "Applies the query rules with")
+Rel(ctrl, reader, "Requests rows and summary from")
+Rel(reader, db, "Reads from", "<TO SUPPLY>")
+@enduml

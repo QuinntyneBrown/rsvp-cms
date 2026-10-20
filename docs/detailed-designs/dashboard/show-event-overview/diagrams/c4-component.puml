@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Show the event overview
+
+Container_Boundary(admin, "Organiser app") {
+  Component(page, "EventOverviewPage", "<TO SUPPLY>", "Renders the overview in src/admin/events")
+  Component(meter, "ReplyProgressMeter", "<TO SUPPLY>", "Shows the reply percentage in src/shared/ui")
+  Component(client, "EventOverviewClient", "<TO SUPPLY>", "Requests the overview in src/admin/events")
+}
+Container_Boundary(api, "API application") {
+  Component(ctrl, "EventOverviewController", "<TO SUPPLY>", "Exposes GET /events/{id}/overview in src/api/events")
+  Component(svc, "EventOverviewService", "<TO SUPPLY>", "Builds the overview in src/domain/dashboard")
+  Component(progress, "ReplyProgress", "<TO SUPPLY>", "Computes the attending percentage in src/domain/dashboard")
+  Component(reader, "EventOverviewReader", "<TO SUPPLY>", "Reads counts and latest replies in src/data/dashboard")
+  ComponentDb(db, "Event store", "<TO SUPPLY>", "Holds events, guests and replies")
+}
+
+Rel(page, meter, "Shows the percentage with")
+Rel(page, client, "Requests the overview through")
+Rel(client, ctrl, "Sends GET /events/{id}/overview to", "HTTPS, JSON")
+Rel(ctrl, svc, "Dispatches requests to")
+Rel(svc, progress, "Computes the percentage with")
+Rel(svc, reader, "Reads figures through")
+Rel(reader, db, "Reads from", "<TO SUPPLY>")
+@enduml

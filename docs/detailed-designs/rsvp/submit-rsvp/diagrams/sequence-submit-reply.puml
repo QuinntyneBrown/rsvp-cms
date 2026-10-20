@@ -1,0 +1,70 @@
+@startuml
+title UML sequence behaviour — Submit an RSVP
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Guest" as actor
+box "Frontend — Guest RSVP app" #E0F2FE
+  participant "RsvpForm" as form
+  participant "PublicApiClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "RsvpController" as ctrl
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "SubmitRsvpCommandHandler" as handler
+  participant "RsvpPolicy" as policy
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Invitely database" as db
+end box
+
+actor -> form : Choose Joyfully accepting
+form --> actor : Party size, Meal and guest name fields shown (L2-040)
+actor -> form : Send my RSVP
+alt Required field is missing or over its limit (L2-041)
+  form --> actor : Field error on the first invalid field, nothing sent
+else Form is valid
+  form -> client : Send reply with SubmissionId
+  client -> ctrl : POST /public/invitations/{token}/rsvp
+  ctrl -> handler : SubmitRsvpCommand
+  handler -> db : Load invitation and any stored reply for SubmissionId
+  db --> handler : Invitation and stored reply or none
+  alt Same SubmissionId already stored (L2-042)
+    handler --> ctrl : Stored reply returned, nothing written again
+  else New submission
+    handler -> policy : Validate reply against places on the invitation
+    policy --> handler : Field errors or none
+    alt Field errors returned
+      handler --> ctrl : Validation result
+      ctrl --> client : HTTP 400 with field-level errors
+      client --> form : Field errors shown, values kept (L2-041)
+    else Reply is valid
+      handler -> db : Save reply
+      alt Save fails
+        db --> handler : Error
+        handler --> ctrl : Save failed
+        ctrl --> client : Error response
+        client --> form : Entered answers kept, retry available (L2-042)
+      else Save succeeds
+        db --> handler : Saved
+        handler --> ctrl : Saved reply
+        ctrl --> client : Saved reply
+        client --> form : Success state with the answer and Change reply
+        form --> actor : Toast "Your reply is saved"
+      end
+    end
+  end
+end
+@enduml

@@ -1,0 +1,74 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Track delivery outcomes and bounces
+
+enum OutcomeKind {
+  Delivered
+  Bounced
+  Failed
+}
+
+class DeliveryOutcome {
+  +UUID Id
+  +UUID EventId
+  +UUID GuestId
+  +OutcomeKind Kind
+  +DateTime OccurredAt
+}
+
+class IdempotencyKey {
+  +UUID ScheduledEmailId
+  +UUID GuestId
+  +string Value()
+}
+
+class SendRetryPolicy {
+  +int MaxRetries
+  +TimeSpan MaxRetryWindow
+  +NextDelay(attempt: int): TimeSpan?
+}
+
+interface MailProviderPort {
+  +Send(message: OutboundEmail, key: IdempotencyKey): SendResult
+}
+
+class MailProviderAdapter {
+  +Send(message: OutboundEmail, key: IdempotencyKey): SendResult
+}
+
+class EmailSendService {
+  +SendToGuest(scheduledEmailId: UUID, guestId: UUID): SendOutcome
+}
+
+class DueEmailDispatcher {
+  +DispatchDue(now: DateTime): int
+}
+
+class BounceProcessor {
+  +Process(bounce: BounceReport): DeliveryOutcome
+}
+
+class LatestDeliveryStatusReader {
+  +Latest(eventId: UUID): IList<DeliveryOutcome>
+}
+
+DueEmailDispatcher --> EmailSendService : passes each email to
+EmailSendService --> IdempotencyKey : builds
+EmailSendService --> SendRetryPolicy : decides retries with
+EmailSendService --> MailProviderPort : sends through
+MailProviderAdapter ..|> MailProviderPort : implements
+BounceProcessor ..> DeliveryOutcome : creates
+LatestDeliveryStatusReader ..> DeliveryOutcome : reads
+DeliveryOutcome --> OutcomeKind : has
+@enduml

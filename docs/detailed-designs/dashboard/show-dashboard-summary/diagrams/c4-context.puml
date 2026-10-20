@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Show the organiser dashboard summary
+
+Person(organiser, "Organiser", "Signed-in user who owns events")
+System(invitely, "Invitely", "RSVP content management system for organisers and guests")
+
+Rel(organiser, invitely, "Views the dashboard summary in", "HTTPS")
+@enduml

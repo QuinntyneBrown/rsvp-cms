@@ -1,0 +1,29 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Export responses
+
+Person(organiser, "Organiser", "Event owner")
+Container_Boundary(admin, "Organiser admin application") {
+  Component(action, "ExportResponsesAction", "<TO SUPPLY>", "Export CSV control on the Responses page")
+}
+Container_Boundary(api, "Organiser API application") {
+  Component(ctrl, "ResponseExportController", "<TO SUPPLY>", "Exposes GET /events/{eventId}/responses/export")
+}
+Container_Boundary(domain, "Domain — responses") {
+  Component(exporter, "ResponseExportService", "<TO SUPPLY>", "Builds export rows and the file name")
+}
+Container_Boundary(shared, "Shared — csv") {
+  Component(writer, "CsvFileWriter", "<TO SUPPLY>", "Writes the header row and the rows as CSV")
+}
+Container_Boundary(data, "Data") {
+  Component(repo, "ResponseQueryRepository", "<TO SUPPLY>", "Returns every reply of the event")
+}
+ComponentDb(db, "Invitely database", "<TO SUPPLY>", "Persists replies, guests and events")
+Rel(organiser, action, "Selects Export CSV in")
+Rel(action, ctrl, "Requests the file from", "HTTPS")
+Rel(ctrl, exporter, "Builds the export with")
+Rel(exporter, repo, "Reads replies through")
+Rel(exporter, writer, "Writes the file with")
+Rel(repo, db, "Queries", "<TO SUPPLY>")
+@enduml

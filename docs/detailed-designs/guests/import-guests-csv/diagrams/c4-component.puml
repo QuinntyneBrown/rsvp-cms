@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Import guests from a CSV file
+
+Container_Boundary(admin, "Organiser app") {
+  Component(wizard, "GuestImportWizard", "<TO SUPPLY>", "Runs the Upload, Map columns, Review and Done steps")
+  Component(review, "ImportReviewTable", "<TO SUPPLY>", "Lists each error row, duplicate and group notice with its row number")
+}
+Container_Boundary(api, "Organiser API") {
+  Component(ctrl, "GuestImportController", "<TO SUPPLY>", "Exposes the upload, commit and template endpoints under src/api/guests/import")
+  Component(parser, "CsvGuestParser", "Domain service", "Checks the file, parses the rows and detects the columns")
+  Component(batch, "ImportBatch", "Domain aggregate", "Holds the parsed rows and commits them once")
+  Component(template, "GuestCsvTemplate", "Domain type", "Holds the header row and the example row")
+  ComponentDb(batches, "ImportBatchRepository", "<TO SUPPLY>", "Saves import batches under src/data")
+  ComponentDb(guests, "GuestRepository", "<TO SUPPLY>", "Saves guests, designed in the manage-guest feature")
+}
+
+Rel(wizard, ctrl, "Uploads the file and commits through", "multipart HTTPS")
+Rel(review, wizard, "Reports row decisions to")
+Rel(ctrl, parser, "Parses the uploaded file with")
+Rel(ctrl, template, "Returns the template from")
+Rel(parser, batch, "Creates")
+Rel(ctrl, batches, "Saves and loads the batch through")
+Rel(batch, guests, "Creates guests through when committed")
+@enduml

@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Show the event overview
+
+Person(organiser, "Organiser", "Signed-in user who owns the event")
+Person_Ext(guest, "Guest", "Invitee who opens the public event page")
+System(invitely, "Invitely", "RSVP content management system for organisers and guests")
+
+Rel(organiser, invitely, "Opens the event overview in", "HTTPS")
+Rel(guest, invitely, "Opens the public page linked from", "HTTPS")
+@enduml

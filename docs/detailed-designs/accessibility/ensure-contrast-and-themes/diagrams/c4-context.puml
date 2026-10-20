@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System Context — Ensure contrast and select a theme
+
+Person(organiser, "Organiser", "Reads and changes the theme in the organiser application")
+Person(guest, "Guest", "Reads the public page in the theme that the browser applies")
+System(invitely, "Invitely", "RSVP CMS for organisers and guests")
+System_Ext(browser, "Web browser", "Reports the operating system colour preference and stores the saved theme")
+
+Rel(organiser, invitely, "Selects Dark or Light in")
+Rel(guest, invitely, "Reads the public page in")
+Rel(invitely, browser, "Reads the colour preference and saves the theme in")
+@enduml

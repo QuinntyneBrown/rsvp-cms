@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System Context — Adapt the public page layout to viewport width
+
+Person(guest, "Guest", "Invitee who opens the RSVP page on a phone, tablet or desktop")
+System(invitely, "Invitely", "RSVP CMS for organisers and guests")
+System_Ext(browser, "Web browser", "Renders the public page at the current viewport width")
+
+Rel(guest, invitely, "Reads the public page and replies using")
+Rel(invitely, browser, "Renders the public page in")
+@enduml

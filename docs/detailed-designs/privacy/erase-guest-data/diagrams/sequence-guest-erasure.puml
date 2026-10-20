@@ -1,0 +1,38 @@
+@startuml
+title UML sequence behaviour — Erase guest personal data on deletion and retention
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser admin app" #E0F2FE
+  participant "GuestsPage" as page
+end box
+box "Backend — API application" #D1FADF
+  participant "GuestErasureController" as ctrl
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "GuestErasureService" as svc
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Primary store" as store
+end box
+actor -> page : Erase a guest's data on request
+page -> ctrl : Request erasure for the guest
+ctrl -> svc : EraseGuest(eventId, guestId, userId)
+svc -> store : Erase name, email, reply and dietary note
+store --> svc : Erased
+svc --> ctrl : Erasure complete
+ctrl --> page : Success
+page --> actor : Guest shown as erased
+@enduml

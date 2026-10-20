@@ -1,0 +1,71 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — View, search and select guests
+
+enum ReplyStatus {
+  Waiting
+  Attending
+  Declined
+}
+
+class GuestQuery {
+  +UUID EventId
+  +string Search
+  +ReplyStatus? Filter
+  +int Page
+  +int PageSize = 50
+}
+
+class GuestSummary {
+  +UUID Id
+  +string FullName
+  +string Email
+  +string Group
+  +ReplyStatus Reply
+  +int PlusOnes
+  +DateTime LastUpdatedAt
+}
+
+class GuestListPage {
+  +IReadOnlyList<GuestSummary> Items
+  +int TotalCount
+}
+
+interface GuestListReader {
+  +ReadPage(query: GuestQuery): GuestListPage
+}
+
+class GuestReadRepository {
+  +ReadPage(query: GuestQuery): GuestListPage
+}
+
+class GuestListController {
+  +List(eventId: UUID, search: string, filter: string, page: int): GuestListResponse
+}
+
+class GuestSelectionStore {
+  +IReadOnlySet<UUID> SelectedIds
+  +Toggle(id: UUID): void
+  +SelectPage(ids: IReadOnlyList<UUID>): void
+  +Clear(): void
+}
+
+GuestListController ..> GuestQuery : builds
+GuestListController ..> GuestListReader : requests pages from
+GuestListReader ..> GuestListPage : returns
+GuestListPage "1" *-- "0..*" GuestSummary : holds
+GuestSummary --> ReplyStatus : has
+GuestReadRepository ..|> GuestListReader : implements
+GuestSelectionStore ..> GuestSummary : selects by Id
+@enduml

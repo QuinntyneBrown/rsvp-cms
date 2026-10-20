@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Create notifications for key events
+
+Person_Ext(guest, "Guest", "Replies to the invitation")
+System(invitely, "Invitely", "RSVP content management system for event invitations")
+System_Ext(email, "Email provider", "Reports bounces for invitation emails")
+Person(organiser, "Organiser", "Receives in-app notifications for the events they run")
+
+Rel(guest, invitely, "Saves a reply through", "HTTPS")
+Rel(email, invitely, "Reports bounces to", "Webhook")
+Rel(invitely, organiser, "Shows notifications to")
+@enduml

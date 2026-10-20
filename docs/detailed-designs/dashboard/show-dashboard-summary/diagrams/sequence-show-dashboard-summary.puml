@@ -1,0 +1,61 @@
+@startuml
+title UML sequence behaviour — Show the organiser dashboard summary
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "DashboardPage" as page
+  participant "SummaryTiles" as tiles
+  participant "DashboardSummaryClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "DashboardController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "DashboardSummaryService" as service
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  participant "DashboardReadRepository" as reader
+  database "Event store" as db
+end box
+
+actor -> page : Open dashboard
+page -> tiles : Render section
+tiles --> actor : Show tile placeholders
+tiles -> client : Request summary
+client -> controller : GET /dashboard/summary
+controller -> service : Get summary for caller
+service -> reader : Read totals over accessible events
+reader -> db : Aggregate invitees, attending, waiting and scheduled emails
+alt Summary loads
+  db --> reader : Totals
+  reader --> service : Totals
+  service --> controller : DashboardSummary
+  controller --> client : 200 OK
+  client --> tiles : Totals
+  tiles --> actor : "Invitees across events 167", "Attending so far 82", "Waiting for a reply 26", "Emails scheduled 5"
+else Summary fails
+  db --> reader : Failure
+  reader --> service : Failure
+  service --> controller : Failure
+  controller --> client : 500 error
+  client --> tiles : Failure
+  tiles --> actor : Error state with Try again, no stale numbers
+end
+note over page
+  Upcoming events load in a separate request, so a failed summary
+  does not block the list. Each section marks its own failure.
+end note
+@enduml

@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Send reminders to guests who have not replied
+
+Person(organiser, "Organiser", "Schedules reminders for an event")
+Person(guest, "Guest", "Receives a reminder while not yet replied")
+System(invitely, "Invitely", "RSVP content management system")
+System_Ext(mail, "Email provider", "Delivers reminders to guests")
+
+Rel(organiser, invitely, "Schedules reminders using")
+Rel(guest, invitely, "Replies to the invitation using")
+Rel(invitely, mail, "Hands over due reminders to", "<TO SUPPLY>")
+Rel(mail, guest, "Delivers reminders to")
+@enduml

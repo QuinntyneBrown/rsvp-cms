@@ -1,0 +1,59 @@
+@startuml
+title UML sequence behaviour — Discard unpublished changes
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "DiscardChangesDialog" as dialog
+  participant "PageDraftClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "PageDraftController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "PagePublisher" as publisher
+  participant "PageDraft" as draft
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Application database" as db
+end box
+
+actor -> dialog : Select Discard changes
+dialog --> actor : Ask "Discard unpublished changes?"
+alt Organiser selects Keep editing (L2-016)
+  dialog --> actor : Close the dialog, draft unchanged
+else Organiser selects Discard
+  dialog -> client : Request discard
+  client -> controller : POST discard
+  controller -> publisher : Discard(draft)
+  publisher -> db : Load published page
+  db --> publisher : Published blocks
+  publisher -> draft : ResetTo(published page)
+  alt Reset fails (L2-016)
+    draft --> publisher : Failure
+    publisher --> controller : Failed, draft unchanged
+    controller --> client : Error response
+    client --> dialog : Show the error and keep the dialog open
+  else Reset succeeds
+    draft --> publisher : Draft matches the published page
+    publisher -> db : Save draft
+    db --> publisher : Commit result
+    publisher --> controller : Discarded
+    controller --> client : Discard result
+    client --> dialog : Show status "Published"
+    dialog --> actor : Close the dialog
+  end
+end
+@enduml

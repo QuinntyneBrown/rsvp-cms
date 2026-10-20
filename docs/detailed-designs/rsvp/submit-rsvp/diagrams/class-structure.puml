@@ -1,0 +1,79 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Submit an RSVP
+
+enum ReplyChoice {
+  Attending
+  Declining
+}
+
+class RsvpReply {
+  +ReplyChoice Choice
+  +int PartySize
+  +string Meal
+  +string[] GuestNames
+  +string DietaryNote
+  +string SongRequest
+  +string Message
+}
+
+class SubmitRsvpCommand {
+  +string Token
+  +UUID SubmissionId
+  +RsvpReply Reply
+}
+
+class SubmitRsvpCommandHandler {
+  +Handle(command: SubmitRsvpCommand, now: DateTime): SubmitRsvpResult
+}
+
+class RsvpPolicy {
+  +Validate(reply: RsvpReply, places: int): FieldError[]
+}
+
+class Response {
+  +UUID ResponseId
+  +UUID GuestId
+  +UUID EventId
+  +UUID SubmissionId
+  +ReplyChoice Choice
+  +int PartySize
+  +string Meal
+  +string DietaryNote
+  +string SongRequest
+  +string Message
+  +DateTime UpdatedAt
+  +Apply(reply: RsvpReply, now: DateTime): void
+}
+
+class RsvpFieldLimits {
+  +{static} int DietaryNoteMax = 500
+  +{static} int SongRequestMax = 120
+  +{static} int MessageMax = 280
+}
+
+interface ResponseRepository {
+  +FindByGuest(guestId: UUID): Response
+  +Save(response: Response): void
+}
+
+SubmitRsvpCommandHandler ..> SubmitRsvpCommand : handles
+SubmitRsvpCommand --> RsvpReply : carries
+SubmitRsvpCommandHandler --> RsvpPolicy : validates with
+SubmitRsvpCommandHandler --> ResponseRepository : saves through
+SubmitRsvpCommandHandler ..> Response : creates
+RsvpReply --> ReplyChoice : has
+Response --> ReplyChoice : has
+RsvpPolicy ..> RsvpFieldLimits : applies
+@enduml

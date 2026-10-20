@@ -1,0 +1,29 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Enter an invitation code
+
+Person(guest, "Guest", "Invitee with an invitation code")
+Container_Boundary(rsvp, "Guest RSVP application") {
+  Component(form, "InvitationCodeForm", "<TO SUPPLY>", "Collects the code and shows field errors")
+  Component(rsvpClient, "PublicApiClient", "<TO SUPPLY>", "Typed client for the public endpoints")
+}
+Container_Boundary(publicApi, "Public API application") {
+  Component(ctrl, "InvitationCodeController", "<TO SUPPLY>", "Exposes POST /public/invitation-codes")
+}
+Container_Boundary(domain, "Domain — invitations") {
+  Component(service, "InvitationCodeService", "<TO SUPPLY>", "Normalises the code and resolves the invitation")
+  Component(code, "InvitationCode", "Value object", "Normalises a raw code into its canonical form")
+}
+Container_Boundary(data, "Data") {
+  Component(repo, "InvitationCodeRepository", "<TO SUPPLY>", "Finds the invitation record for a code")
+  ComponentDb(store, "Invitation store", "<TO SUPPLY>", "Persists invitation codes")
+}
+Rel(guest, form, "Types a code into")
+Rel(form, rsvpClient, "Passes the code to")
+Rel(rsvpClient, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, service, "Redeems the code with")
+Rel(service, code, "Normalises the raw code with")
+Rel(service, repo, "Looks up the code with")
+Rel(repo, store, "Reads", "<TO SUPPLY>")
+@enduml

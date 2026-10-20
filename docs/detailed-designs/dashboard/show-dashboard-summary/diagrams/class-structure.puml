@@ -1,0 +1,56 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Show the organiser dashboard summary
+
+enum EventStatus {
+  Draft
+  InvitesOpen
+  InvitesClosed
+}
+
+class DashboardSummary {
+  +int InviteesTotal
+  +int AttendingTotal
+  +int WaitingTotal
+  +int EmailsScheduledTotal
+}
+
+class UpcomingEvent {
+  +UUID Id
+  +string Name
+  +DateTime Date
+  +int Invitees
+  +int Attending
+  +EventStatus Status
+}
+
+class DashboardSummaryService {
+  +GetSummary(userId: UUID): DashboardSummary
+}
+
+class UpcomingEventService {
+  +GetUpcoming(userId: UUID): UpcomingEvent[]
+}
+
+class DashboardReadRepository {
+  +ReadTotals(userId: UUID): DashboardSummary
+  +ReadUpcoming(userId: UUID): UpcomingEvent[]
+}
+
+DashboardSummaryService ..> DashboardSummary : returns
+UpcomingEventService ..> UpcomingEvent : returns
+DashboardSummaryService --> DashboardReadRepository : reads through
+UpcomingEventService --> DashboardReadRepository : reads through
+UpcomingEvent --> EventStatus : has
+@enduml

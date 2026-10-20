@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Sign in as an organiser
+
+Person(organiser, "Organiser", "Signs in to manage their events")
+System(invitely, "Invitely", "RSVP content management system for organisers and guests")
+
+Rel(organiser, invitely, "Signs in to", "HTTPS")
+@enduml

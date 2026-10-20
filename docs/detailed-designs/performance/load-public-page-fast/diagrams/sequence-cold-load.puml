@@ -1,0 +1,45 @@
+@startuml
+title UML sequence behaviour — Load the public page quickly
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Guest" as guest
+box "Frontend — Guest RSVP app" #E0F2FE
+  participant "GuestPageShell" as shell
+end box
+box "Backend — API application" #D1FADF
+  participant "PublicPageController" as ctrl
+  participant "PageSnapshotCache" as cache
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "PublishedPageReader" as reader
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Snapshot store" as store
+end box
+guest -> shell : Open the public page URL
+shell -> ctrl : Request the published snapshot (same origin)
+ctrl -> cache : Look up snapshot by version identifier
+alt Cache hit
+  cache --> ctrl : Cached PublishedPageSnapshot
+else Cache miss
+  ctrl -> reader : Read the published snapshot
+  reader -> store : Load snapshot for the event
+  store --> reader : Stored snapshot
+  reader --> ctrl : PublishedPageSnapshot
+  ctrl -> cache : Store snapshot under its version identifier
+end
+ctrl --> shell : Snapshot response within the server budget of L2-075
+shell --> guest : Render the page with Largest Contentful Paint of 2.5 seconds or less (L2-075)
+@enduml

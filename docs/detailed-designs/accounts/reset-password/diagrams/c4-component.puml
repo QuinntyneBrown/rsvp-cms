@@ -1,0 +1,28 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Reset a forgotten password
+
+System_Ext(email, "Email provider", "Delivers the reset link to the organiser")
+Container_Boundary(admin, "Organiser web application") {
+  Component(forgot, "ForgotPasswordPage", "<TO SUPPLY>", "Collects the email address and shows the confirmation")
+  Component(resetPage, "ResetPasswordPage", "<TO SUPPLY>", "Shows the expired, invalid and new password states")
+}
+Container_Boundary(api, "API application") {
+  Component(endpoint, "PasswordResetEndpoint", "<TO SUPPLY>", "Exposes the reset request and reset completion endpoints")
+  Component(service, "PasswordResetService", "<TO SUPPLY>", "Issues and consumes single-use reset tokens")
+  Component(policy, "PasswordPolicy", "<TO SUPPLY>", "Checks the length and content of a new password")
+  Component(sender, "ResetEmailSender", "<TO SUPPLY>", "Builds and sends the reset email")
+  Component(sessions, "SessionService", "<TO SUPPLY>", "Ends all sessions of the account")
+}
+ComponentDb(store, "AccountAndTokenStore", "<TO SUPPLY>", "Reads and updates accounts and reset tokens")
+
+Rel(forgot, endpoint, "Requests a reset through", "JSON/HTTPS")
+Rel(resetPage, endpoint, "Validates a token and completes a reset through", "JSON/HTTPS")
+Rel(endpoint, service, "Calls")
+Rel(service, policy, "Checks new passwords with")
+Rel(service, sender, "Sends the reset email with")
+Rel(service, sessions, "Ends sessions through")
+Rel(service, store, "Reads and writes accounts and tokens in")
+Rel(sender, email, "Sends email through", "<TO SUPPLY>")
+@enduml

@@ -1,0 +1,51 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Load the public page quickly
+
+class PublicPageController {
+  +GetPublishedPage(eventId: UUID): PublishedPageSnapshot
+}
+
+class PublishedPageReader {
+  +Read(eventId: UUID): PublishedPageSnapshot
+}
+
+class PublishedPageSnapshot {
+  +UUID EventId
+  +string VersionId
+  +DateTime PublishedAt
+  +PageBlock[] Blocks
+}
+
+class PageBlock {
+  +UUID BlockId
+  +string BlockType
+  +int Position
+}
+
+interface PageSnapshotCache {
+  +TryGet(versionId: string): PublishedPageSnapshot
+  +Put(snapshot: PublishedPageSnapshot): void
+}
+
+interface PageSnapshotStore {
+  +Load(eventId: UUID): PublishedPageSnapshot
+}
+
+PublicPageController --> PublishedPageReader : reads through
+PublicPageController --> PageSnapshotCache : looks up in
+PublishedPageReader --> PageSnapshotStore : loads from
+PublishedPageSnapshot "1" *-- "0..*" PageBlock : contains
+PageSnapshotCache ..> PublishedPageSnapshot : holds
+@enduml

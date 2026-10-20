@@ -1,0 +1,22 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Edit event details
+
+Container_Boundary(admin, "Organiser app") {
+  Component(page, "EventSettingsPage", "<TO SUPPLY>", "Edits details and keeps the loaded version in src/admin/events")
+  Component(client, "EventsClient", "<TO SUPPLY>", "Sends updates in src/admin/events")
+}
+Container_Boundary(api, "API application") {
+  Component(ctrl, "EventsController", "<TO SUPPLY>", "Exposes PUT /events/{id} in src/api/events")
+  Component(service, "EventUpdateService", "<TO SUPPLY>", "Applies changes in src/domain/events")
+  Component(repo, "EventRepository", "<TO SUPPLY>", "Conditional update in src/data/events")
+  ComponentDb(db, "Event store", "<TO SUPPLY>", "Holds event records and version")
+}
+
+Rel(page, client, "Submits changes to")
+Rel(client, ctrl, "Sends PUT /events/{id} to", "HTTPS, JSON")
+Rel(ctrl, service, "Dispatches UpdateEventCommand to")
+Rel(service, repo, "Saves when the version matches through")
+Rel(repo, db, "Writes to", "<TO SUPPLY>")
+@enduml

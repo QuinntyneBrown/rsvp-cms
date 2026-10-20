@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — View, search and select guests
+
+Container_Boundary(admin, "Organiser app") {
+  Component(page, "GuestsPage", "<TO SUPPLY>", "Hosts the guest table, search, filters and selection bar")
+  Component(search, "GuestSearchField", "<TO SUPPLY>", "Applies the search text 300 ms after the last keystroke")
+  Component(selection, "GuestSelectionStore", "<TO SUPPLY>", "Keeps the selected guest identifiers across pages")
+}
+Container_Boundary(api, "Organiser API") {
+  Component(ctrl, "GuestListController", "<TO SUPPLY>", "Exposes the guest list endpoint under src/api/guests")
+  Component(query, "GuestQuery", "Domain type", "Holds the search text, reply filter and page number")
+  Component(reader, "GuestListReader", "Domain interface", "Returns one page of guests for an event")
+  ComponentDb(store, "GuestReadRepository", "<TO SUPPLY>", "Implements GuestListReader under src/data")
+}
+
+Rel(page, search, "Uses")
+Rel(page, selection, "Reads and writes selected guests in")
+Rel(page, ctrl, "Requests guest pages from", "JSON/HTTPS")
+Rel(ctrl, query, "Builds")
+Rel(ctrl, reader, "Requests a page of guests from")
+Rel(store, reader, "Implements")
+@enduml

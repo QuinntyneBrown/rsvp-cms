@@ -1,0 +1,65 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — List and mark notifications read
+
+enum NotificationKind {
+  Reply
+  Bounce
+  ReminderDue
+  Milestone
+}
+
+class Notification {
+  +UUID NotificationId
+  +UUID OrganiserId
+  +UUID EventId
+  +NotificationKind Kind
+  +string Message
+  +DateTime CreatedAt
+  +bool IsRead
+  +MarkRead(now: DateTime): void
+}
+
+class NotificationService {
+  +List(organiserId: UUID, page: int): NotificationPage
+  +MarkRead(organiserId: UUID, notificationId: UUID): void
+  +MarkAllRead(organiserId: UUID): void
+  +CountUnread(organiserId: UUID): int
+}
+
+class NotificationPage {
+  +Notification[] Items
+  +int UnreadCount
+}
+
+interface NotificationRepository {
+  +ListFor(organiserId: UUID, page: int): Notification[]
+  +Update(notification: Notification): void
+  +UpdateAllUnread(organiserId: UUID): void
+}
+
+class NotificationsController {
+  +List(page: int): HttpResult
+  +MarkRead(notificationId: UUID): HttpResult
+  +MarkAllRead(): HttpResult
+}
+
+NotificationsController --> NotificationService : calls
+NotificationService --> NotificationRepository : loads and saves through
+NotificationService ..> NotificationPage : returns
+NotificationService --> Notification : reads and changes
+NotificationPage *-- Notification : contains
+Notification --> NotificationKind : has
+NotificationRepository ..> Notification : returns
+@enduml

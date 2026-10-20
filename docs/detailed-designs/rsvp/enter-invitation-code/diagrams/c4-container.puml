@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Enter an invitation code
+
+Person(guest, "Guest", "Invitee with an invitation code")
+System_Boundary(invitely, "Invitely") {
+  Container(rsvp, "Guest RSVP application", "<TO SUPPLY>", "Public RSVP page under src/rsvp")
+  Container(publicApi, "Public API application", "<TO SUPPLY>", "Unauthenticated endpoints under src/api/public")
+  ContainerDb(db, "Invitely database", "<TO SUPPLY>", "Events, guests and invitation records under src/data")
+}
+Rel(guest, rsvp, "Uses", "HTTPS")
+Rel(rsvp, publicApi, "Submits the invitation code to", "JSON/HTTPS")
+Rel(publicApi, db, "Reads invitation records from", "<TO SUPPLY>")
+@enduml

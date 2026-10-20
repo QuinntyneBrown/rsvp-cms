@@ -1,0 +1,54 @@
+@startuml
+title UML sequence behaviour — Upload a gallery photo
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "PhotoUploadControl" as control
+end box
+box "Backend — API application" #D1FADF
+  participant "GalleryPhotosController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "GalleryPhotoPolicy" as policy
+  participant "PhotoFormatDetector" as detector
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Photo storage" as files
+  database "Application database" as db
+end box
+
+actor -> control : Choose a photo
+control -> controller : POST photo (multipart)
+controller -> policy : Check photo count and size
+alt Gallery already holds 12 photos (L2-018)
+  policy --> controller : Refused
+  controller --> control : "A gallery holds up to 12 photos"
+else Photo is larger than 5 MB (L2-018)
+  policy --> controller : Refused
+  controller --> control : "Photos must be 5 MB or smaller"
+else Content is not JPEG, PNG or WebP, or does not match its extension (L2-018)
+  controller -> detector : Detect format from content
+  detector --> controller : Unknown or mismatched format
+  controller --> control : "Use a JPEG, PNG or WebP photo"
+else Photo is valid (L2-018)
+  controller -> files : Store photo file
+  files --> controller : Storage key
+  controller -> db : Save photo record
+  db --> controller : Commit result
+  controller --> control : Created photo
+  control --> actor : Show the photo in the gallery grid
+end
+@enduml

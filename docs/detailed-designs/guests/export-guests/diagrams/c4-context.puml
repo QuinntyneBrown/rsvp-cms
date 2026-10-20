@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System Context — Export the guest list
+
+Person(organiser, "Organiser", "Downloads the invitee list of an event")
+System(cms, "RSVP CMS", "Organiser and guest applications for running event RSVPs")
+Person_Ext(spreadsheet, "Spreadsheet user", "Opens the exported file in spreadsheet software")
+
+Rel(organiser, cms, "Exports the guest list using")
+Rel(organiser, spreadsheet, "Shares the exported CSV file with")
+@enduml

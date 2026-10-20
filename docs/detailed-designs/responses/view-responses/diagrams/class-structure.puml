@@ -1,0 +1,74 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — View and filter responses
+
+enum ResponseFilter {
+  All
+  Attending
+  Declined
+  Waiting
+}
+
+enum ReplyChoice {
+  Attending
+  Declining
+}
+
+class ResponseListQuery {
+  +UUID EventId
+  +ResponseFilter Filter
+  +string Search
+  +int Page
+  +int PageSize = 50
+}
+
+class ResponseRow {
+  +string GuestName
+  +ReplyChoice Choice
+  +int PartySize
+  +string Meal
+  +string DietaryNote
+  +string Message
+  +DateTime UpdatedAt
+}
+
+class ResponseTotals {
+  +int Attending
+  +int GuestsComing
+  +Map MealCounts
+}
+
+class ResponseTotalsCalculator {
+  +Calculate(eventId: UUID): ResponseTotals
+}
+
+interface ResponseQueryRepository {
+  +QueryPage(query: ResponseListQuery): ResponseRow[]
+  +CountAll(query: ResponseListQuery): int
+}
+
+class ResponsesController {
+  +List(query: ResponseListQuery): HttpResult
+  +Totals(eventId: UUID): HttpResult
+}
+
+ResponsesController --> ResponseListQuery : builds
+ResponsesController --> ResponseTotalsCalculator : requests totals from
+ResponsesController --> ResponseQueryRepository : reads through
+ResponseListQuery --> ResponseFilter : has
+ResponseQueryRepository ..> ResponseRow : returns
+ResponseTotalsCalculator ..> ResponseTotals : returns
+ResponseTotalsCalculator --> ResponseQueryRepository : reads through
+ResponseRow --> ReplyChoice : has
+@enduml

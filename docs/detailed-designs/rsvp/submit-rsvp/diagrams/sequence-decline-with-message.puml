@@ -1,0 +1,58 @@
+@startuml
+title UML sequence behaviour — Decline with a message
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Guest" as actor
+box "Frontend — Guest RSVP app" #E0F2FE
+  participant "RsvpForm" as form
+  participant "DeclineDialog" as dialog
+  participant "PublicApiClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "RsvpController" as ctrl
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "SubmitRsvpCommandHandler" as handler
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Invitely database" as db
+end box
+
+actor -> form : Choose Regretfully declining
+form --> actor : Party size and Meal hidden, Message shown (L2-040)
+actor -> form : Send my RSVP
+form -> dialog : Open regrets dialog
+dialog --> actor : Keep my reply and Send my regrets, Message optional (L2-044)
+alt Guest chooses Keep my reply
+  dialog --> form : Dialog closed, nothing sent
+else Guest chooses Send my regrets
+  dialog -> client : Send declined reply with message
+  client -> ctrl : POST /public/invitations/{token}/rsvp
+  ctrl -> handler : SubmitRsvpCommand with Choice Declining
+  handler -> db : Save declined reply with message
+  alt Save fails
+    db --> handler : Error
+    handler --> ctrl : Save failed
+    ctrl --> client : Error response
+    client --> dialog : Message kept, Try again offered (L2-044)
+  else Save succeeds
+    db --> handler : Saved
+    handler --> ctrl : Saved reply
+    ctrl --> client : Saved reply
+    client --> dialog : Dialog closes
+    dialog --> actor : Toast "Your regrets are sent"
+  end
+end
+@enduml

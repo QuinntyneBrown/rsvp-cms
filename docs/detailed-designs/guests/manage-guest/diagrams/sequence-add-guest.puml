@@ -1,0 +1,54 @@
+@startuml
+title UML sequence behaviour — Add a guest
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "AddGuestDialog" as dialog
+end box
+box "Backend — API application" #D1FADF
+  participant "GuestController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "GuestRoster" as roster
+  participant "Guest" as guest
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Application database" as db
+end box
+
+actor -> dialog : Enter Full name, email, group and plus-ones
+dialog -> dialog : Apply GuestFormRules (L2-021)
+alt Name is empty or too long, or email is malformed (L2-021)
+  dialog --> actor : Show field error and add no guest
+else Values pass the form rules
+  dialog -> controller : POST guest
+  controller -> roster : Add(eventId, candidate)
+  roster -> db : Check email in this event
+  db --> roster : Existence result
+  alt Email is already on the list (L2-021)
+    roster --> controller : Refused
+    controller --> dialog : Field error "This email is already on the list"
+    dialog --> actor : Keep the values and show the field error
+  else Email is new
+    roster -> guest : Create with status Waiting
+    roster -> db : Insert guest
+    db --> roster : Commit result
+    roster --> controller : Created guest
+    controller --> dialog : Created guest
+    dialog --> actor : Close the dialog and show a toast
+  end
+end
+@enduml

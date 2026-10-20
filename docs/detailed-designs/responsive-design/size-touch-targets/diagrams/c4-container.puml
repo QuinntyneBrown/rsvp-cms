@@ -1,0 +1,20 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Size touch targets and show touch actions
+
+Person(organiser, "Organiser", "Operates row actions on a touch screen")
+Person(guest, "Guest", "Operates RSVP controls on a touch screen")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser web application", "<TO SUPPLY>", "Organiser tables and row actions under src/admin")
+  Container(rsvp, "Guest RSVP web application", "<TO SUPPLY>", "Public page controls under src/rsvp")
+  Container(shared, "Shared UI library", "<TO SUPPLY>", "Controls, input detection and row action components under src/shared/ui")
+}
+System_Ext(browser, "Web browser", "Reports the primary pointer type")
+
+Rel(organiser, admin, "Uses", "HTTPS")
+Rel(guest, rsvp, "Uses", "HTTPS")
+Rel(admin, shared, "Imports controls and row actions from")
+Rel(rsvp, shared, "Imports controls from")
+Rel(shared, browser, "Reads the pointer type from")
+@enduml

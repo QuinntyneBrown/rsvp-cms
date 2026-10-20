@@ -1,0 +1,20 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Ensure contrast and select a theme
+
+Person(organiser, "Organiser", "Selects the theme in the organiser application")
+Person(guest, "Guest", "Reads the public page")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser web application", "<TO SUPPLY>", "Organiser shell and theme selector under src/admin")
+  Container(rsvp, "Guest RSVP web application", "<TO SUPPLY>", "Public page under src/rsvp")
+  Container(shared, "Shared UI library", "<TO SUPPLY>", "Colour tokens, theme control and contrast rules under src/shared/theme")
+}
+System_Ext(browser, "Web browser", "Provides the colour scheme preference and local storage")
+
+Rel(organiser, admin, "Uses", "HTTPS")
+Rel(guest, rsvp, "Uses", "HTTPS")
+Rel(admin, shared, "Imports the theme controller and tokens from")
+Rel(rsvp, shared, "Imports the theme controller and tokens from")
+Rel(shared, browser, "Reads the colour scheme from and saves the theme to")
+@enduml

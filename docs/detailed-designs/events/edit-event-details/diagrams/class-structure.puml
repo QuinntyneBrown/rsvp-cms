@@ -1,0 +1,54 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Edit event details
+
+class UpdateEventCommand {
+  +UUID EventId
+  +UUID OrganiserId
+  +long ExpectedVersion
+  +string Name
+  +string Type
+  +Date Date
+  +Time StartTime
+  +string Venue
+}
+
+class Event {
+  +UUID Id
+  +string Name
+  +string Type
+  +DateTime StartsAt
+  +string Venue
+  +long Version
+  +ApplyDetails(command: UpdateEventCommand): void
+}
+
+class EventVersionConflict {
+  +long StoredVersion
+  +long ExpectedVersion
+}
+
+interface IEventRepository {
+  +UpdateIfVersion(event: Event, expectedVersion: long): bool
+}
+
+class EventUpdateService {
+  +Update(command: UpdateEventCommand): Result<Event>
+}
+
+EventUpdateService ..> UpdateEventCommand : handles
+EventUpdateService --> Event : changes
+EventUpdateService ..> EventVersionConflict : returns on mismatch
+EventUpdateService --> IEventRepository : saves through
+@enduml

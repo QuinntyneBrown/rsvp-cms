@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — View and filter responses
+
+Person(organiser, "Organiser", "Event owner")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser admin application", "<TO SUPPLY>", "Responses page under src/admin")
+  Container(api, "Organiser API application", "<TO SUPPLY>", "Responses endpoints under src/api/responses")
+  ContainerDb(db, "Invitely database", "<TO SUPPLY>", "Replies, guests and events")
+}
+Rel(organiser, admin, "Uses", "HTTPS")
+Rel(admin, api, "Requests replies and totals from", "JSON/HTTPS")
+Rel(api, db, "Queries replies and totals from", "<TO SUPPLY>")
+@enduml

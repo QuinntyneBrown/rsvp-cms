@@ -1,0 +1,41 @@
+@startuml
+title UML sequence behaviour — Size touch targets and show touch actions
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "GuestTable" as table
+  participant "RowActionBar" as bar
+end box
+box "Frontend — Shared UI library" #E0F2FE
+  participant "PointerCapabilityDetector" as detector
+  participant "ActionVisibilityPolicy" as policy
+  participant "ControlHitArea" as hitArea
+end box
+actor -> table : Display the guest list
+table -> bar : Render actions for a row
+bar -> detector : PrimaryPointer()
+detector --> bar : Coarse
+bar -> policy : VisibilityFor(Coarse)
+policy --> bar : Visible (L2-084 criterion 2)
+bar -> hitArea : MeetsMinimum(width, height) for each action
+hitArea --> bar : 44 by 44 CSS pixels or larger (L2-084 criterion 1)
+bar --> table : Actions shown without hover or focus
+table --> actor : Row actions are tappable
+alt Primary pointer is fine
+  bar -> policy : VisibilityFor(Fine)
+  policy --> bar : RevealOnHover
+end
+@enduml

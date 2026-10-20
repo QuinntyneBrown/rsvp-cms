@@ -1,0 +1,70 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Manage account settings
+
+enum ChangePasswordResult {
+  Changed
+  CurrentPasswordWrong
+  SameAsCurrent
+  PolicyFailed
+}
+
+class NotificationPreferences {
+  +bool EmailWhenReplied
+  +bool DailySummary
+  +bool WarnBeforeInvitesClose
+  +{static} Defaults(): NotificationPreferences
+}
+
+class OrganiserAccount {
+  +UUID Id
+  +string Name
+  +string Email
+  +string PasswordHash
+  +DateTime? PasswordChangedAt
+  +NotificationPreferences Preferences
+}
+
+class EmailChangeRequest {
+  +UUID Id
+  +UUID AccountId
+  +string NewEmail
+  +string TokenHash
+  +DateTime ExpiresAt
+  +DateTime? ConfirmedAt
+}
+
+class AccountSettingsService {
+  +UpdateProfile(accountId: UUID, name: string): void
+  +UpdatePreferences(accountId: UUID, preferences: NotificationPreferences): void
+  +RequestEmailChange(accountId: UUID, newEmail: string): void
+  +ConfirmEmailChange(token: string, at: DateTime): bool
+}
+
+class ChangePasswordService {
+  +Change(accountId: UUID, currentPassword: string, newPassword: string, currentSessionId: UUID): ChangePasswordResult
+}
+
+class PasswordPolicy {
+  +int MinimumLength
+  +Check(password: string, email: string): bool
+}
+
+OrganiserAccount *-- NotificationPreferences : has
+AccountSettingsService --> OrganiserAccount : updates
+AccountSettingsService ..> EmailChangeRequest : creates
+ChangePasswordService --> OrganiserAccount : updates
+ChangePasswordService --> PasswordPolicy : checks with
+ChangePasswordService ..> ChangePasswordResult : returns
+@enduml

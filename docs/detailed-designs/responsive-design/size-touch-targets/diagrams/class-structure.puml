@@ -1,0 +1,57 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Size touch targets and show touch actions
+
+enum PointerType {
+  Fine
+  Coarse
+}
+
+enum ActionVisibility {
+  Visible
+  RevealOnHover
+}
+
+class PointerCapabilityDetector {
+  +PointerType PrimaryPointer()
+  +bool IsTouchDevice()
+}
+
+class ActionVisibilityPolicy {
+  +ActionVisibility VisibilityFor(pointer: PointerType)
+}
+
+class ControlHitArea {
+  +int MinimumSizePx
+  +bool MeetsMinimum(widthPx: int, heightPx: int)
+}
+
+class RowActionBar {
+  +UUID RowId
+  +ActionVisibility Visibility
+  +void Render(actions: RowAction[])
+}
+
+class RowAction {
+  +string Label
+  +bool IsDestructive
+}
+
+RowActionBar --> PointerCapabilityDetector : reads pointer from
+RowActionBar ..> ActionVisibilityPolicy : asks for visibility
+RowActionBar *-- "0..*" RowAction : shows
+RowActionBar --> ControlHitArea : sizes each action with
+ActionVisibilityPolicy ..> PointerType : reads
+ActionVisibilityPolicy ..> ActionVisibility : returns
+@enduml

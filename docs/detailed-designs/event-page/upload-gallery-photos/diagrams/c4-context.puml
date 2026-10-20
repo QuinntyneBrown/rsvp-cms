@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System Context — Upload gallery photos
+
+Person(organiser, "Organiser", "Uploads photos to the gallery block")
+System(cms, "RSVP CMS", "Organiser and guest applications for running event RSVPs")
+Person_Ext(guest, "Guest", "Views the gallery on the public page")
+
+Rel(organiser, cms, "Uploads and removes gallery photos using")
+Rel(guest, cms, "Views stored gallery photos through")
+@enduml

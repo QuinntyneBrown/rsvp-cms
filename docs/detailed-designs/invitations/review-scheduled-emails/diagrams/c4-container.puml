@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Review scheduled and sent emails
+
+Person(organiser, "Organiser", "Reviews scheduled emails")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser app", "<TO SUPPLY>", "Organiser UI under src/admin")
+  Container(api, "API application", "<TO SUPPLY>", "Endpoints under src/api and query logic under src/domain")
+  ContainerDb(db, "Application database", "<TO SUPPLY>", "Stores scheduled emails")
+}
+
+Rel(organiser, admin, "Uses", "HTTPS")
+Rel(admin, api, "Requests the list and previews from", "JSON/HTTPS")
+Rel(api, db, "Reads", "<TO SUPPLY>")
+@enduml

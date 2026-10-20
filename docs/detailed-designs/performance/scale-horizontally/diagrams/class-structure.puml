@@ -1,0 +1,54 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Scale horizontally by adding instances
+
+class Session {
+  +UUID Id
+  +UUID UserId
+  +DateTime ExpiresAt
+  +DateTime LastSeenAt
+  +bool IsEnded
+}
+
+interface SessionStore {
+  +Get(sessionId: UUID): Session
+  +Save(session: Session): void
+  +End(sessionId: UUID): void
+}
+
+class SessionAuthenticator {
+  +Authenticate(cookie: string): UserContext
+}
+
+class ApplicationConfiguration {
+  +string SessionStoreLocation
+  +string PhotoStoreLocation
+  +Load(environment: IDictionary): void
+}
+
+interface PhotoStore {
+  +Write(photoId: UUID, content: byte[]): void
+  +Read(photoId: UUID): byte[]
+}
+
+class PhotoStorageAdapter {
+  +Store(photoId: UUID, content: byte[]): void
+}
+
+SessionAuthenticator --> SessionStore : reads sessions from
+SessionAuthenticator ..> Session : resolves
+SessionStore ..> Session : holds
+ApplicationConfiguration ..> SessionAuthenticator : configures
+PhotoStorageAdapter --> PhotoStore : writes through
+@enduml

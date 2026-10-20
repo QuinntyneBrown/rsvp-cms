@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Change an RSVP before the window closes
+
+Person(guest, "Guest", "Invitee who changes a saved reply before the invite window closes")
+System(invitely, "Invitely", "RSVP content management system for event invitations")
+Person(organiser, "Organiser", "Sees the updated counts in the responses")
+
+Rel(guest, invitely, "Changes a saved reply on the public RSVP page", "HTTPS")
+Rel(organiser, invitely, "Reads the updated counts from")
+@enduml

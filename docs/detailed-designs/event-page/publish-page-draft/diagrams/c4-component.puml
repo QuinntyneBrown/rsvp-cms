@@ -1,0 +1,29 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Save, publish and discard page drafts
+
+Container_Boundary(admin, "Organiser app") {
+  Component(status, "DraftStatusBar", "<TO SUPPLY>", "Shows the Draft saved and Published status texts")
+  Component(autosave, "DraftAutosave", "<TO SUPPLY>", "Saves the draft 2 seconds after the last keystroke")
+  Component(guard, "UnsavedChangesGuard", "<TO SUPPLY>", "Warns before the organiser leaves with unpublished changes")
+  Component(discard, "DiscardChangesDialog", "<TO SUPPLY>", "Asks the organiser to confirm the discard")
+}
+Container_Boundary(api, "Organiser API") {
+  Component(ctrl, "PageDraftController", "<TO SUPPLY>", "Exposes the draft, publish and discard endpoints under src/api/events/page-draft")
+  Component(publisher, "PagePublisher", "Domain service", "Copies a valid draft to the published page and resets the draft")
+  Component(draft, "PageDraft", "Domain aggregate", "Holds the unpublished blocks")
+  ComponentDb(drafts, "PageDraftRepository", "<TO SUPPLY>", "Loads and saves page drafts under src/data")
+  ComponentDb(published, "PublishedPageRepository", "<TO SUPPLY>", "Loads and saves the published page under src/data")
+}
+Container(rsvp, "Guest RSVP app", "<TO SUPPLY>", "Serves the public page under src/rsvp")
+
+Rel(status, ctrl, "Reads draft state from", "JSON/HTTPS")
+Rel(autosave, ctrl, "Saves the draft through", "JSON/HTTPS")
+Rel(discard, ctrl, "Requests the discard from", "JSON/HTTPS")
+Rel(ctrl, publisher, "Requests publish or discard from")
+Rel(publisher, draft, "Validates and resets")
+Rel(ctrl, drafts, "Saves the draft through")
+Rel(publisher, published, "Writes the published page through")
+Rel(rsvp, published, "Reads the published page from")
+@enduml

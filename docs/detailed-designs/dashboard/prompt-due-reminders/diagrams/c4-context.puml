@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Prompt the organiser about due reminders
+
+Person(organiser, "Organiser", "Signed-in user who owns events")
+System(invitely, "Invitely", "RSVP content management system for organisers and guests")
+
+Rel(organiser, invitely, "Reviews due reminders in", "HTTPS")
+@enduml

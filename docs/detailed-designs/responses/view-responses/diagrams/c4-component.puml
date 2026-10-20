@@ -1,0 +1,32 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — View and filter responses
+
+Person(organiser, "Organiser", "Event owner")
+Container_Boundary(admin, "Organiser admin application") {
+  Component(page, "ResponsesPage", "<TO SUPPLY>", "Shows the table, totals, filter, search and states")
+  Component(totalsStrip, "ResponseTotalsStrip", "<TO SUPPLY>", "Shows Attending, Guests coming and meal counts")
+  Component(client, "ResponsesApiClient", "<TO SUPPLY>", "Typed client for the responses endpoints")
+}
+Container_Boundary(api, "Organiser API application") {
+  Component(ctrl, "ResponsesController", "<TO SUPPLY>", "Exposes the responses list and totals endpoints")
+}
+Container_Boundary(domain, "Domain — responses") {
+  Component(query, "ResponseListQuery", "Value object", "Holds the event, filter, search term and page")
+  Component(totals, "ResponseTotalsCalculator", "<TO SUPPLY>", "Computes attending, guest and meal totals")
+}
+Container_Boundary(data, "Data") {
+  Component(repo, "ResponseQueryRepository", "<TO SUPPLY>", "Returns pages of replies and the totals")
+}
+ComponentDb(db, "Invitely database", "<TO SUPPLY>", "Persists replies, guests and events")
+Rel(organiser, page, "Reviews replies in")
+Rel(page, totalsStrip, "Shows totals in")
+Rel(page, client, "Requests data with")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, query, "Builds")
+Rel(ctrl, totals, "Requests totals from")
+Rel(ctrl, repo, "Reads pages through")
+Rel(totals, repo, "Reads replies for totals through")
+Rel(repo, db, "Queries", "<TO SUPPLY>")
+@enduml

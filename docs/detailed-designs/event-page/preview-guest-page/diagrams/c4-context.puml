@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System Context — Preview the page as a guest
+
+Person(organiser, "Organiser", "Checks the page before publishing")
+System(cms, "RSVP CMS", "Organiser and guest applications for running event RSVPs")
+Person_Ext(guest, "Guest", "Reads the published public page")
+
+Rel(organiser, cms, "Previews the unpublished draft using")
+Rel(guest, cms, "Reads only the published page from")
+@enduml

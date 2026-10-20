@@ -1,0 +1,29 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Add, edit and remove guests
+
+Container_Boundary(admin, "Organiser app") {
+  Component(addDlg, "AddGuestDialog", "<TO SUPPLY>", "Collects a new guest and shows field errors")
+  Component(editDlg, "EditGuestDialog", "<TO SUPPLY>", "Changes a guest's details, group and places")
+  Component(removeDlg, "RemoveGuestsDialog", "<TO SUPPLY>", "Confirms the removal of one or many guests")
+  Component(rules, "GuestFormRules", "<TO SUPPLY>", "Checks name length, email format and the 0 to 9 plus-ones range before submit")
+}
+Container_Boundary(api, "Organiser API") {
+  Component(ctrl, "GuestController", "<TO SUPPLY>", "Exposes the add, update and remove endpoints under src/api/guests")
+  Component(roster, "GuestRoster", "Domain service", "Enforces unique emails per event and the confirmed-places rule")
+  Component(guest, "Guest", "Domain entity", "Holds one invitee and changes its details")
+  ComponentDb(guests, "GuestRepository", "<TO SUPPLY>", "Saves guests under src/data")
+}
+System_Ext(queue, "Scheduled email queue", "Holds pending reminders")
+
+Rel(addDlg, rules, "Validates with")
+Rel(editDlg, rules, "Validates with")
+Rel(removeDlg, ctrl, "Requests removal from", "JSON/HTTPS")
+Rel(addDlg, ctrl, "Requests the add from", "JSON/HTTPS")
+Rel(editDlg, ctrl, "Requests the update from", "JSON/HTTPS")
+Rel(ctrl, roster, "Applies changes through")
+Rel(roster, guest, "Adds, updates and removes")
+Rel(roster, guests, "Loads and saves through")
+Rel(ctrl, queue, "Cancels pending reminders in", "<TO SUPPLY>")
+@enduml

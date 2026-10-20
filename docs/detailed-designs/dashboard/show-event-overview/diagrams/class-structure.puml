@@ -1,0 +1,60 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Show the event overview
+
+enum EventStatus {
+  Draft
+  InvitesOpen
+  InvitesClosed
+}
+
+class ReplyProgress {
+  +int Invitees
+  +int Attending
+  +int AttendingPercentage()
+}
+
+class LatestReply {
+  +string GuestName
+  +string Reply
+  +DateTime UpdatedAtUtc
+}
+
+class EventOverview {
+  +UUID EventId
+  +EventStatus Status
+  +DateTime InvitesOpenAtUtc
+  +DateTime InvitesCloseAtUtc
+  +int Invitees
+  +int Attending
+  +int Declined
+  +int Waiting
+  +ReplyProgress Progress
+  +LatestReply[] LatestReplies
+}
+
+class EventOverviewService {
+  +GetOverview(eventId: UUID): EventOverview
+}
+
+class EventOverviewReader {
+  +ReadFigures(eventId: UUID): EventOverview
+}
+
+EventOverviewService ..> EventOverview : returns
+EventOverviewService --> EventOverviewReader : reads through
+EventOverview "1" *-- "1" ReplyProgress : contains
+EventOverview "1" *-- "0..5" LatestReply : lists
+EventOverview --> EventStatus : has
+@enduml

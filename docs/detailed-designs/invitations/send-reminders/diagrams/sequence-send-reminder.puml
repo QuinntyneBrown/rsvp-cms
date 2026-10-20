@@ -1,0 +1,45 @@
+@startuml
+title Sequence — Send reminders to guests who have not replied
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+box "Backend — Application and domain" #ECFDF3
+  participant "Dispatcher" as dispatcher
+  participant "ReminderDispatchStep" as step
+  participant "ReminderAudienceResolver" as resolver
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Scheduled email store" as db
+  database "Guest reply store" as replies
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  participant "Delivery pipeline" as pipeline
+end box
+
+dispatcher -> db : Read reminders due now
+db --> dispatcher : Pending reminders
+loop Each due reminder
+  dispatcher -> step : Execute for reminder
+  step -> resolver : Resolve recipients at send time
+  resolver -> replies : Read reply status of event guests
+  replies --> resolver : Guests with status Waiting
+  resolver -> db : Read bounce flags
+  db --> resolver : Guests not flagged as bounced
+  resolver --> step : Recipients under L2-032 criterion 1
+  step -> db : Update reminder recipients
+  db --> step : Saved
+  step --> dispatcher : Recipients to send
+  dispatcher -> pipeline : Send to recipients
+end
+@enduml

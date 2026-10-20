@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Adapt the public page layout to viewport width
+
+Person(guest, "Guest", "Reads the public page on any viewport from 360 px to 1920 px")
+System_Boundary(invitely, "Invitely") {
+  Container(rsvp, "Guest RSVP web application", "<TO SUPPLY>", "Public RSVP page under src/rsvp")
+  Container(shared, "Shared UI library", "<TO SUPPLY>", "Breakpoints and viewport band resolution under src/shared")
+}
+System_Ext(browser, "Web browser", "Reports the viewport width and applies layout rules")
+
+Rel(guest, rsvp, "Opens the page using", "HTTPS")
+Rel(rsvp, shared, "Imports breakpoints and viewport band resolution from")
+Rel(rsvp, browser, "Lays out the page in")
+@enduml

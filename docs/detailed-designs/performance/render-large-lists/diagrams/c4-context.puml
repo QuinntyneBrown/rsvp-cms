@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Render large lists within limits
+
+Person(organiser, "Organiser", "Browses and pages through a guest list of up to 2,000 guests")
+System(rsvp, "Invitely RSVP CMS", "Serves the Guests page and its API")
+
+Rel(organiser, rsvp, "Scrolls and pages through the guest list using", "HTTPS")
+@enduml

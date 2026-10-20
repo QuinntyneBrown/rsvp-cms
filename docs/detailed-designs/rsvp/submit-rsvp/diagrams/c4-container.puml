@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Submit an RSVP
+
+Person(guest, "Guest", "Invitee with a personal link or invitation code")
+System_Boundary(invitely, "Invitely") {
+  Container(rsvp, "Guest RSVP application", "<TO SUPPLY>", "Public RSVP form under src/rsvp")
+  Container(publicApi, "Public API application", "<TO SUPPLY>", "RSVP endpoint under src/api/public")
+  ContainerDb(db, "Invitely database", "<TO SUPPLY>", "Replies, guests and events")
+}
+Rel(guest, rsvp, "Fills in and sends the RSVP in", "HTTPS")
+Rel(rsvp, publicApi, "Posts the reply to", "JSON/HTTPS")
+Rel(publicApi, db, "Reads the invitation and writes the reply to", "<TO SUPPLY>")
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Ensure contrast and select a theme
+
+Person(organiser, "Organiser", "Selects Dark or Light")
+Container_Boundary(shared, "Shared UI library") {
+  Component(tokens, "ThemeTokens", "<TO SUPPLY>", "Holds the colour tokens for the Light and Dark themes")
+  Component(controller, "ThemeController", "<TO SUPPLY>", "Resolves the active theme and applies its tokens to the page")
+  Component(colourQuery, "ColourSchemeQuery", "<TO SUPPLY>", "Reads whether the operating system prefers a dark colour scheme")
+  Component(store, "ThemePreferenceStore", "<TO SUPPLY>", "Reads and writes the saved theme and reports when storage is unavailable")
+  Component(contrast, "ContrastRatioCalculator", "<TO SUPPLY>", "Computes the contrast ratio of a foreground and background colour")
+}
+Container_Boundary(admin, "Organiser web application") {
+  Component(selector, "ThemeSelectorControl", "<TO SUPPLY>", "Offers Dark and Light in the organiser shell")
+}
+System_Ext(storage, "Browser local storage", "Holds the saved theme for this browser")
+
+Rel(organiser, selector, "Selects a theme with")
+Rel(selector, controller, "Passes the selected theme to")
+Rel(controller, tokens, "Reads the palette for the active theme from")
+Rel(controller, colourQuery, "Reads the operating system preference from")
+Rel(controller, store, "Loads and saves the choice with")
+Rel(store, storage, "Reads and writes")
+Rel(contrast, tokens, "Verifies the contrast of every text and state pair in")
+@enduml

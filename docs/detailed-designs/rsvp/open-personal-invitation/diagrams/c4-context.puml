@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Open a personal invitation link
+
+Person(guest, "Guest", "Invitee who opens a personal link from the invitation email")
+System(invitely, "Invitely", "RSVP content management system for event invitations")
+System_Ext(mail, "Email provider", "Delivers the invitation email that contains the personal link")
+
+Rel(mail, guest, "Delivers the invitation email to")
+Rel(guest, invitely, "Opens the personal link in a browser", "HTTPS")
+@enduml

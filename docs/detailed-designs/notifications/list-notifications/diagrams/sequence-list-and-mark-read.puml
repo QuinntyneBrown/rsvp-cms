@@ -1,0 +1,82 @@
+@startuml
+title UML sequence behaviour — List and mark notifications read
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "NotificationsPage" as page
+  participant "NotificationCountBadge" as badge
+  participant "NotificationsApiClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "NotificationsController" as ctrl
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "NotificationService" as service
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Invitely database" as db
+end box
+
+actor -> page : Open Notifications
+page -> client : List notifications
+client -> ctrl : GET /notifications
+ctrl -> service : List(organiser)
+service -> db : Read notifications and unread count
+alt Request fails
+  db --> service : Error
+  service --> ctrl : Error
+  ctrl --> client : Error response
+  client --> page : Error state with Try again (L2-055)
+else Request succeeds
+  db --> service : Notifications
+  service --> ctrl : Page with unread count
+  ctrl --> client : Notifications
+  alt No notifications
+    client --> page : Empty state (L2-055)
+  else Notifications exist
+    client --> page : Message, relative time and unread marker for each, heading "N unread" (L2-055)
+  end
+end
+
+actor -> page : Select Mark read on an unread notification
+page -> client : Mark notification read
+client -> ctrl : POST /notifications/{id}/read
+ctrl -> service : MarkRead(organiser, id)
+service -> db : Save read state
+alt Save fails
+  db --> service : Error
+  service --> ctrl : Error
+  ctrl --> client : Error response
+  client --> page : Notification keeps its unread state and an error is shown (L2-057)
+else Save succeeds
+  db --> service : Saved
+  service --> ctrl : Done
+  ctrl --> client : Done
+  client --> page : Row marked read
+  page -> badge : Decrease the count by one (L2-057)
+end
+
+actor -> page : Select Mark all as read
+page -> client : Mark all read
+client -> ctrl : POST /notifications/read-all
+ctrl -> service : MarkAllRead(organiser)
+service -> db : Save read state for all unread
+db --> service : Saved
+service --> ctrl : Done
+ctrl --> client : Done
+client --> page : All rows marked read
+page -> badge : Show no count (L2-057)
+@enduml

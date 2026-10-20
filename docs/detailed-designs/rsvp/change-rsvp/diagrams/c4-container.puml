@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Change an RSVP before the window closes
+
+Person(guest, "Guest", "Invitee with a saved reply")
+System_Boundary(invitely, "Invitely") {
+  Container(rsvp, "Guest RSVP application", "<TO SUPPLY>", "Public RSVP page under src/rsvp")
+  Container(publicApi, "Public API application", "<TO SUPPLY>", "RSVP endpoints under src/api/public")
+  ContainerDb(db, "Invitely database", "<TO SUPPLY>", "Saved replies, guests and events")
+}
+Rel(guest, rsvp, "Changes the reply in", "HTTPS")
+Rel(rsvp, publicApi, "Sends the changed reply to", "JSON/HTTPS")
+Rel(publicApi, db, "Reads and replaces the saved reply in", "<TO SUPPLY>")
+@enduml

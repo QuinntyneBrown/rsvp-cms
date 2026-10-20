@@ -1,0 +1,22 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Compose the public page from blocks
+
+Container_Boundary(admin, "Organiser app") {
+  Component(editor, "PageBlockEditor", "<TO SUPPLY>", "Shows the outline, the block picker and the block fields")
+  Component(catalogue, "PageBlockCatalogue", "<TO SUPPLY>", "Lists the eight block types with descriptions under src/shared/page-blocks")
+}
+Container_Boundary(api, "Organiser API") {
+  Component(ctrl, "PageBlocksController", "<TO SUPPLY>", "Exposes the block endpoints under src/api/events/page-blocks")
+  Component(draft, "PageDraft", "Domain aggregate", "Owns the ordered blocks and enforces the 12-block limit")
+  Component(rules, "BlockFieldRules", "Domain rules", "Validates typed block fields")
+  ComponentDb(store, "PageDraftRepository", "<TO SUPPLY>", "Loads and saves page drafts under src/data")
+}
+
+Rel(editor, catalogue, "Lists block types from")
+Rel(editor, ctrl, "Sends block commands to", "JSON/HTTPS")
+Rel(ctrl, draft, "Applies add, move, update and remove commands to")
+Rel(draft, rules, "Validates block fields with")
+Rel(ctrl, store, "Loads and saves the draft through")
+@enduml

@@ -1,0 +1,49 @@
+@startuml
+title UML sequence behaviour — Enter an invitation code
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Guest" as actor
+box "Frontend — Guest RSVP app" #E0F2FE
+  participant "InvitationCodeForm" as form
+end box
+box "Backend — API application" #D1FADF
+  participant "InvitationCodeController" as ctrl
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "InvitationCodeService" as service
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Invitation store" as db
+end box
+
+actor -> form : Submit code
+alt Code field is empty
+  form --> actor : Field error "Enter your invitation code" (L2-037)
+else Code is present
+  form -> ctrl : POST /public/invitation-codes
+  ctrl -> service : Redeem(raw code)
+  service -> service : Normalise code, for example MAYA-7K2Q from lower case with spaces (L2-037)
+  service -> db : Find invitation record
+  db --> service : Record or none
+  alt Unknown or expired code
+    service --> ctrl : Rejected
+    ctrl --> form : Same message "This invitation link doesn't work" (L2-037)
+  else Active code
+    service --> ctrl : Accepted with invitation
+    ctrl --> form : Invitation page location
+    form --> actor : Open the invitation page
+  end
+end
+@enduml

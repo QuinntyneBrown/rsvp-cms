@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — View, search and select guests
+
+Person(organiser, "Organiser", "Views the guest list")
+System_Boundary(cms, "RSVP CMS") {
+  Container(admin, "Organiser app", "<TO SUPPLY>", "Guests page under src/admin")
+  Container(api, "Organiser API", "<TO SUPPLY>", "Guest list endpoint under src/api/guests")
+  ContainerDb(db, "Application database", "<TO SUPPLY>", "Stores guests and replies under src/data")
+}
+
+Rel(organiser, admin, "Views and searches guests using", "HTTPS")
+Rel(admin, api, "Requests pages of guests from", "JSON/HTTPS")
+Rel(api, db, "Reads guests from", "<TO SUPPLY>")
+@enduml

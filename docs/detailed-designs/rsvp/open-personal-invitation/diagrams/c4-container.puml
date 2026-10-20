@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Open a personal invitation link
+
+Person(guest, "Guest", "Invitee with a personal link")
+System_Boundary(invitely, "Invitely") {
+  Container(rsvp, "Guest RSVP application", "<TO SUPPLY>", "Public invitation page under src/rsvp")
+  Container(publicApi, "Public API application", "<TO SUPPLY>", "Unauthenticated endpoints under src/api/public")
+  ContainerDb(db, "Invitely database", "<TO SUPPLY>", "Events, guests, invitation links and published pages")
+}
+Rel(guest, rsvp, "Opens the personal link in", "HTTPS")
+Rel(rsvp, publicApi, "Requests the invitation for the token from", "JSON/HTTPS")
+Rel(publicApi, db, "Reads links, events and published content from", "<TO SUPPLY>")
+@enduml

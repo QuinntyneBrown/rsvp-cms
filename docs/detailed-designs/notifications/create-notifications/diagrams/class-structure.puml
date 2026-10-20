@@ -1,0 +1,85 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Create notifications for key events
+
+enum NotificationKind {
+  Reply
+  Bounce
+  ReminderDue
+  Milestone
+}
+
+class NotificationDraft {
+  +UUID OrganiserId
+  +UUID EventId
+  +NotificationKind Kind
+  +string Message
+  +string DedupeKey
+}
+
+class NotificationFactory {
+  +ForReply(guestName: string, choice: string, eventName: string, submissionId: UUID): NotificationDraft
+  +ForBounce(guestName: string, eventName: string, bounceId: UUID): NotificationDraft
+  +ForReminderDue(reminderId: UUID, eventName: string, dueAt: DateTime): NotificationDraft
+  +ForMilestone(eventId: UUID, milestone: int): NotificationDraft
+}
+
+class ReplyNotificationTrigger {
+  +OnReplySaved(reply: ReplySavedEvent): void
+}
+
+class BounceNotificationTrigger {
+  +OnBounceProcessed(bounce: BounceProcessedEvent): void
+}
+
+class ReminderDueScanner {
+  +Run(now: DateTime): int
+}
+
+class AttendanceMilestoneChecker {
+  +Check(eventId: UUID, attendingCount: int): int[]
+}
+
+interface NotificationRepository {
+  +TryCreate(draft: NotificationDraft): bool
+}
+
+interface MilestoneRepository {
+  +TryRecord(eventId: UUID, milestone: int): bool
+}
+
+interface ReminderRepository {
+  +FindDueWithin(now: DateTime, window: int): Reminder[]
+}
+
+class Reminder {
+  +UUID ReminderId
+  +UUID EventId
+  +DateTime DueAt
+}
+
+ReplyNotificationTrigger --> NotificationFactory : builds with
+BounceNotificationTrigger --> NotificationFactory : builds with
+ReminderDueScanner --> NotificationFactory : builds with
+AttendanceMilestoneChecker --> NotificationFactory : builds with
+ReplyNotificationTrigger --> NotificationRepository : saves through
+BounceNotificationTrigger --> NotificationRepository : saves through
+ReminderDueScanner --> NotificationRepository : saves through
+ReminderDueScanner --> ReminderRepository : reads through
+AttendanceMilestoneChecker --> MilestoneRepository : records through
+AttendanceMilestoneChecker --> NotificationRepository : saves through
+NotificationFactory ..> NotificationDraft : returns
+NotificationDraft --> NotificationKind : has
+ReminderRepository ..> Reminder : returns
+@enduml

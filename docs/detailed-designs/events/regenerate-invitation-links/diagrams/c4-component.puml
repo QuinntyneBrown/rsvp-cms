@@ -1,0 +1,22 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Regenerate invitation links
+
+Container_Boundary(admin, "Organiser app") {
+  Component(dialog, "RegenerateLinksDialog", "<TO SUPPLY>", "Confirms regeneration in src/admin/events")
+  Component(client, "InvitationLinksClient", "<TO SUPPLY>", "Sends regeneration requests in src/admin/events")
+}
+Container_Boundary(api, "API application") {
+  Component(ctrl, "InvitationLinksController", "<TO SUPPLY>", "Exposes the regenerate endpoint in src/api/events")
+  Component(service, "InvitationLinkService", "<TO SUPPLY>", "Advances the epoch in src/domain/events")
+  Component(repo, "EventRepository", "<TO SUPPLY>", "Advances the epoch in src/data/events")
+  ComponentDb(db, "Event store", "<TO SUPPLY>", "Holds events and the invitation epoch")
+}
+
+Rel(dialog, client, "Sends the confirmed request through")
+Rel(client, ctrl, "Sends POST regenerate to", "HTTPS, JSON")
+Rel(ctrl, service, "Dispatches RegenerateInvitationLinksCommand to")
+Rel(service, repo, "Advances the epoch through")
+Rel(repo, db, "Writes to", "<TO SUPPLY>")
+@enduml

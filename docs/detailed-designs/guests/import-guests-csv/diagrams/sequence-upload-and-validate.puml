@@ -1,0 +1,56 @@
+@startuml
+title UML sequence behaviour — Upload and validate a guest CSV file
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "GuestImportWizard" as wizard
+end box
+box "Backend — API application" #D1FADF
+  participant "GuestImportController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "CsvGuestParser" as parser
+  participant "ImportBatch" as batch
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Application database" as db
+end box
+
+actor -> wizard : Choose a file
+wizard -> controller : POST import (multipart)
+controller -> parser : Parse(content, size)
+alt File is not a .csv file (L2-025)
+  parser --> controller : Refused
+  controller --> wizard : "Choose a .csv file"
+else File is larger than 5 MB or has more than 2,000 data rows (L2-025)
+  parser --> controller : Refused with the limit exceeded
+  controller --> wizard : Message naming the exceeded limit
+else File is not valid UTF-8 (L2-025)
+  parser --> controller : Refused
+  controller --> wizard : "The file must be saved as UTF-8"
+else File has no Email column (L2-025)
+  parser --> controller : Refused
+  controller --> wizard : "Email is needed to send invitations" and the import cannot continue
+else File is valid (L2-025)
+  parser -> batch : Create batch with one row per data row (L2-026)
+  batch --> parser : Rows marked Ready, Error or Duplicate
+  parser --> controller : ImportBatch
+  controller -> db : Save import batch
+  db --> controller : Commit result
+  controller --> wizard : Batch with detected columns
+  wizard --> actor : Map columns step lists each detected column and its target field
+end
+@enduml

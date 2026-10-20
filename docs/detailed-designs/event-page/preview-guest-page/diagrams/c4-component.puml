@@ -1,0 +1,32 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Preview the page as a guest
+
+Container_Boundary(admin, "Organiser app") {
+  Component(preview, "PagePreviewPanel", "<TO SUPPLY>", "Shows the draft preview at every viewport width")
+}
+Container_Boundary(shared, "Shared page renderer") {
+  Component(renderer, "PageBlockRenderer", "<TO SUPPLY>", "Renders each block type from a render model")
+  Component(model, "PageRenderModel", "Shared type", "Ordered, display-ready blocks for one page")
+}
+Container_Boundary(api, "Organiser API") {
+  Component(ctrl, "PagePreviewController", "<TO SUPPLY>", "Exposes the preview endpoint under src/api/events/page-preview")
+  Component(builder, "PageRenderModelBuilder", "Domain service", "Builds a render model from a page source")
+  Component(draft, "PageDraft", "Domain aggregate", "Holds the unpublished blocks")
+  ComponentDb(drafts, "PageDraftRepository", "<TO SUPPLY>", "Loads page drafts under src/data")
+}
+Container_Boundary(rsvp, "Guest RSVP app") {
+  Component(guestPage, "GuestPageView", "<TO SUPPLY>", "Renders the published page under src/rsvp")
+}
+ComponentDb(published, "PublishedPageRepository", "<TO SUPPLY>", "Loads the published page under src/data")
+
+Rel(preview, ctrl, "Requests the draft render model from", "JSON/HTTPS")
+Rel(ctrl, builder, "Requests a render model from")
+Rel(builder, draft, "Reads blocks from")
+Rel(ctrl, drafts, "Loads the draft through")
+Rel(builder, model, "Produces")
+Rel(preview, renderer, "Renders the model with")
+Rel(guestPage, renderer, "Renders the model with")
+Rel(guestPage, published, "Reads the published page from")
+@enduml

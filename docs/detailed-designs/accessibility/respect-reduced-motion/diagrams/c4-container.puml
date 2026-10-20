@@ -1,0 +1,20 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Respect reduced-motion preferences
+
+Person(organiser, "Organiser", "Works with toasts, dialogs and block reordering")
+Person(guest, "Guest", "Reads dialogs and banners on the public page")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser web application", "<TO SUPPLY>", "Organiser toasts, dialogs and block list under src/admin")
+  Container(rsvp, "Guest RSVP web application", "<TO SUPPLY>", "Public page banners and dialogs under src/rsvp")
+  Container(shared, "Shared UI library", "<TO SUPPLY>", "Motion policy and overlay presenter under src/shared/motion")
+}
+System_Ext(browser, "Web browser", "Provides the reduced-motion media preference")
+
+Rel(organiser, admin, "Uses", "HTTPS")
+Rel(guest, rsvp, "Uses", "HTTPS")
+Rel(admin, shared, "Imports the motion policy from")
+Rel(rsvp, shared, "Imports the motion policy from")
+Rel(shared, browser, "Reads the reduced-motion preference from")
+@enduml

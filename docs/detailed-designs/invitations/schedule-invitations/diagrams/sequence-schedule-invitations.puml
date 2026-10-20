@@ -1,0 +1,54 @@
+@startuml
+title Sequence — Schedule invitation emails
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "ScheduleInvitationsDialog" as dialog
+  participant "EmailsApiClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "InvitationScheduleController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "ScheduleInvitationsCommandHandler" as handler
+  participant "InvitationSchedulePolicy" as policy
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Scheduled email store" as db
+end box
+
+actor -> dialog : Submit Schedule invitation
+dialog -> client : Build schedule request
+client -> controller : POST invitation schedule
+controller -> handler : Send ScheduleInvitationsCommand
+handler -> policy : Apply L2-029 subject and send date rules
+alt Schedule is valid
+  policy --> handler : Valid
+  handler -> handler : Apply L2-036 sender identity normalisation
+  handler -> db : Save all scheduled emails in one unit of work
+  db --> handler : Commit result
+  handler --> controller : Scheduled with send time 9:00 am
+  controller --> client : 201 Created
+  client --> dialog : Success with send time
+  dialog --> actor : Show success
+else Validation or save fails
+  policy --> handler : Field errors
+  handler --> controller : Rejected and nothing recorded
+  controller --> client : 400 or 500 with error list
+  client --> dialog : Show error and Try again
+  dialog --> actor : Keep entered values
+end
+@enduml

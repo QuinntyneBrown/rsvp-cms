@@ -1,0 +1,74 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Process bulk operations within limits
+
+enum JobStatus {
+  Queued
+  Running
+  Completed
+  Failed
+}
+
+class BackgroundJob {
+  +UUID Id
+  +UUID EventId
+  +string Kind
+  +JobStatus Status
+  +int ItemCount
+  +int ProcessedCount
+  +string BatchKey
+}
+
+interface JobQueue {
+  +Enqueue(job: BackgroundJob): void
+  +TakeNext(): BackgroundJob
+  +Complete(jobId: UUID, status: JobStatus): void
+}
+
+class JobRunner {
+  +RunNext(): void
+}
+
+class InvitationScheduleService {
+  +Schedule(eventId: UUID, request: ScheduleRequest): BackgroundJob
+}
+
+class ImportCommitService {
+  +Commit(eventId: UUID, batchKey: string, rows: ImportRow[]): BackgroundJob
+  +ApplyBatch(job: BackgroundJob): void
+}
+
+class GuestExportService {
+  +Export(eventId: UUID): byte[]
+}
+
+class ScheduleRequest {
+  +string Recipients
+  +DateTime SendOn
+}
+
+class ImportRow {
+  +string Name
+  +string Email
+}
+
+JobRunner --> JobQueue : takes jobs from
+JobRunner --> ImportCommitService : runs batches through
+JobQueue ..> BackgroundJob : holds
+InvitationScheduleService ..> ScheduleRequest : accepts
+InvitationScheduleService ..> BackgroundJob : creates
+ImportCommitService ..> ImportRow : creates guests from
+ImportCommitService ..> BackgroundJob : creates
+BackgroundJob --> JobStatus : has
+@enduml

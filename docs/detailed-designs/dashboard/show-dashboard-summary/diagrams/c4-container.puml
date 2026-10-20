@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Show the organiser dashboard summary
+
+Person(organiser, "Organiser", "Signed-in user who owns events")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser app", "<TO SUPPLY>", "Organiser UI in src/admin")
+  Container(api, "API application", "<TO SUPPLY>", "HTTP endpoints in src/api")
+  ContainerDb(db, "Invitely database", "<TO SUPPLY>", "Stores events, guests, replies and emails")
+}
+
+Rel(organiser, admin, "Views the dashboard using", "HTTPS")
+Rel(admin, api, "Requests summary and upcoming events from", "HTTPS, JSON")
+Rel(api, db, "Aggregates over accessible events in", "<TO SUPPLY>")
+@enduml

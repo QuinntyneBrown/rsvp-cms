@@ -1,0 +1,54 @@
+@startuml
+title UML sequence behaviour — Add a block to the page draft
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "PageBlockEditor" as editor
+  participant "PageBlocksClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "PageBlocksController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "PageDraft" as draft
+  participant "PageDraftRepository" as repo
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Application database" as db
+end box
+
+actor -> editor : Choose a block type and select Add block
+editor -> client : Request add block
+client -> controller : POST block
+controller -> repo : Load draft
+repo -> db : Read draft
+db --> repo : Stored draft
+repo --> controller : PageDraft
+controller -> draft : AddBlock(type)
+alt Draft already holds 12 blocks (L2-013)
+  draft --> controller : Refused
+  controller --> client : Rejected response
+  client --> editor : Show "A page can have up to 12 blocks"
+else Fewer than 12 blocks
+  draft --> controller : New block appended at the end
+  controller -> repo : Save draft
+  repo -> db : Write draft
+  db --> repo : Commit result
+  controller --> client : Created block
+  client --> editor : Add the block to the outline
+  editor --> actor : Show the block with focus on its first field
+end
+@enduml

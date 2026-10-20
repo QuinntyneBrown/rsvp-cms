@@ -1,0 +1,55 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Upload gallery photos
+
+enum PhotoFormat {
+  Jpeg
+  Png
+  WebP
+}
+
+class GalleryPhoto {
+  +UUID Id
+  +UUID BlockId
+  +string StorageKey
+  +PhotoFormat Format
+  +int ByteSize
+  +DateTime UploadedAt
+}
+
+class GalleryPhotoPolicy {
+  +int MaxPhotosPerGallery = 12
+  +long MaxPhotoBytes = 5242880
+  +Check(currentCount: int, byteSize: long, format: PhotoFormat?): PhotoRefusal?
+}
+
+class PhotoFormatDetector {
+  +Detect(content: byte[], extension: string): PhotoFormat?
+}
+
+class GalleryPhotosController {
+  +Upload(eventId: UUID, blockId: UUID, file: UploadedFile): PhotoResponse
+}
+
+class GalleryPhotoRepository {
+  +Add(photo: GalleryPhoto): void
+  +CountFor(blockId: UUID): int
+}
+
+GalleryPhotosController ..> GalleryPhotoPolicy : checks with
+GalleryPhotosController ..> PhotoFormatDetector : detects with
+GalleryPhotosController ..> GalleryPhotoRepository : saves through
+GalleryPhoto --> PhotoFormat : has
+PhotoFormatDetector ..> PhotoFormat : returns
+@enduml

@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Manage the invite window and event status
+
+Person(organiser, "Organiser", "Signed-in user who owns the event")
+Person(guest, "Guest", "Invitee who opens the public event page")
+System(invitely, "Invitely", "RSVP content management system for organisers and guests")
+
+Rel(organiser, invitely, "Sets the invite window and reads the status in", "HTTPS")
+Rel(guest, invitely, "Reads the invite window status from", "HTTPS")
+@enduml

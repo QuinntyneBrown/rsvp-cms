@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Scale horizontally by adding instances
+
+Person(organiser, "Organiser", "Signs in and works on events through any application instance")
+
+System_Boundary(rsvp, "Invitely RSVP CMS") {
+  Container(lb, "Load balancer", "<TO SUPPLY>", "deploy/: distributes requests across identical instances")
+  Container(instance, "Application instance", "<TO SUPPLY>", "src/api, src/admin, src/rsvp: stateless, one of N identical copies")
+  ContainerDb(shared, "Shared data store", "<TO SUPPLY>", "Holds sessions, events, guests, responses and photos")
+}
+
+Rel(organiser, lb, "Uses", "HTTPS")
+Rel(lb, instance, "Routes each request to any instance", "HTTP")
+Rel(instance, shared, "Reads and writes all state in", "<TO SUPPLY>")
+@enduml

@@ -1,0 +1,23 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Scale horizontally by adding instances
+
+Person(organiser, "Organiser", "Signs in and works on events through any application instance")
+
+Container_Boundary(instance, "Application instance") {
+  Component(auth, "SessionAuthenticator", "<TO SUPPLY>", "Resolves the session cookie on each request under src/shared/auth")
+  Component(config, "ApplicationConfiguration", "<TO SUPPLY>", "Reads settings from the environment under src/config")
+  Component(ctrl, "AuthController", "<TO SUPPLY>", "Creates sessions on sign-in under src/api")
+  Component(photos, "PhotoStorageAdapter", "<TO SUPPLY>", "Writes uploaded photos to the shared store under src/data")
+}
+
+ComponentDb(sessions, "Session store", "<TO SUPPLY>", "Holds sessions for every instance under src/data")
+ComponentDb(photoStore, "Photo store", "<TO SUPPLY>", "Holds gallery photos for every instance")
+
+Rel(organiser, auth, "Sends the session cookie to")
+Rel(ctrl, sessions, "Writes new sessions to", "<TO SUPPLY>")
+Rel(auth, sessions, "Reads sessions from", "<TO SUPPLY>")
+Rel(config, auth, "Supplies the session settings to")
+Rel(photos, photoStore, "Writes photos to", "<TO SUPPLY>")
+@enduml

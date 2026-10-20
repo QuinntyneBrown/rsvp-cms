@@ -1,0 +1,34 @@
+@startuml
+title UML sequence behaviour — Respect reduced-motion preferences
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "OverlayPresenter" as presenter
+end box
+box "Frontend — Shared UI library" #E0F2FE
+  participant "MotionPolicy" as policy
+  participant "MotionPreferenceQuery" as query
+  participant "EntranceTransition" as entrance
+end box
+actor -> presenter : Show toast "Changes saved"
+presenter -> policy : ModeFor(prefersReduced)
+policy -> query : PrefersReducedMotion()
+query --> policy : true
+policy --> presenter : Immediate
+presenter -> entrance : Apply(Immediate, toastId)
+entrance --> presenter : No slide and no fade (L2-089 criterion 1)
+presenter --> actor : Toast is visible at once
+@enduml

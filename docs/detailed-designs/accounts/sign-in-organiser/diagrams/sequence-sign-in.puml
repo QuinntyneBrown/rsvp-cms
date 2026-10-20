@@ -1,0 +1,52 @@
+@startuml
+title UML sequence behaviour — Sign in as an organiser
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "SignInPage" as page
+end box
+box "Backend — API application" #D1FADF
+  participant "SignInEndpoint" as endpoint
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "SignInService" as service
+  participant "SessionService" as sessions
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "AccountStore" as db
+end box
+actor -> page : Submit email and password
+alt Email is empty or malformed
+  page --> actor : Field error on Email, no request sent
+else Email is valid
+  page -> endpoint : Sign-in request
+  endpoint -> service : SignIn(request)
+  service -> db : Load account by email
+  db --> service : OrganiserAccount or none
+  service -> service : Verify password
+  alt Email and password match (L2-001)
+    service -> sessions : Create session with KeepSignedIn
+    sessions --> service : Session identifier
+    service --> endpoint : Accepted
+    endpoint --> page : Redirect with HttpOnly, Secure, SameSite=Lax cookie
+    page --> actor : Redirect to dashboard
+  else Unknown email or wrong password
+    service --> endpoint : Rejected
+    endpoint --> page : Generic failure response
+    page --> actor : "Email or password is not right"
+  end
+end
+@enduml

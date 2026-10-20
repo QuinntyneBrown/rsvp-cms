@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System Context — Save, publish and discard page drafts
+
+Person(organiser, "Organiser", "Saves, publishes and discards changes to the event page")
+System(cms, "RSVP CMS", "Organiser and guest applications for running event RSVPs")
+Person_Ext(guest, "Guest", "Reads the published public page")
+
+Rel(organiser, cms, "Saves, publishes and discards page changes using")
+Rel(guest, cms, "Reads the most recently published page from")
+@enduml

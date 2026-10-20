@@ -1,0 +1,60 @@
+@startuml
+title UML sequence behaviour — Publish the page draft
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "PublishControl" as control
+  participant "PageDraftClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "PageDraftController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "PagePublisher" as publisher
+  participant "PageDraft" as draft
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Application database" as db
+end box
+
+actor -> control : Select Publish
+control -> control : Disable Publish until the request completes (L2-015)
+control -> client : Request publish
+client -> controller : POST publish
+controller -> publisher : Publish(draft)
+publisher -> draft : Validate()
+alt Draft has validation errors (L2-015)
+  draft --> publisher : Field errors
+  publisher --> controller : Refused, published page unchanged
+  controller --> client : Rejected response with field errors
+  client --> control : Focus the first invalid field
+else Draft is valid
+  draft --> publisher : No errors
+  publisher -> db : Replace published page and reset draft in one unit of work
+  alt Write fails (L2-015)
+    db --> publisher : Failure
+    publisher --> controller : Failed, draft kept
+    controller --> client : Error response
+    client --> control : Show the error and keep the draft
+  else Write succeeds
+    db --> publisher : Commit result
+    publisher --> controller : Published
+    controller --> client : Publish result
+    client --> control : Show "Published · just now"
+  end
+end
+control --> actor : Show the publish result
+@enduml

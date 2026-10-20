@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Manage organiser sessions
+
+Person(organiser, "Organiser", "Signed in to manage their events")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser web application", "<TO SUPPLY>", "Organiser shell and sign-out control under src/admin")
+  Container(api, "API application", "<TO SUPPLY>", "Session guard and sign-out endpoint under src/api")
+  ContainerDb(db, "Database", "<TO SUPPLY>", "Session records under src/data")
+}
+
+Rel(organiser, admin, "Uses", "HTTPS")
+Rel(admin, api, "Sends the session cookie to", "JSON/HTTPS")
+Rel(api, db, "Reads and updates sessions in", "<TO SUPPLY>")
+@enduml

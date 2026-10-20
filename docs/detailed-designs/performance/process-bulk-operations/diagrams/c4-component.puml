@@ -1,0 +1,36 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Process bulk operations within limits
+
+Container_Boundary(adminApp, "Organiser admin app") {
+  Component(dialog, "ScheduleInvitationsDialog", "<TO SUPPLY>", "Starts the schedule request under src/admin")
+}
+
+Container_Boundary(api, "API application") {
+  Component(schedCtrl, "InvitationScheduleController", "<TO SUPPLY>", "Accepts schedule requests under src/api/guests")
+  Component(importCtrl, "GuestImportController", "<TO SUPPLY>", "Accepts import commits under src/api/guests")
+  Component(exportCtrl, "GuestExportController", "<TO SUPPLY>", "Returns the guest export file under src/api/guests")
+}
+
+Container_Boundary(worker, "Job worker") {
+  Component(runner, "JobRunner", "<TO SUPPLY>", "Takes queued jobs and runs them in batches under src/domain/jobs")
+}
+
+Container_Boundary(domain, "Application and domain") {
+  Component(schedSvc, "InvitationScheduleService", "<TO SUPPLY>", "Validates the schedule and queues sends under src/domain/invitations")
+  Component(importSvc, "ImportCommitService", "<TO SUPPLY>", "Creates validated guests in batches under src/domain/guests")
+  Component(exportSvc, "GuestExportService", "<TO SUPPLY>", "Builds the guest export under src/domain/guests")
+}
+
+ComponentDb(queue, "Job queue", "<TO SUPPLY>", "Persists queued jobs and their progress under src/data")
+
+Rel(dialog, schedCtrl, "Sends schedule request to", "JSON/HTTPS")
+Rel(schedCtrl, schedSvc, "Schedules through")
+Rel(importCtrl, importSvc, "Commits through")
+Rel(exportCtrl, exportSvc, "Builds the file through")
+Rel(schedSvc, queue, "Queues send jobs in", "<TO SUPPLY>")
+Rel(importSvc, queue, "Queues import batches in", "<TO SUPPLY>")
+Rel(runner, queue, "Takes jobs from", "<TO SUPPLY>")
+Rel(runner, importSvc, "Runs import batches through")
+@enduml

@@ -1,0 +1,63 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Ensure contrast and select a theme
+
+enum ThemeName {
+  Light
+  Dark
+}
+
+class ColourToken {
+  +string Name
+  +string Value
+}
+
+class ThemeTokens {
+  +ColourToken[] PaletteFor(theme: ThemeName)
+}
+
+class ThemeController {
+  +ThemeName Active
+  +ThemeName Resolve()
+  +void Apply(theme: ThemeName)
+}
+
+class ColourSchemeQuery {
+  +bool PrefersDark()
+}
+
+class ThemePreferenceStore {
+  +ThemeName? Load()
+  +bool TrySave(theme: ThemeName)
+}
+
+class ContrastRatioCalculator {
+  +float Ratio(foreground: string, background: string)
+  +bool MeetsAa(foreground: string, background: string, minimum: float)
+}
+
+class ThemeSelectorControl {
+  +ThemeName Selected
+  +void Select(theme: ThemeName)
+}
+
+ThemeTokens *-- "0..*" ColourToken : contains
+ThemeTokens ..> ThemeName : keyed by
+ThemeController --> ThemeTokens : reads palette from
+ThemeController --> ColourSchemeQuery : reads preference from
+ThemeController --> ThemePreferenceStore : loads and saves with
+ThemeController ..> ThemeName : resolves to
+ThemeSelectorControl --> ThemeController : passes selection to
+ContrastRatioCalculator ..> ThemeTokens : verifies pairs from
+@enduml

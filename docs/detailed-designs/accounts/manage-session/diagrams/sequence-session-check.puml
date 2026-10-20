@@ -1,0 +1,49 @@
+@startuml
+title UML sequence behaviour — Check an organiser session
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "OrganiserShell" as shell
+end box
+box "Backend — API application" #D1FADF
+  participant "SessionGuard" as guard
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "SessionService" as sessions
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "SessionStore" as db
+end box
+actor -> shell : Open any organiser page
+shell -> guard : Request with session cookie
+guard -> sessions : Check(sessionId, now)
+sessions -> db : Load session
+db --> sessions : Session record or none
+alt No session or session revoked (L2-005)
+  sessions --> guard : Missing or Revoked
+  guard --> shell : HTTP 401
+  shell --> actor : Redirect to Sign in
+else Inactive for 8 hours (L2-005)
+  sessions --> guard : Inactive
+  guard --> shell : HTTP 401
+  shell --> actor : Redirect to Sign in with "Your session ended. Sign in again."
+else Session is active
+  sessions -> db : Record last activity time
+  sessions --> guard : Valid
+  guard --> shell : Request is allowed
+  shell --> actor : Page is shown
+end
+@enduml

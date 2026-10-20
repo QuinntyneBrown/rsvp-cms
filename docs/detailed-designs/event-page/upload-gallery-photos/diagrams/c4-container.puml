@@ -1,0 +1,22 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Upload gallery photos
+
+Person(organiser, "Organiser", "Uploads gallery photos")
+Person_Ext(guest, "Guest", "Views the gallery")
+System_Boundary(cms, "RSVP CMS") {
+  Container(admin, "Organiser app", "<TO SUPPLY>", "Upload control under src/admin")
+  Container(api, "Organiser API", "<TO SUPPLY>", "Photo endpoint under src/api/events")
+  Container(rsvp, "Guest RSVP app", "<TO SUPPLY>", "Public page under src/rsvp")
+  ContainerDb(db, "Application database", "<TO SUPPLY>", "Stores gallery photo records under src/data")
+  ContainerDb(files, "Photo storage", "<TO SUPPLY>", "Stores photo files under src/data/photos")
+}
+
+Rel(organiser, admin, "Selects photos in", "HTTPS")
+Rel(admin, api, "Uploads photos to", "multipart HTTPS")
+Rel(api, db, "Reads and writes photo records in", "<TO SUPPLY>")
+Rel(api, files, "Stores photos in", "<TO SUPPLY>")
+Rel(guest, rsvp, "Views the gallery from", "HTTPS")
+Rel(rsvp, files, "Reads published photos from", "<TO SUPPLY>")
+@enduml

@@ -1,0 +1,52 @@
+@startuml
+title UML sequence behaviour — Edit block content in the page draft
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "PageBlockEditor" as editor
+  participant "PageBlocksClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "PageBlocksController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "PageDraft" as draft
+  participant "BlockFieldRules" as rules
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Application database" as db
+end box
+
+actor -> editor : Change a Hero headline
+editor -> client : Request block update
+client -> controller : PATCH block fields
+controller -> draft : UpdateBlock(blockId, fields)
+draft -> rules : Validate fields (L2-014)
+alt Headline is empty or a limit is exceeded (L2-014)
+  rules --> draft : Field errors
+  draft --> controller : Refused, draft unchanged
+  controller --> client : Rejected response with field errors
+  client --> editor : Show "Add a headline" beside the field
+else Fields pass every rule
+  rules --> draft : No errors
+  draft --> controller : Block updated
+  controller -> db : Save draft
+  db --> controller : Commit result
+  controller --> client : Updated block
+  client --> editor : Show the saved draft status
+end
+editor --> actor : Show the block fields
+@enduml

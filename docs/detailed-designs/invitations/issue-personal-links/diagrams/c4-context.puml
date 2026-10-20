@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Issue personal invitation links
+
+Person(organiser, "Organiser", "Sends invitations to the invitees of an event")
+Person(guest, "Guest", "Opens the personal link from the invitation email")
+System(invitely, "Invitely", "RSVP content management system")
+System_Ext(mail, "Email provider", "Delivers the invitation email that carries the link")
+
+Rel(organiser, invitely, "Sends invitations using")
+Rel(invitely, mail, "Hands over invitation emails to", "<TO SUPPLY>")
+Rel(mail, guest, "Delivers the personal link to")
+Rel(guest, invitely, "Opens the personal link in")
+@enduml

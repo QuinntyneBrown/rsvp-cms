@@ -1,0 +1,62 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Preview the page as a guest
+
+enum PageSource {
+  Draft
+  Published
+}
+
+class PageRenderModelBuilder {
+  +Build(eventId: UUID, source: PageSource): PageRenderModel
+}
+
+class PageRenderModel {
+  +UUID EventId
+  +PageSource Source
+  +IReadOnlyList<RenderedBlock> Blocks
+}
+
+class RenderedBlock {
+  +UUID BlockId
+  +BlockType Type
+  +IDictionary<string, string> Fields
+}
+
+class PageDraft {
+  +UUID EventId
+  +IReadOnlyList<PageBlock> Blocks
+}
+
+class PublishedPage {
+  +UUID EventId
+  +IReadOnlyList<PageBlock> Blocks
+}
+
+class PagePreviewController {
+  +GetDraftPreview(eventId: UUID): PageRenderModel
+}
+
+class PageBlockRenderer {
+  +Render(model: PageRenderModel): RenderTree
+}
+
+PageRenderModelBuilder ..> PageSource : selects
+PageRenderModelBuilder ..> PageRenderModel : produces
+PageRenderModel "1" *-- "0..12" RenderedBlock : holds
+PageRenderModelBuilder ..> PageDraft : reads when Draft
+PageRenderModelBuilder ..> PublishedPage : reads when Published
+PagePreviewController ..> PageRenderModelBuilder : requests a model from
+PageBlockRenderer ..> PageRenderModel : renders
+@enduml

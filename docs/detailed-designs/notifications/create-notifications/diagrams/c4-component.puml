@@ -1,0 +1,37 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Create notifications for key events
+
+Container_Boundary(responses, "Domain — responses") {
+  Component(submit, "SubmitRsvpCommandHandler", "<TO SUPPLY>", "Saves a reply and calls the reply trigger")
+}
+Container_Boundary(domain, "Domain — notifications") {
+  Component(replyTrigger, "ReplyNotificationTrigger", "<TO SUPPLY>", "Creates the notification for a saved reply")
+  Component(bounceTrigger, "BounceNotificationTrigger", "<TO SUPPLY>", "Creates the notification for a processed bounce")
+  Component(reminderScanner, "ReminderDueScanner", "<TO SUPPLY>", "Finds reminders due within 24 hours")
+  Component(milestones, "AttendanceMilestoneChecker", "<TO SUPPLY>", "Records the milestones 25, 50 and 100 once each")
+  Component(factory, "NotificationFactory", "<TO SUPPLY>", "Builds the notification message and dedupe key")
+}
+Container_Boundary(data, "Data") {
+  Component(notifRepo, "NotificationRepository", "<TO SUPPLY>", "Creates a notification only when its dedupe key is new")
+  Component(reminderRepo, "ReminderRepository", "<TO SUPPLY>", "Returns reminders that are due")
+  Component(milestoneRepo, "MilestoneRepository", "<TO SUPPLY>", "Records milestones reached per event")
+}
+ComponentDb(db, "Invitely database", "<TO SUPPLY>", "Persists notifications, reminders and milestones")
+Rel(submit, replyTrigger, "Calls after the reply is saved")
+Rel(submit, milestones, "Calls after the attending count changes")
+Rel(replyTrigger, factory, "Builds the message with")
+Rel(bounceTrigger, factory, "Builds the message with")
+Rel(reminderScanner, reminderRepo, "Reads due reminders through")
+Rel(reminderScanner, factory, "Builds the message with")
+Rel(milestones, milestoneRepo, "Records milestones through")
+Rel(milestones, factory, "Builds the message with")
+Rel(replyTrigger, notifRepo, "Saves through")
+Rel(bounceTrigger, notifRepo, "Saves through")
+Rel(reminderScanner, notifRepo, "Saves through")
+Rel(milestones, notifRepo, "Saves through")
+Rel(notifRepo, db, "Reads and writes", "<TO SUPPLY>")
+Rel(reminderRepo, db, "Reads", "<TO SUPPLY>")
+Rel(milestoneRepo, db, "Reads and writes", "<TO SUPPLY>")
+@enduml

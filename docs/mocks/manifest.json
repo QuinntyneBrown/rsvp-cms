@@ -1,0 +1,543 @@
+{
+  "project": "Invitely",
+  "screens": [
+    {
+      "id": "dashboard",
+      "kind": "page",
+      "title": "Dashboard",
+      "route": "/",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error",
+        "partial"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "events",
+      "kind": "page",
+      "title": "Events",
+      "route": "/events",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error",
+        "no-results",
+        "long",
+        "selected"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "event-new",
+      "kind": "page",
+      "title": "New event",
+      "route": "/events/new",
+      "states": [
+        "default",
+        "loading",
+        "error",
+        "invalid",
+        "submitting",
+        "success"
+      ],
+      "not_applicable": {
+        "empty": "A new event is a form; there is no collection to be empty."
+      }
+    },
+    {
+      "id": "event-overview",
+      "kind": "page",
+      "title": "Event overview",
+      "route": "/events/:id",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error",
+        "partial",
+        "read-only"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "event-page-cms",
+      "kind": "page",
+      "title": "Event page",
+      "route": "/events/:id/page",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error",
+        "invalid",
+        "submitting",
+        "success"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "event-settings",
+      "kind": "page",
+      "title": "Event settings",
+      "route": "/events/:id/settings",
+      "states": [
+        "default",
+        "loading",
+        "error",
+        "invalid",
+        "submitting",
+        "success"
+      ],
+      "not_applicable": {
+        "empty": "Settings always have values, so there is no collection to be empty."
+      }
+    },
+    {
+      "id": "guests",
+      "kind": "page",
+      "title": "Guests",
+      "route": "/events/:id/guests",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error",
+        "no-results",
+        "long",
+        "selected"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "guest-import",
+      "kind": "page",
+      "title": "Import guests",
+      "route": "/events/:id/guests/import",
+      "states": [
+        "default",
+        "loading",
+        "error",
+        "invalid",
+        "submitting",
+        "success"
+      ],
+      "not_applicable": {
+        "empty": "An import is a form; the empty case is the default upload step."
+      }
+    },
+    {
+      "id": "event-emails",
+      "kind": "page",
+      "title": "Emails",
+      "route": "/events/:id/emails",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error",
+        "partial",
+        "read-only"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "event-responses",
+      "kind": "page",
+      "title": "Responses",
+      "route": "/events/:id/responses",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error",
+        "no-results",
+        "long",
+        "partial"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "notifications",
+      "kind": "page",
+      "title": "Notifications",
+      "route": "/notifications",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "account",
+      "kind": "page",
+      "title": "Account",
+      "route": "/account",
+      "states": [
+        "default",
+        "loading",
+        "error",
+        "invalid",
+        "submitting",
+        "success"
+      ],
+      "not_applicable": {
+        "empty": "The account always has a profile, so there is no collection to be empty."
+      }
+    },
+    {
+      "id": "sign-in",
+      "kind": "page",
+      "title": "Sign in",
+      "route": "/sign-in",
+      "states": [
+        "default",
+        "loading",
+        "error",
+        "invalid",
+        "submitting"
+      ],
+      "not_applicable": {
+        "empty": "Sign-in is a form with no collection."
+      }
+    },
+    {
+      "id": "forgot-password",
+      "kind": "page",
+      "title": "Forgot password",
+      "route": "/forgot-password",
+      "states": [
+        "default",
+        "error",
+        "invalid",
+        "submitting",
+        "success"
+      ],
+      "not_applicable": {
+        "loading": "The form appears at once; nothing loads first.",
+        "empty": "A form has no collection."
+      }
+    },
+    {
+      "id": "reset-password",
+      "kind": "page",
+      "title": "Reset password",
+      "route": "/reset-password",
+      "states": [
+        "default",
+        "error",
+        "invalid",
+        "submitting",
+        "success",
+        "expired"
+      ],
+      "not_applicable": {
+        "loading": "The form appears at once; nothing loads first.",
+        "empty": "A form has no collection."
+      }
+    },
+    {
+      "id": "not-found",
+      "kind": "page",
+      "title": "Page not found",
+      "route": "/404",
+      "states": [
+        "default"
+      ],
+      "not_applicable": {
+        "loading": "A not-found page is rendered at once.",
+        "empty": "This page is itself the empty state.",
+        "error": "This page is itself the not-found state, not a failure."
+      }
+    },
+    {
+      "id": "forbidden",
+      "kind": "page",
+      "title": "Access denied",
+      "route": "/403",
+      "states": [
+        "default"
+      ],
+      "not_applicable": {
+        "loading": "A forbidden page is rendered at once.",
+        "empty": "This page is itself the empty state.",
+        "error": "This page is itself the forbidden state, not a failure."
+      }
+    },
+    {
+      "id": "server-error",
+      "kind": "page",
+      "title": "Something went wrong",
+      "route": "/500",
+      "states": [
+        "default"
+      ],
+      "not_applicable": {
+        "loading": "The error page is shown once the request has failed.",
+        "empty": "This page is itself an error state.",
+        "error": "This page is the error state."
+      }
+    },
+    {
+      "id": "offline",
+      "kind": "page",
+      "title": "Offline",
+      "route": "/offline",
+      "states": [
+        "default"
+      ],
+      "not_applicable": {
+        "loading": "The offline page is shown once the connection is known to be down.",
+        "empty": "No data is available offline.",
+        "error": "This page is itself the offline state."
+      }
+    },
+    {
+      "id": "public-event",
+      "kind": "page",
+      "title": "Invitation page",
+      "route": "/e/:slug",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error",
+        "not-open",
+        "closed",
+        "edge"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "rsvp",
+      "kind": "page",
+      "title": "RSVP",
+      "route": "/i/:code",
+      "states": [
+        "default",
+        "loading",
+        "error",
+        "invalid",
+        "submitting",
+        "success",
+        "already-responded"
+      ],
+      "not_applicable": {
+        "empty": "The reply form has no collection to be empty."
+      }
+    },
+    {
+      "id": "invite-invalid",
+      "kind": "page",
+      "title": "Invitation link",
+      "route": "/i/:code (invalid)",
+      "states": [
+        "default",
+        "expired",
+        "loading",
+        "error"
+      ],
+      "not_applicable": {
+        "empty": "A link resolves to one invitation or to none; there is no list to be empty."
+      }
+    },
+    {
+      "id": "event-delete",
+      "kind": "dialog",
+      "title": "Delete event",
+      "opens_from": "event-settings",
+      "states": [
+        "default",
+        "confirm",
+        "invalid",
+        "busy",
+        "failed"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "guest-edit",
+      "kind": "dialog",
+      "title": "Add or edit guest",
+      "opens_from": "guests",
+      "states": [
+        "default",
+        "invalid",
+        "busy",
+        "failed"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "guest-remove",
+      "kind": "dialog",
+      "title": "Remove guests",
+      "opens_from": "guests",
+      "states": [
+        "default",
+        "busy",
+        "failed"
+      ],
+      "not_applicable": {
+        "invalid": "No input the person can get wrong: the dialog only confirms a removal."
+      }
+    },
+    {
+      "id": "invite-send",
+      "kind": "dialog",
+      "title": "Schedule invitations",
+      "opens_from": "event-emails",
+      "states": [
+        "default",
+        "invalid",
+        "busy",
+        "failed",
+        "success"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "email-preview",
+      "kind": "dialog",
+      "title": "Preview invitation email",
+      "opens_from": "event-emails",
+      "states": [
+        "default",
+        "scroll",
+        "busy"
+      ],
+      "not_applicable": {
+        "invalid": "No input the person can get wrong: the preview has no inputs; the test address comes from the account."
+      }
+    },
+    {
+      "id": "block-picker",
+      "kind": "dialog",
+      "title": "Add a block",
+      "opens_from": "event-page-cms",
+      "states": [
+        "default",
+        "busy",
+        "failed"
+      ],
+      "not_applicable": {
+        "invalid": "No input the person can get wrong: the dialog only offers valid blocks to choose from."
+      }
+    },
+    {
+      "id": "discard-changes",
+      "kind": "dialog",
+      "title": "Discard changes",
+      "opens_from": "event-page-cms",
+      "states": [
+        "default",
+        "busy",
+        "failed"
+      ],
+      "not_applicable": {
+        "invalid": "No input the person can get wrong: there are no inputs to validate."
+      }
+    },
+    {
+      "id": "regenerate-links",
+      "kind": "dialog",
+      "title": "Reset invitation links",
+      "opens_from": "event-settings",
+      "states": [
+        "default",
+        "busy",
+        "failed"
+      ],
+      "not_applicable": {
+        "invalid": "No input the person can get wrong: there are no inputs to validate."
+      }
+    },
+    {
+      "id": "rsvp-decline",
+      "kind": "dialog",
+      "title": "Decline RSVP",
+      "opens_from": "rsvp",
+      "states": [
+        "default",
+        "busy",
+        "failed"
+      ],
+      "not_applicable": {
+        "invalid": "No input the person can get wrong: a decline needs no required input; the note is optional."
+      }
+    },
+    {
+      "id": "save-toast",
+      "kind": "notification",
+      "title": "Save toast",
+      "opens_from": "event-settings",
+      "states": [
+        "info",
+        "success",
+        "warning",
+        "danger",
+        "with-action",
+        "stacked"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "schedule-banner",
+      "kind": "notification",
+      "title": "Event banner",
+      "opens_from": "event-overview",
+      "states": [
+        "info",
+        "success",
+        "warning",
+        "danger",
+        "persistent"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "guest-import-alert",
+      "kind": "notification",
+      "title": "Import alerts",
+      "opens_from": "guest-import",
+      "states": [
+        "info",
+        "success",
+        "warning",
+        "danger"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "rsvp-toast",
+      "kind": "notification",
+      "title": "RSVP toast",
+      "opens_from": "rsvp",
+      "states": [
+        "success",
+        "info",
+        "warning",
+        "danger"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "public-banner",
+      "kind": "notification",
+      "title": "Invite banner",
+      "opens_from": "public-event",
+      "states": [
+        "info",
+        "success",
+        "warning",
+        "danger"
+      ],
+      "not_applicable": {}
+    }
+  ]
+}

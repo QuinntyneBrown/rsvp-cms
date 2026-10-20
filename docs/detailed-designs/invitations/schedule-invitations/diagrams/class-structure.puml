@@ -1,0 +1,85 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Schedule invitation emails
+
+enum Audience {
+  AllInvitees
+  NotReplied
+}
+
+enum EmailKind {
+  Invitation
+  Reminder
+}
+
+enum EmailStatus {
+  Scheduled
+  Sent
+  Failed
+  Cancelled
+}
+
+class ScheduleInvitationsCommand {
+  +UUID EventId
+  +Audience Recipients
+  +string Subject
+  +Date SendOnDate
+}
+
+class ScheduleInvitationsCommandHandler {
+  +Handle(command: ScheduleInvitationsCommand): Result
+}
+
+class InvitationSchedulePolicy {
+  +Validate(schedule: InvitationSchedule): ValidationResult
+}
+
+class InvitationSchedule {
+  +UUID EventId
+  +Audience Recipients
+  +string Subject
+  +DateTime SendAt
+  +DateTime InviteWindowCloses
+  +Create(command: ScheduleInvitationsCommand): Result
+}
+
+class ScheduledEmail {
+  +UUID Id
+  +UUID EventId
+  +UUID GuestId
+  +EmailKind Kind
+  +string Subject
+  +DateTime SendAt
+  +EmailStatus Status
+}
+
+class SenderIdentity {
+  +string SenderName
+  +string ReplyTo
+  +Normalise(): SenderIdentity
+}
+
+class ScheduledEmailRepository {
+  +AddRange(emails: IList<ScheduledEmail>): void
+}
+
+ScheduleInvitationsCommandHandler ..> ScheduleInvitationsCommand : handles
+ScheduleInvitationsCommandHandler --> InvitationSchedulePolicy : validates with
+ScheduleInvitationsCommandHandler --> InvitationSchedule : creates
+ScheduleInvitationsCommandHandler --> ScheduledEmailRepository : saves through
+InvitationSchedule "1" *-- "0..*" ScheduledEmail : contains
+InvitationSchedule --> SenderIdentity : sends from
+ScheduledEmail --> EmailStatus : has
+ScheduledEmail --> EmailKind : has
+@enduml

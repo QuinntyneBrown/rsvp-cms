@@ -1,0 +1,39 @@
+@startuml
+title UML sequence behaviour — Label form controls and announce errors
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "EventForm" as form
+  participant "FormState" as state
+  participant "FormField" as field
+end box
+box "Frontend — Shared UI library" #E0F2FE
+  participant "ErrorSummary" as summary
+  participant "LiveRegionAnnouncer" as announcer
+end box
+actor -> form : Submit the form
+form -> state : Submit()
+state -> state : Validate the entered values
+alt Errors were found
+  state -> summary : ShowErrors(errors)
+  summary -> summary : Move focus to the error summary (L2-087 criterion 3)
+  state -> field : BindError(error) for each invalid field
+  field --> actor : Label linked with aria-describedby and aria-invalid="true" (L2-087 criterion 2)
+else No errors
+  form -> announcer : Announce("Changes saved")
+  announcer --> actor : Status announced without moving focus (L2-087 criterion 4)
+end
+@enduml

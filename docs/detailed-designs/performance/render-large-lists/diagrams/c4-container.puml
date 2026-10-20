@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Render large lists within limits
+
+Person(organiser, "Organiser", "Browses and pages through a guest list of up to 2,000 guests")
+
+System_Boundary(rsvp, "Invitely RSVP CMS") {
+  Container(adminApp, "Organiser admin app", "<TO SUPPLY>", "src/admin: renders the Guests page and its windowed rows")
+  Container(api, "API application", "<TO SUPPLY>", "src/api/guests: returns one page of guests per request")
+  ContainerDb(store, "Data store", "<TO SUPPLY>", "Holds events and guests")
+}
+
+Rel(organiser, adminApp, "Uses", "HTTPS")
+Rel(adminApp, api, "Requests one page from", "JSON/HTTPS")
+Rel(api, store, "Reads", "<TO SUPPLY>")
+@enduml

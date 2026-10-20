@@ -1,0 +1,64 @@
+@startuml
+title UML sequence behaviour — Open a personal invitation link
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Guest" as actor
+box "Frontend — Guest RSVP app" #E0F2FE
+  participant "InvitationPage" as page
+end box
+box "Backend — API application" #D1FADF
+  participant "PersonalInvitationController" as ctrl
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "PersonalLinkResolver" as resolver
+  participant "InvitationWindow" as window
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Invitely database" as db
+end box
+
+actor -> page : Open personal link
+page --> actor : Skeleton of the page structure (L2-039)
+page -> ctrl : GET /public/invitations/{token}
+ctrl -> resolver : Resolve(token)
+resolver -> db : Find link by token (L2-033)
+db --> resolver : Link or none
+alt No link, link invalidated by regeneration, or event deleted
+  resolver --> ctrl : Invalid, with no event details (L2-038)
+  ctrl --> page : Invalid state
+  page --> actor : "Check the link in your invitation email, or ask [organiser name] for a new one."
+else Valid link
+  resolver -> db : Load event and published content
+  db --> resolver : Event snapshot
+  alt Event is in Draft
+    resolver --> ctrl : NotOpen, with no draft content (L2-039)
+  else Event has a published page
+    resolver -> window : StateAt(now)
+    window --> resolver : NotOpened, Open or Closed
+    alt Invite window has not opened
+      resolver --> ctrl : NotOpen with open date (L2-039)
+    else Invite window has closed
+      resolver --> ctrl : Closed with reply summary (L2-039)
+    else Invite window is open
+      resolver --> ctrl : Open with published blocks and RSVP form (L2-039)
+    end
+  end
+  ctrl --> page : View for this guest only (L2-038)
+  page --> actor : Greeting with the guest's name and the state
+end
+alt Request fails
+  page --> actor : Error state with Try again (L2-039)
+end
+@enduml

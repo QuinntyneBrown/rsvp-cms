@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Schedule invitation emails
+
+Person(organiser, "Organiser", "Schedules invitation emails for an event")
+Person(guest, "Guest", "Receives invitation emails")
+System(invitely, "Invitely", "RSVP content management system")
+System_Ext(mail, "Email provider", "Delivers invitation emails to guests")
+
+Rel(organiser, invitely, "Schedules invitation emails using")
+Rel(invitely, mail, "Hands over scheduled emails to", "<TO SUPPLY>")
+Rel(mail, guest, "Delivers invitation emails to")
+@enduml

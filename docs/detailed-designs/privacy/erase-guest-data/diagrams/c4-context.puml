@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Erase guest personal data on deletion and retention
+
+Person(organiser, "Organiser", "Deletes events, removes guests and receives retention notices")
+Person(guest, "Guest", "Asks for their data to be removed through the organiser")
+System(rsvp, "Invitely RSVP CMS", "Stores events, guests and responses and runs erasure and retention")
+System_Ext(mail, "Email provider", "Delivers retention notices to the organiser")
+
+Rel(organiser, rsvp, "Deletes events and guests using", "HTTPS")
+Rel(guest, organiser, "Asks for erasure of their data", "<TO SUPPLY>")
+Rel(rsvp, mail, "Sends retention notices through", "<TO SUPPLY>")
+Rel(rsvp, organiser, "Sends retention notices to", "<TO SUPPLY>")
+@enduml

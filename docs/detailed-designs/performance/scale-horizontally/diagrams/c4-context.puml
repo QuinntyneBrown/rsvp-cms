@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Scale horizontally by adding instances
+
+Person(organiser, "Organiser", "Signs in and works on events through any application instance")
+Person(guest, "Guest", "Opens the public RSVP page through any application instance")
+System(rsvp, "Invitely RSVP CMS", "Serves the organiser screens, the guest page and their API")
+
+Rel(organiser, rsvp, "Uses", "HTTPS")
+Rel(guest, rsvp, "Uses", "HTTPS")
+@enduml

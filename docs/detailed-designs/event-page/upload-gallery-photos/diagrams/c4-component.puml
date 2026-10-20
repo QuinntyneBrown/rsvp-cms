@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Upload gallery photos
+
+Container_Boundary(admin, "Organiser app") {
+  Component(upload, "PhotoUploadControl", "<TO SUPPLY>", "Chooses files and shows the refusal messages")
+}
+Container_Boundary(api, "Organiser API") {
+  Component(ctrl, "GalleryPhotosController", "<TO SUPPLY>", "Exposes the upload endpoint under src/api/events/page-blocks/gallery")
+  Component(policy, "GalleryPhotoPolicy", "Domain rules", "Applies the 12-photo limit and the 5 MB size limit")
+  Component(detector, "PhotoFormatDetector", "Domain rules", "Detects JPEG, PNG and WebP from file content")
+  ComponentDb(photos, "GalleryPhotoRepository", "<TO SUPPLY>", "Saves photo records under src/data")
+}
+Container_Boundary(data, "Photo storage") {
+  ComponentDb(files, "PhotoFileStore", "<TO SUPPLY>", "Stores accepted photo files under src/data/photos")
+}
+
+Rel(upload, ctrl, "Uploads the file to", "multipart HTTPS")
+Rel(ctrl, policy, "Checks the photo count and size with")
+Rel(ctrl, detector, "Checks the file content with")
+Rel(ctrl, files, "Stores the photo through")
+Rel(ctrl, photos, "Saves the photo record through")
+@enduml

@@ -1,0 +1,23 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Manage organiser sessions
+
+Container_Boundary(admin, "Organiser web application") {
+  Component(shell, "OrganiserShell", "<TO SUPPLY>", "Hosts the Sign out control and redirects to Sign in when a session ends")
+}
+Container_Boundary(api, "API application") {
+  Component(guard, "SessionGuard", "<TO SUPPLY>", "Checks the session cookie on each organiser request")
+  Component(signOut, "SignOutEndpoint", "<TO SUPPLY>", "Ends the current session and clears the cookie")
+  Component(signIn, "SignInService", "<TO SUPPLY>", "Creates a session at sign-in (Sign in as an organiser)")
+  Component(sessions, "SessionService", "<TO SUPPLY>", "Creates, checks, ends and revokes sessions")
+}
+ComponentDb(store, "SessionStore", "<TO SUPPLY>", "Persists session records")
+
+Rel(shell, guard, "Sends requests with the session cookie to", "JSON/HTTPS")
+Rel(shell, signOut, "Posts sign-out to", "JSON/HTTPS")
+Rel(guard, sessions, "Checks the session through")
+Rel(signOut, sessions, "Ends the session through")
+Rel(signIn, sessions, "Creates the session through")
+Rel(sessions, store, "Reads and writes sessions in")
+@enduml

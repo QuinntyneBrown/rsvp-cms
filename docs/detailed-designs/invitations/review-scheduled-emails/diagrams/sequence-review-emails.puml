@@ -1,0 +1,56 @@
+@startuml
+title Sequence — Review scheduled and sent emails
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "EmailsPage" as page
+  participant "EmailPreviewDialog" as dialog
+  participant "EmailsApiClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "ScheduledEmailsController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "ScheduledEmailQueryHandler" as handler
+  participant "InvitationPreviewRenderer" as renderer
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Scheduled email store" as db
+end box
+
+actor -> page : Open Emails page
+page -> client : Request scheduled emails
+client -> controller : GET scheduled emails
+controller -> handler : Send ScheduledEmailQuery
+handler -> db : Read scheduled emails of the event
+db --> handler : Scheduled emails
+handler --> controller : List items with status
+controller --> client : 200 OK
+client --> page : Rows for Email, Audience, Send time, Recipients, Status
+page --> actor : Show rows or the empty state under L2-030
+
+actor -> dialog : Select Preview
+dialog -> client : Request preview
+client -> controller : GET preview
+controller -> handler : Load scheduled email
+handler -> db : Read one scheduled email
+db --> handler : Scheduled email
+controller -> renderer : Render with sample invitee values
+renderer --> controller : From, Subject and body under L2-031
+controller --> client : 200 OK
+client --> dialog : Preview
+dialog --> actor : Show preview with scrollable body
+@enduml

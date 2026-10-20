@@ -1,0 +1,55 @@
+@startuml
+title UML sequence behaviour — List and find events
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "EventsListPage" as page
+  participant "EventsClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "EventsController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "EventListSpecification" as spec
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  participant "EventListReader" as reader
+  database "Event store" as db
+end box
+
+actor -> page : Open Events page
+page -> page : Show row placeholders
+page -> client : Request first page
+client -> controller : GET /events
+controller -> spec : Apply L2-012 search, sort and 50-row page size
+controller -> reader : Read events matching the query
+reader -> db : Query events
+db --> reader : Rows and counts
+reader --> controller : Page of rows and summary
+controller --> client : 200 OK
+client --> page : Rows and summary
+alt No events
+  page --> actor : Empty state offers New event
+else Search matches nothing
+  page --> actor : "No events match" with Clear search
+else Request fails
+  controller --> client : 500 Internal Server Error
+  client --> page : Failure
+  page --> actor : Error state with Try again, no rows
+else Events exist
+  page --> actor : Heading "3 events · 1 taking invites" and rows
+end
+@enduml

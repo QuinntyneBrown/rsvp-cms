@@ -1,0 +1,37 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Erase guest personal data on deletion and retention
+
+Person(organiser, "Organiser", "Deletes events, removes guests and receives retention notices")
+
+Container_Boundary(api, "API application") {
+  Component(guestCtrl, "GuestErasureController", "<TO SUPPLY>", "Accepts the erasure action for one guest under src/api/guests")
+  Component(eventCtrl, "EventDeletionController", "<TO SUPPLY>", "Accepts event deletion under src/api/events")
+}
+
+Container_Boundary(worker, "Job worker") {
+  Component(scanner, "RetentionScanner", "<TO SUPPLY>", "Finds events due for erasure and notice under src/domain/privacy")
+  Component(runner, "JobRunner", "<TO SUPPLY>", "Runs queued erasure jobs under src/domain/jobs")
+}
+
+Container_Boundary(domain, "Application and domain") {
+  Component(guestSvc, "GuestErasureService", "<TO SUPPLY>", "Erases one guest's record and reply under src/domain/privacy")
+  Component(eraser, "PersonalDataEraser", "<TO SUPPLY>", "Erases names, emails, replies and dietary notes for an event under src/domain/privacy")
+  Component(notices, "RetentionNoticeService", "<TO SUPPLY>", "Sends the 30-day retention notice to the organiser under src/domain/privacy")
+}
+
+ComponentDb(primary, "Primary store", "<TO SUPPLY>", "Holds events, guests and responses under src/data")
+ComponentDb(queue, "Job queue", "<TO SUPPLY>", "Persists erasure jobs (defined by the bulk operations design)")
+
+Rel(organiser, guestCtrl, "Requests erasure through")
+Rel(organiser, eventCtrl, "Deletes events through")
+Rel(guestCtrl, guestSvc, "Erases the guest through")
+Rel(eventCtrl, queue, "Queues erasure of the event's personal data in", "<TO SUPPLY>")
+Rel(guestSvc, primary, "Erases guest data in", "<TO SUPPLY>")
+Rel(runner, queue, "Takes erasure jobs from", "<TO SUPPLY>")
+Rel(runner, eraser, "Runs erasure through")
+Rel(eraser, primary, "Erases event personal data in", "<TO SUPPLY>")
+Rel(scanner, notices, "Requests the notice through")
+Rel(scanner, eraser, "Requests erasure of ended events through")
+@enduml

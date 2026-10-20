@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Manage the invite window and event status
+
+Container_Boundary(admin, "Organiser app") {
+  Component(form, "InviteWindowForm", "<TO SUPPLY>", "Edits the window in src/admin/events")
+  Component(badge, "EventStatusBadge", "<TO SUPPLY>", "Shows the status label in src/shared/ui")
+}
+Container_Boundary(api, "API application") {
+  Component(ctrl, "InviteWindowController", "<TO SUPPLY>", "Exposes PUT /events/{id}/invite-window in src/api/events")
+  Component(policy, "InviteWindowPolicy", "<TO SUPPLY>", "Checks window order and the start warning in src/domain/events")
+  Component(calc, "EventStatusCalculator", "<TO SUPPLY>", "Derives the status on read in src/domain/events")
+  Component(repo, "EventRepository", "<TO SUPPLY>", "Persists events in src/data/events")
+  ComponentDb(db, "Event store", "<TO SUPPLY>", "Holds event records")
+}
+
+Rel(form, ctrl, "Sends the window to", "HTTPS, JSON")
+Rel(ctrl, policy, "Validates the window with")
+Rel(ctrl, repo, "Saves the event through")
+Rel(calc, repo, "Reads the event through")
+Rel(badge, calc, "Shows the status derived by")
+Rel(repo, db, "Reads and writes", "<TO SUPPLY>")
+@enduml

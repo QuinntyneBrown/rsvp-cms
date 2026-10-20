@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Export responses
+
+Person(organiser, "Organiser", "Exports replies for catering and records")
+System(invitely, "Invitely", "RSVP content management system for event invitations")
+
+Rel(organiser, invitely, "Exports replies as a CSV file from", "HTTPS")
+@enduml

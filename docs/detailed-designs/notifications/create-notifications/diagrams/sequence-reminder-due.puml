@@ -1,0 +1,40 @@
+@startuml
+title UML sequence behaviour — Create a notification for a due reminder
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Scheduler" as actor
+box "Backend — Application and domain" #ECFDF3
+  participant "ReminderDueScanner" as scanner
+  participant "NotificationFactory" as factory
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Invitely database" as db
+end box
+
+actor -> scanner : Run(now) on schedule
+scanner -> db : FindDueWithin(now, 24 hours)
+db --> scanner : Reminders due in the next 24 hours (L2-056)
+loop Each due reminder
+  scanner -> factory : ForReminderDue(reminder, event name, due time)
+  factory --> scanner : Draft with dedupe key reminder:{ReminderId}
+  scanner -> db : TryCreate(draft)
+  alt Notification already exists for this reminder
+    db --> scanner : Not created
+  else First time for this reminder
+    db --> scanner : Created once per reminder (L2-056)
+  end
+end
+scanner --> actor : Count of notifications created
+@enduml

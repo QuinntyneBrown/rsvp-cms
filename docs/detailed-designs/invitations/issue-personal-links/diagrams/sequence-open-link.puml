@@ -1,0 +1,42 @@
+@startuml
+title Sequence — Open a personal invitation link
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Guest" as actor
+box "Frontend — Guest RSVP app" #E0F2FE
+  participant "InvitationPageRoute" as page
+end box
+box "Backend — API application" #D1FADF
+  participant "InvitationLinkController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "InvitationLinkResolver" as resolver
+  participant "TokenHasher" as hasher
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Invitation link store" as db
+end box
+
+actor -> page : Open personal link
+page -> controller : GET invitations with token
+controller -> resolver : Resolve token
+resolver -> hasher : Hash presented token
+hasher --> resolver : Token hash
+resolver -> db : Find active link by token hash
+db --> resolver : Link with guest
+resolver --> controller : Guest in open or not-yet-open event
+controller --> page : Invitation data for the guest
+page --> actor : Invitation page with guest greeting
+@enduml

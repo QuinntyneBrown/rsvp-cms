@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Compose the public page from blocks
+
+Person(organiser, "Organiser", "Builds the public event page")
+System_Boundary(cms, "RSVP CMS") {
+  Container(admin, "Organiser app", "<TO SUPPLY>", "Block editor under src/admin")
+  Container(api, "Organiser API", "<TO SUPPLY>", "Block endpoints under src/api/events and domain rules under src/domain")
+  ContainerDb(db, "Application database", "<TO SUPPLY>", "Stores page drafts under src/data")
+}
+
+Rel(organiser, admin, "Edits blocks using", "HTTPS")
+Rel(admin, api, "Sends block commands to", "JSON/HTTPS")
+Rel(api, db, "Reads and writes page drafts in", "<TO SUPPLY>")
+@enduml

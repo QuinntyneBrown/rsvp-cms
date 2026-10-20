@@ -1,0 +1,57 @@
+@startuml
+title UML sequence behaviour — Delete an event
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "DeleteEventDialog" as dialog
+  participant "EventsClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "EventsController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "EventDeletionService" as service
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  participant "EventRepository" as repo
+  database "Event store" as db
+end box
+
+actor -> dialog : Select Delete event
+dialog --> actor : Name event, state consequences, offer Cancel and Delete event
+actor -> dialog : Confirm Delete event
+dialog -> dialog : Block Escape until request completes
+dialog -> client : Send delete request
+client -> controller : DELETE /events/{id}
+controller -> service : Dispatch DeleteEventCommand
+service -> repo : Delete event and dependents
+repo -> db : Begin transaction, remove event, guests, links, emails and responses, commit
+alt Transaction fails
+  db --> repo : Rolled back
+  repo --> service : Failure
+  service --> controller : Failure
+  controller --> client : 500 Internal Server Error
+  client --> dialog : Failure
+  dialog --> actor : Event unchanged, offer Try again
+else Transaction commits
+  db --> repo : Committed
+  repo --> service : Deleted
+  service --> controller : Deleted
+  controller --> client : 204 No Content
+  client --> dialog : Deleted
+  dialog --> actor : Return to Events list with toast
+end
+@enduml

@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Fit dialogs to the viewport
+
+Person(organiser, "Organiser", "Completes long dialogs such as Email preview on a phone")
+Container_Boundary(shared, "Shared UI library") {
+  Component(dialog, "Dialog", "<TO SUPPLY>", "Modal container that opens with a title, a body and a footer")
+  Component(presenter, "DialogPresenter", "<TO SUPPLY>", "Selects full-screen or centred presentation from the viewport band")
+  Component(body, "DialogBody", "<TO SUPPLY>", "Scroll region for the dialog content")
+  Component(footer, "DialogFooter", "<TO SUPPLY>", "Holds the footer actions at the bottom of the dialog")
+  Component(resolver, "ViewportBandResolver", "<TO SUPPLY>", "Maps a width in pixels to a viewport band")
+}
+Container_Boundary(admin, "Organiser web application") {
+  Component(preview, "EmailPreviewDialog", "<TO SUPPLY>", "Shows a rendered invitation email inside a Dialog")
+}
+
+Rel(organiser, preview, "Reads the email in")
+Rel(preview, dialog, "Opens")
+Rel(dialog, presenter, "Asks for its presentation with")
+Rel(presenter, resolver, "Reads the viewport band from")
+Rel(dialog, body, "Contains")
+Rel(dialog, footer, "Contains")
+@enduml

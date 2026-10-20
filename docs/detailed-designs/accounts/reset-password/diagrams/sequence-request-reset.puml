@@ -1,0 +1,46 @@
+@startuml
+title UML sequence behaviour — Request a password reset
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "ForgotPasswordPage" as page
+end box
+box "Backend — API application" #D1FADF
+  participant "PasswordResetEndpoint" as endpoint
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "PasswordResetService" as service
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "AccountAndTokenStore" as db
+  participant "Email provider" as mail
+end box
+actor -> page : Submit email address
+alt Email is empty or malformed
+  page --> actor : Field error on Email, no request sent
+else Email is valid
+  page -> endpoint : Reset request
+  endpoint -> service : RequestReset(email)
+  service -> db : Load account by email
+  alt Email is registered (L2-003)
+    service -> db : Store token hash with 60 minute expiry
+    service -> mail : Send single-use reset link
+  end
+  service --> endpoint : Confirmation message
+  endpoint --> page : Same response for every email
+  page --> actor : "If that email is registered, a reset link is on its way."
+end
+@enduml

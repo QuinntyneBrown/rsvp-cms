@@ -1,0 +1,53 @@
+@startuml
+title UML sequence behaviour — Save the invite window
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "InviteWindowForm" as form
+end box
+box "Backend — API application" #D1FADF
+  participant "InviteWindowController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "InviteWindowPolicy" as policy
+  participant "EventStatusCalculator" as calc
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  participant "EventRepository" as repo
+  database "Event store" as db
+end box
+
+actor -> form : Edit Invites open and Invites close
+form -> form : Apply L2-009 field presence check
+form -> controller : PUT invite window
+controller -> policy : Evaluate window
+policy -> policy : Apply L2-009 close-after-open rule
+alt Close is before open
+  policy --> controller : Field error on Invites close
+  controller --> form : 400 with field error
+  form --> actor : Show "Invites close after they open"
+else Window is valid
+  policy --> controller : Valid, with warning when close is after start
+  controller -> repo : Save event window
+  repo -> db : Update window
+  db --> repo : Stored
+  repo --> controller : Saved
+  controller -> calc : Derive status for response
+  calc --> controller : Invites open, Invites closed or Draft
+  controller --> form : 200 with window, status and warning
+  form --> actor : Show saved window and any warning
+end
+@enduml

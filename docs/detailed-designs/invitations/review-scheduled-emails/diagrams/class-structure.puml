@@ -1,0 +1,65 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Review scheduled and sent emails
+
+enum EmailStatus {
+  Scheduled
+  Sent
+  Failed
+}
+
+class ScheduledEmail {
+  +UUID Id
+  +UUID EventId
+  +string Subject
+  +DateTime SendAt
+  +EmailStatus Status
+}
+
+class ScheduledEmailQuery {
+  +UUID EventId
+  +int PageNumber
+  +int PageSize
+}
+
+class ScheduledEmailQueryHandler {
+  +Handle(query: ScheduledEmailQuery): IList<ScheduledEmailListItem>
+}
+
+class ScheduledEmailListItem {
+  +UUID Id
+  +string Subject
+  +string Audience
+  +DateTime SendAt
+  +int Recipients
+  +EmailStatus Status
+}
+
+class InvitationPreviewRenderer {
+  +Render(email: ScheduledEmail): EmailPreview
+}
+
+class EmailPreview {
+  +string From
+  +string Subject
+  +string BodyHtml
+}
+
+ScheduledEmailQueryHandler ..> ScheduledEmailQuery : handles
+ScheduledEmailQueryHandler --> ScheduledEmail : reads
+ScheduledEmailQueryHandler --> ScheduledEmailListItem : returns
+ScheduledEmailListItem --> EmailStatus : has
+InvitationPreviewRenderer ..> ScheduledEmail : renders
+InvitationPreviewRenderer --> EmailPreview : produces
+@enduml

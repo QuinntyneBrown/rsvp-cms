@@ -1,0 +1,23 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Respect reduced-motion preferences
+
+Person(organiser, "Organiser", "Saves changes and reorders blocks")
+Container_Boundary(shared, "Shared UI library") {
+  Component(query, "MotionPreferenceQuery", "<TO SUPPLY>", "Reads whether the browser prefers reduced motion")
+  Component(policy, "MotionPolicy", "<TO SUPPLY>", "Returns Animated or Immediate for the current preference")
+  Component(presenter, "OverlayPresenter", "<TO SUPPLY>", "Shows toasts, dialogs and banners with or without entrance motion")
+  Component(entrance, "EntranceTransition", "<TO SUPPLY>", "Plays the slide and fade of an overlay when motion is allowed")
+}
+Container_Boundary(admin, "Organiser web application") {
+  Component(blockList, "BlockListView", "<TO SUPPLY>", "Shows the page blocks in order and applies a reorder")
+}
+
+Rel(organiser, blockList, "Reorders blocks in")
+Rel(organiser, presenter, "Sees toasts and dialogs from")
+Rel(presenter, policy, "Asks for the motion mode from")
+Rel(blockList, policy, "Asks for the motion mode from")
+Rel(policy, query, "Reads the preference from")
+Rel(presenter, entrance, "Plays the entrance with")
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Schedule invitation emails
+
+Container_Boundary(admin, "Organiser app") {
+  Component(dialog, "ScheduleInvitationsDialog", "<TO SUPPLY>", "Collects the schedule under src/admin/invitations")
+  Component(client, "EmailsApiClient", "<TO SUPPLY>", "Sends the schedule request")
+}
+Container_Boundary(api, "API application") {
+  Component(ctrl, "InvitationScheduleController", "<TO SUPPLY>", "Exposes the schedule endpoint under src/api/guests")
+  Component(handler, "ScheduleInvitationsCommandHandler", "<TO SUPPLY>", "Validates and schedules under src/domain/invitations")
+  Component(policy, "InvitationSchedulePolicy", "<TO SUPPLY>", "Applies subject and send date rules")
+  Component(sender, "SenderIdentity", "<TO SUPPLY>", "Normalises sender name and reply-to address")
+  Component(repo, "ScheduledEmailRepository", "<TO SUPPLY>", "Saves scheduled emails under src/data")
+  ComponentDb(store, "Scheduled email store", "<TO SUPPLY>", "Persists scheduled emails")
+}
+
+Rel(dialog, client, "Requests the schedule using")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends ScheduleInvitationsCommand")
+Rel(handler, policy, "Validates with")
+Rel(handler, sender, "Normalises with")
+Rel(handler, repo, "Saves the schedule through")
+Rel(repo, store, "Reads and writes", "<TO SUPPLY>")
+@enduml

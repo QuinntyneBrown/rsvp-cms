@@ -1,0 +1,78 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Adapt the organiser layout to viewport width
+
+enum ViewportBand {
+  XS
+  SM
+  MD
+  LG
+  XL
+}
+
+enum NavigationMode {
+  MenuButton
+  PersistentSideArea
+}
+
+class BreakpointTokens {
+  +int SmMinWidthPx
+  +int MdMinWidthPx
+  +int LgMinWidthPx
+  +int XlMinWidthPx
+}
+
+class ViewportBandResolver {
+  -BreakpointTokens tokens
+  +ViewportBand Resolve(widthPx: int)
+  +NavigationMode NavigationModeFor(band: ViewportBand)
+}
+
+class NavigationController {
+  +bool IsPanelOpen
+  +void Open()
+  +void Close()
+  +void OnBandChanged(band: ViewportBand)
+}
+
+class OrganiserShell {
+  +ViewportBand Band
+  +NavigationMode Mode
+  +void RenderPage(pageId: string)
+}
+
+class ResponsiveDataTable {
+  +ViewportBand Band
+  +void Render(rows: TableRow[])
+}
+
+class TableRow {
+  +UUID RowId
+  +bool IsSelected
+}
+
+class StackedRecordCard {
+  +UUID RowId
+  +void RenderFields(row: TableRow)
+}
+
+OrganiserShell --> NavigationController : delegates panel state to
+OrganiserShell ..> ViewportBandResolver : resolves band with
+OrganiserShell ..> NavigationMode : shows
+ViewportBandResolver --> BreakpointTokens : reads
+ViewportBandResolver ..> ViewportBand : returns
+NavigationController ..> ViewportBand : reacts to
+ResponsiveDataTable --> TableRow : displays
+ResponsiveDataTable ..> StackedRecordCard : renders below MD
+@enduml

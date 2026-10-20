@@ -1,0 +1,85 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Send reminders to guests who have not replied
+
+enum ReplyStatus {
+  Waiting
+  Attending
+  Declined
+}
+
+enum EmailStatus {
+  Scheduled
+  Sent
+  Failed
+  Cancelled
+}
+
+enum EmailKind {
+  Invitation
+  Reminder
+}
+
+class ScheduledEmail {
+  +UUID Id
+  +UUID EventId
+  +UUID GuestId
+  +EmailKind Kind
+  +DateTime SendAt
+  +EmailStatus Status
+  +Cancel(): void
+}
+
+class ScheduleReminderCommand {
+  +UUID EventId
+  +string Subject
+  +Date SendOnDate
+}
+
+class ScheduleReminderCommandHandler {
+  +Handle(command: ScheduleReminderCommand): Result
+}
+
+class ReminderPolicy {
+  +Validate(sendAt: DateTime, inviteWindowCloses: DateTime): ValidationResult
+}
+
+class ReminderAudienceResolver {
+  +ResolveRecipients(eventId: UUID, sendAt: DateTime): IList<UUID>
+}
+
+class ReminderDispatchStep {
+  +Execute(reminder: ScheduledEmail): IList<UUID>
+}
+
+class ReminderCancellationService {
+  +CancelPendingForGuest(eventId: UUID, guestId: UUID): int
+}
+
+class GuestReply {
+  +UUID GuestId
+  +ReplyStatus Status
+}
+
+ScheduleReminderCommandHandler ..> ScheduleReminderCommand : handles
+ScheduleReminderCommandHandler --> ReminderPolicy : validates with
+ScheduleReminderCommandHandler --> ScheduledEmail : creates
+ReminderDispatchStep --> ReminderAudienceResolver : resolves with
+ReminderDispatchStep ..> ScheduledEmail : reads
+ReminderAudienceResolver ..> GuestReply : filters on
+ReminderCancellationService ..> ScheduledEmail : cancels
+ScheduledEmail --> EmailKind : has
+ScheduledEmail --> EmailStatus : has
+GuestReply --> ReplyStatus : has
+@enduml

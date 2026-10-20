@@ -1,0 +1,44 @@
+@startuml
+title Sequence — Cancel a pending reminder on reply
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Guest" as actor
+box "Frontend — Guest RSVP app" #E0F2FE
+  participant "RsvpPage" as page
+end box
+box "Backend — API application" #D1FADF
+  participant "ReminderCancellationEndpoint" as endpoint
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "RSVP submission handler" as rsvp
+  participant "ReminderCancellationService" as cancel
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Scheduled email store" as db
+end box
+
+actor -> page : Send my RSVP
+page -> rsvp : Submit reply
+rsvp -> db : Save reply
+db --> rsvp : Reply saved
+rsvp -> endpoint : Notify reply for guest
+endpoint -> cancel : Cancel pending reminder of guest
+cancel -> db : Set pending reminder to Cancelled
+db --> cancel : Updated count
+cancel --> endpoint : Cancelled
+endpoint --> rsvp : Notice accepted
+rsvp --> page : Reply confirmed
+page --> actor : Success state under L2-032 criterion 2
+@enduml

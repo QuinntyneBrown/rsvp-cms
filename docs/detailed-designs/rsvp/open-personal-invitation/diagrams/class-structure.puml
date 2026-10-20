@@ -1,0 +1,82 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Open a personal invitation link
+
+enum GuestPageState {
+  Open
+  NotOpen
+  Closed
+  Invalid
+}
+
+enum InvitationWindowState {
+  NotOpened
+  Open
+  Closed
+}
+
+class InvitationWindow {
+  +DateTime OpensAt
+  +DateTime ClosesAt
+  +StateAt(now: DateTime): InvitationWindowState
+}
+
+class EventSnapshot {
+  +UUID EventId
+  +string Name
+  +bool IsPublished
+  +InvitationWindow Window
+}
+
+class InvitationLink {
+  +UUID GuestId
+  +UUID EventId
+  +string Token
+  +bool IsValid
+}
+
+class InvitationPageView {
+  +GuestPageState State
+  +string GuestName
+  +string EventName
+  +DateTime OpensAt
+  +DateTime ClosesAt
+  +string PublishedContent
+}
+
+class PersonalLinkResolver {
+  +Resolve(token: string, now: DateTime): InvitationPageView
+}
+
+interface InvitationLinkRepository {
+  +FindByToken(token: string): InvitationLink
+}
+
+interface EventRepository {
+  +Get(eventId: UUID): EventSnapshot
+}
+
+class PersonalInvitationController {
+  +Get(token: string): HttpResult
+}
+
+PersonalLinkResolver --> InvitationLinkRepository : looks up with
+PersonalLinkResolver --> EventRepository : loads with
+PersonalLinkResolver ..> InvitationPageView : returns
+PersonalInvitationController --> PersonalLinkResolver : resolves with
+EventSnapshot *-- InvitationWindow : has
+InvitationWindow ..> InvitationWindowState : returns
+InvitationPageView --> GuestPageState : has
+InvitationLinkRepository ..> InvitationLink : returns
+@enduml

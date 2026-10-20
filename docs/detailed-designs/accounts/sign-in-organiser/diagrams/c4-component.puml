@@ -1,0 +1,20 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Sign in as an organiser
+
+Container_Boundary(admin, "Organiser web application") {
+  Component(page, "SignInPage", "<TO SUPPLY>", "Renders the sign-in form, its loading state and its errors")
+}
+Container_Boundary(api, "API application") {
+  Component(endpoint, "SignInEndpoint", "<TO SUPPLY>", "Receives the sign-in request and sets the session cookie")
+  Component(service, "SignInService", "<TO SUPPLY>", "Runs one sign-in attempt")
+  Component(sessions, "SessionService", "<TO SUPPLY>", "Creates the server-side session")
+}
+ComponentDb(store, "AccountStore", "<TO SUPPLY>", "Reads and updates organiser accounts")
+
+Rel(page, endpoint, "Sends credentials to", "JSON/HTTPS")
+Rel(endpoint, service, "Calls")
+Rel(service, store, "Loads and updates accounts in")
+Rel(service, sessions, "Creates the session through")
+@enduml

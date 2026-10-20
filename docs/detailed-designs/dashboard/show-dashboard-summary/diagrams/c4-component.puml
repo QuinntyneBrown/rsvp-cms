@@ -1,0 +1,32 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Show the organiser dashboard summary
+
+Container_Boundary(admin, "Organiser app") {
+  Component(page, "DashboardPage", "<TO SUPPLY>", "Composes the dashboard in src/admin/dashboard")
+  Component(tiles, "SummaryTiles", "<TO SUPPLY>", "Renders the four tiles in src/admin/dashboard")
+  Component(upcoming, "UpcomingEventsList", "<TO SUPPLY>", "Renders upcoming rows in src/admin/dashboard")
+  Component(sumClient, "DashboardSummaryClient", "<TO SUPPLY>", "Requests the summary in src/admin/dashboard")
+  Component(upClient, "UpcomingEventsClient", "<TO SUPPLY>", "Requests upcoming events in src/admin/dashboard")
+}
+Container_Boundary(api, "API application") {
+  Component(ctrl, "DashboardController", "<TO SUPPLY>", "Exposes dashboard GET endpoints in src/api/events")
+  Component(sumSvc, "DashboardSummaryService", "<TO SUPPLY>", "Builds the totals in src/domain/dashboard")
+  Component(upSvc, "UpcomingEventService", "<TO SUPPLY>", "Orders upcoming events in src/domain/dashboard")
+  Component(reader, "DashboardReadRepository", "<TO SUPPLY>", "Aggregates over accessible events in src/data/dashboard")
+  ComponentDb(db, "Event store", "<TO SUPPLY>", "Holds events, guests, replies and emails")
+}
+
+Rel(page, tiles, "Renders")
+Rel(page, upcoming, "Renders")
+Rel(tiles, sumClient, "Requests the summary through")
+Rel(upcoming, upClient, "Requests upcoming events through")
+Rel(sumClient, ctrl, "Sends GET /dashboard/summary to", "HTTPS, JSON")
+Rel(upClient, ctrl, "Sends GET /dashboard/upcoming-events to", "HTTPS, JSON")
+Rel(ctrl, sumSvc, "Dispatches summary requests to")
+Rel(ctrl, upSvc, "Dispatches upcoming requests to")
+Rel(sumSvc, reader, "Reads totals through")
+Rel(upSvc, reader, "Reads rows through")
+Rel(reader, db, "Reads from", "<TO SUPPLY>")
+@enduml

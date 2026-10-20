@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System Context — Support keyboard operation and focus
+
+Person(organiser, "Organiser", "Operates every organiser function with the keyboard")
+Person(guest, "Guest", "Operates the RSVP page with the keyboard")
+System(invitely, "Invitely", "RSVP CMS for organisers and guests")
+System_Ext(browser, "Web browser", "Delivers key presses and manages the focus of the page")
+
+Rel(organiser, invitely, "Operates with the keyboard in")
+Rel(guest, invitely, "Operates with the keyboard in")
+Rel(invitely, browser, "Moves focus through")
+@enduml

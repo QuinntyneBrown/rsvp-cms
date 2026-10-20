@@ -1,0 +1,49 @@
+@startuml
+title UML sequence behaviour — Remove guests
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "RemoveGuestsDialog" as dialog
+end box
+box "Backend — API application" #D1FADF
+  participant "GuestController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "GuestRoster" as roster
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Application database" as db
+  participant "Scheduled email queue" as queue
+end box
+
+actor -> dialog : Select Remove for two or more guests
+dialog --> actor : Title "Remove 2 guests?" with Cancel and Remove
+actor -> dialog : Select Remove
+dialog --> actor : Remove shows a busy state and Cancel is disabled (L2-023)
+dialog -> controller : DELETE guests with identifiers
+controller -> roster : Remove(eventId, guestIds)
+roster -> db : Delete guests, invitation links and replies
+db --> roster : Commit result
+roster -> queue : Cancel pending reminders for the guests (L2-023)
+queue --> roster : Cancelled
+roster --> controller : Removed count
+controller --> dialog : Removed count
+alt Removal fails (L2-023)
+  dialog --> actor : Guests stay in the table and the dialog offers Try again
+else Removal succeeds
+  dialog --> actor : Close the dialog, update the table count and show a toast
+end
+@enduml

@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Prompt the organiser about due reminders
+
+Container_Boundary(admin, "Organiser app") {
+  Component(prompt, "DueRemindersPrompt", "<TO SUPPLY>", "Renders prompts and Review emails in src/admin/dashboard")
+  Component(client, "RemindersPromptClient", "<TO SUPPLY>", "Requests due reminders in src/admin/dashboard")
+}
+Container_Boundary(api, "API application") {
+  Component(ctrl, "RemindersPromptController", "<TO SUPPLY>", "Exposes GET /dashboard/reminder-prompts in src/api/events")
+  Component(svc, "ReminderPromptService", "<TO SUPPLY>", "Selects due reminders in src/domain/dashboard")
+  Component(window, "ReminderPromptWindow", "<TO SUPPLY>", "Holds the 7-day look-ahead in src/domain/dashboard")
+  Component(reader, "DueReminderReader", "<TO SUPPLY>", "Reads scheduled reminders in src/data/dashboard")
+  ComponentDb(db, "Event store", "<TO SUPPLY>", "Holds scheduled reminders")
+}
+
+Rel(prompt, client, "Requests prompts through")
+Rel(client, ctrl, "Sends GET /dashboard/reminder-prompts to", "HTTPS, JSON")
+Rel(ctrl, svc, "Dispatches requests to")
+Rel(svc, window, "Applies the look-ahead with")
+Rel(svc, reader, "Reads reminders through")
+Rel(reader, db, "Reads from", "<TO SUPPLY>")
+@enduml

@@ -1,0 +1,37 @@
+@startuml
+title Sequence — Issue a personal invitation link
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+box "Backend — Application and domain" #ECFDF3
+  participant "Invitation sender" as sender
+  participant "InvitationLinkIssuer" as issuer
+  participant "InvitationTokenGenerator" as generator
+  participant "TokenHasher" as hasher
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Invitation link store" as db
+end box
+
+sender -> issuer : GetOrIssue for guest on first send
+issuer -> db : Find active link of guest
+db --> issuer : None
+issuer -> generator : Generate token
+generator --> issuer : Token of at least 128 bits under L2-033 criterion 1
+issuer -> hasher : Hash token
+hasher --> issuer : Token hash
+issuer -> db : Save link with token hash only
+db --> issuer : Saved
+issuer --> sender : Issued link with token for the email
+@enduml

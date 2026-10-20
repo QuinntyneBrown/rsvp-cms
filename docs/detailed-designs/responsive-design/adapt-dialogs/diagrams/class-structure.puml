@@ -1,0 +1,68 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Fit dialogs to the viewport
+
+enum ViewportBand {
+  XS
+  SM
+  MD
+  LG
+  XL
+}
+
+enum DialogPresentation {
+  FullScreen
+  Centred
+}
+
+class DialogPresenter {
+  +int CentredMaxWidthPx
+  +DialogPresentation PresentationFor(band: ViewportBand)
+}
+
+class Dialog {
+  +string Title
+  +DialogPresentation Presentation
+  +bool IsOpen
+  +void Open()
+  +void Close()
+}
+
+class DialogBody {
+  +bool ScrollsInternally
+  +void ShowContent(content: string)
+}
+
+class DialogFooter {
+  +bool IsStickyAtBottom
+  +void ShowActions(actions: DialogAction[])
+}
+
+class DialogAction {
+  +string Label
+  +bool IsPrimary
+}
+
+class EmailPreviewDialog {
+  +UUID EmailId
+  +string Subject
+}
+
+Dialog *-- "1" DialogBody
+Dialog *-- "1" DialogFooter
+Dialog --> DialogPresenter : asks for presentation
+DialogPresenter ..> ViewportBand : reads
+DialogFooter *-- "0..*" DialogAction
+EmailPreviewDialog --|> Dialog
+@enduml

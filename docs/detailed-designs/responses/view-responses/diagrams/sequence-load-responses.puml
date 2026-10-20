@@ -1,0 +1,72 @@
+@startuml
+title UML sequence behaviour — View and filter responses
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "ResponsesPage" as page
+  participant "ResponsesApiClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "ResponsesController" as ctrl
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "ResponseTotalsCalculator" as totals
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Invitely database" as db
+end box
+
+actor -> page : Open Responses
+page --> actor : Placeholder rows while loading (L2-046)
+page -> client : Request first page of 50 rows, sorted by most recently updated
+client -> ctrl : GET /events/{eventId}/responses
+ctrl -> db : Query replies page and count
+alt Request fails
+  db --> ctrl : Error
+  ctrl --> client : Error response
+  client --> page : Error state with Try again (L2-046)
+else Request succeeds
+  db --> ctrl : Rows
+  ctrl --> client : Rows and page information
+  alt No replies at all
+    client --> page : Empty state with link to the public page (L2-046)
+  else Replies exist
+    client --> page : Table with guest, reply, guests, meal, dietary note, message, updated
+  end
+end
+
+actor -> page : Choose filter Attending, Declined or Waiting, or type a name
+page -> client : Request with filter and search term
+client -> ctrl : GET /events/{eventId}/responses?filter=...&search=...
+ctrl -> db : Query matching replies
+db --> ctrl : Matching rows
+alt No rows match (L2-048)
+  ctrl --> client : Empty result
+  client --> page : No-results state with Clear search
+else Rows match
+  ctrl --> client : Matching rows only
+  client --> page : Filtered table, case-insensitive name match (L2-048)
+end
+
+page -> client : Request totals
+client -> ctrl : GET /events/{eventId}/responses/totals
+ctrl -> totals : Calculate(eventId)
+totals -> db : Read replies
+db --> totals : Replies
+totals --> ctrl : Attending, Guests coming, meal counts (L2-047)
+ctrl --> client : Totals
+client --> page : Totals strip updated, refreshed at an interval of 5 seconds or less (L2-047)
+@enduml

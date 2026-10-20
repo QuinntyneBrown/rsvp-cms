@@ -1,0 +1,56 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Label form controls and announce errors
+
+class FieldError {
+  +string FieldId
+  +string Message
+  +string ErrorElementId
+}
+
+class FormState {
+  +bool IsSubmitted
+  +bool HasErrors()
+  +void Submit()
+  +void ShowErrors(errors: FieldError[])
+}
+
+class FormField {
+  +string FieldId
+  +string LabelText
+  +bool IsInvalid
+  +void BindError(error: FieldError)
+}
+
+class ErrorSummary {
+  +FieldError[] Items
+  +void Focus()
+}
+
+class LiveRegionAnnouncer {
+  +string Politeness
+  +void Announce(message: string)
+}
+
+class Toast {
+  +string Message
+  +void Show()
+}
+
+FormState *-- "0..*" FieldError : holds
+FormState --> ErrorSummary : shows errors in
+FormField --> FieldError : displays
+ErrorSummary ..> FieldError : lists
+Toast --> LiveRegionAnnouncer : announces through
+@enduml

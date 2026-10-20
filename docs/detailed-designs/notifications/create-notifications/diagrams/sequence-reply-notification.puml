@@ -1,0 +1,63 @@
+@startuml
+title UML sequence behaviour — Create a notification for a reply
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Guest" as actor
+box "Frontend — Guest RSVP app" #E0F2FE
+  participant "RsvpForm" as form
+end box
+box "Backend — API application" #D1FADF
+  participant "RsvpController" as ctrl
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "SubmitRsvpCommandHandler" as handler
+  participant "ReplyNotificationTrigger" as trigger
+  participant "AttendanceMilestoneChecker" as milestones
+  participant "NotificationFactory" as factory
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Invitely database" as db
+end box
+
+actor -> form : Send reply
+form -> ctrl : POST /public/invitations/{token}/rsvp
+ctrl -> handler : SubmitRsvpCommand
+handler -> db : Save reply
+db --> handler : Saved
+handler -> trigger : OnReplySaved(reply)
+trigger -> factory : ForReply(guest name, yes or no, event name, SubmissionId)
+factory --> trigger : Draft with dedupe key reply:{SubmissionId}
+trigger -> db : TryCreate(draft)
+alt Dedupe key already stored
+  db --> trigger : Not created, nothing added
+else New key
+  db --> trigger : Created
+  note right of db
+    The notification reads "[Guest] replied [yes/no] to [event]"
+    and is created within 1 minute of the reply (L2-056).
+  end note
+end
+handler -> milestones : Check(event, attending count)
+milestones -> db : Record milestone 25, 50 or 100 if reached
+alt Milestone reached for the first time (L2-056)
+  db --> milestones : Recorded
+  milestones -> factory : ForMilestone(event, milestone)
+  milestones -> db : TryCreate(draft)
+else No new milestone
+  db --> milestones : Nothing recorded
+end
+handler --> ctrl : Saved reply
+ctrl --> form : Success state
+@enduml

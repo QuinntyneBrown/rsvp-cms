@@ -1,0 +1,45 @@
+@startuml
+title UML sequence behaviour — Scale horizontally by adding instances
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Backend — Load balancing" #FFF4E5
+  participant "Load balancer" as lb
+end box
+box "Backend — API application" #D1FADF
+  participant "Instance A (AuthController)" as a
+  participant "Instance B (SessionAuthenticator)" as b
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Session store" as sessions
+end box
+actor -> lb : Sign in
+lb -> a : Route sign-in request
+a -> sessions : Write new session
+sessions --> a : Stored
+a --> lb : Session cookie set
+lb --> actor : Signed in
+actor -> lb : Next request
+lb -> b : Route request to a different instance
+b -> sessions : Read session by identifier
+sessions --> b : Session
+alt Session valid
+  b --> lb : Response for the organiser
+  lb --> actor : Session remains valid (L2-079 criterion 1)
+else Session ended or expired
+  b --> lb : 401 Unauthorised
+  lb --> actor : Sign in again
+end
+@enduml

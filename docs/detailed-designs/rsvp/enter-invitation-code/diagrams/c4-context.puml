@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Enter an invitation code
+
+Person(guest, "Guest", "Invitee who has an invitation code but no personal link")
+System(invitely, "Invitely", "RSVP content management system for event invitations")
+System_Ext(organiser, "Organiser", "Shares the invitation code with the guest")
+
+Rel(guest, invitely, "Enters an invitation code on the public RSVP page", "HTTPS")
+Rel(organiser, guest, "Sends the invitation code to")
+@enduml

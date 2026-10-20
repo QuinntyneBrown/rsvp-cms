@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Prompt the organiser about due reminders
+
+Person(organiser, "Organiser", "Signed-in user who owns events")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser app", "<TO SUPPLY>", "Organiser UI in src/admin")
+  Container(api, "API application", "<TO SUPPLY>", "HTTP endpoints in src/api")
+  ContainerDb(db, "Invitely database", "<TO SUPPLY>", "Stores scheduled reminders")
+}
+
+Rel(organiser, admin, "Reviews prompts using", "HTTPS")
+Rel(admin, api, "Requests due reminders from", "HTTPS, JSON")
+Rel(api, db, "Reads scheduled reminders from", "<TO SUPPLY>")
+@enduml

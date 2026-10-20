@@ -1,0 +1,46 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Sign in as an organiser
+
+enum SignInOutcome {
+  Accepted
+  Rejected
+}
+
+class SignInRequest {
+  +string Email
+  +string Password
+  +bool KeepSignedIn
+}
+
+class SignInResult {
+  +SignInOutcome Outcome
+  +UUID? SessionId
+}
+
+class SignInService {
+  +SignIn(request: SignInRequest): SignInResult
+}
+
+class OrganiserAccount {
+  +UUID Id
+  +string Email
+  +string PasswordHash
+}
+
+SignInService ..> SignInRequest : accepts
+SignInService --> SignInResult : returns
+SignInService --> OrganiserAccount : loads
+SignInResult --> SignInOutcome : has
+@enduml

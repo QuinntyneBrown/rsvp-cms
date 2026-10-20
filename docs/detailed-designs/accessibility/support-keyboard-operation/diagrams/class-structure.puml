@@ -1,0 +1,69 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Support keyboard operation and focus
+
+enum ArrowKey {
+  Up
+  Down
+  Left
+  Right
+}
+
+class FocusableElement {
+  +string ElementId
+  +bool IsFocusable
+}
+
+class FocusManager {
+  -FocusableElement opener
+  +void MoveInto(container: FocusableElement)
+  +void Remember(opener: FocusableElement)
+  +void RestoreOpener()
+}
+
+class FocusTrap {
+  +FocusableElement NextFocus(current: FocusableElement, reverse: bool)
+}
+
+class RovingFocusGroup {
+  +int ActiveIndex
+  +void HandleArrowKey(key: ArrowKey)
+}
+
+class FocusRing {
+  +int MinimumWidthPx
+  +float MinimumContrastRatio
+}
+
+class SkipLink {
+  +string TargetRegionId
+  +void Activate()
+}
+
+class Dialog {
+  +bool IsRequestInFlight
+  +bool IsOpen
+  +void OnEscape()
+  +void Close()
+}
+
+Dialog --> FocusManager : moves focus with
+Dialog --> FocusTrap : cycles Tab with
+Dialog --> FocusRing : shows focus from
+RovingFocusGroup ..> ArrowKey : reads
+RovingFocusGroup --> FocusRing : shows focus from
+FocusManager o-- "0..*" FocusableElement : tracks
+FocusTrap ..> FocusableElement : returns
+SkipLink ..> FocusableElement : moves focus to
+@enduml

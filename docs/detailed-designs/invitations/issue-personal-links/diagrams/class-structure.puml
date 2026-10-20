@@ -1,0 +1,60 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Issue personal invitation links
+
+class InvitationLink {
+  +UUID Id
+  +UUID GuestId
+  +UUID EventId
+  +string TokenHash
+  +DateTime CreatedAt
+  +DateTime? RevokedAt
+  +IsActive(): bool
+}
+
+class InvitationLinkIssuer {
+  +GetOrIssue(guestId: UUID): IssuedLink
+}
+
+class IssuedLink {
+  +string Token
+  +UUID GuestId
+}
+
+class InvitationTokenGenerator {
+  +Generate(): string
+}
+
+class TokenHasher {
+  +Hash(token: string): string
+}
+
+class InvitationLinkResolver {
+  +Resolve(token: string): UUID?
+}
+
+class InvitationLinkRepository {
+  +Add(link: InvitationLink): void
+  +FindActiveByTokenHash(tokenHash: string): InvitationLink?
+  +FindActiveByGuest(guestId: UUID): InvitationLink?
+}
+
+InvitationLinkIssuer --> InvitationTokenGenerator : generates with
+InvitationLinkIssuer --> TokenHasher : hashes with
+InvitationLinkIssuer --> InvitationLinkRepository : saves through
+InvitationLinkIssuer ..> IssuedLink : returns
+InvitationLinkResolver --> TokenHasher : hashes with
+InvitationLinkResolver --> InvitationLinkRepository : reads through
+InvitationLinkRepository o-- "0..*" InvitationLink : stores
+@enduml

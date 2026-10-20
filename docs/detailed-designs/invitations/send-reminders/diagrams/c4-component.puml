@@ -1,0 +1,30 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Send reminders to guests who have not replied
+
+Container_Boundary(admin, "Organiser app") {
+  Component(dialog, "ScheduleInvitationsDialog", "<TO SUPPLY>", "Collects the reminder schedule under src/admin/invitations")
+}
+Container_Boundary(api, "API application") {
+  Component(ctrl, "ReminderScheduleController", "<TO SUPPLY>", "Exposes the reminder endpoint under src/api/guests")
+  Component(reply, "ReminderCancellationEndpoint", "<TO SUPPLY>", "Receives the reply notice under src/api/responses")
+  Component(scheduleHandler, "ScheduleReminderCommandHandler", "<TO SUPPLY>", "Schedules reminders under src/domain/invitations")
+  Component(policy, "ReminderPolicy", "<TO SUPPLY>", "Refuses sends after the invite window closes")
+  Component(dispatch, "ReminderDispatchStep", "<TO SUPPLY>", "Resolves recipients for each due reminder")
+  Component(resolver, "ReminderAudienceResolver", "<TO SUPPLY>", "Selects guests with status Waiting at send time")
+  Component(cancel, "ReminderCancellationService", "<TO SUPPLY>", "Cancels the pending reminder of one guest")
+  Component(repo, "ScheduledEmailRepository", "<TO SUPPLY>", "Reads and updates reminders under src/data")
+  ComponentDb(store, "Scheduled email store", "<TO SUPPLY>", "Persists reminders and replies")
+}
+
+Rel(dialog, ctrl, "Sends the reminder schedule to", "JSON/HTTPS")
+Rel(ctrl, scheduleHandler, "Sends ScheduleReminderCommand")
+Rel(scheduleHandler, policy, "Validates with")
+Rel(scheduleHandler, repo, "Saves reminders through")
+Rel(dispatch, resolver, "Resolves recipients with")
+Rel(dispatch, repo, "Reads due reminders through")
+Rel(reply, cancel, "Cancels pending reminder with")
+Rel(cancel, repo, "Updates reminders through")
+Rel(repo, store, "Reads and writes", "<TO SUPPLY>")
+@enduml

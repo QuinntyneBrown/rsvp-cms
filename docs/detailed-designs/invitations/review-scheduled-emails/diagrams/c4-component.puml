@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Review scheduled and sent emails
+
+Container_Boundary(admin, "Organiser app") {
+  Component(page, "EmailsPage", "<TO SUPPLY>", "Lists scheduled emails under src/admin/invitations")
+  Component(dialog, "EmailPreviewDialog", "<TO SUPPLY>", "Shows the rendered email")
+  Component(client, "EmailsApiClient", "<TO SUPPLY>", "Requests the list and previews")
+}
+Container_Boundary(api, "API application") {
+  Component(ctrl, "ScheduledEmailsController", "<TO SUPPLY>", "Exposes list and preview endpoints under src/api/guests")
+  Component(handler, "ScheduledEmailQueryHandler", "<TO SUPPLY>", "Maps scheduled emails to list items")
+  Component(renderer, "InvitationPreviewRenderer", "<TO SUPPLY>", "Renders the email with sample values")
+  Component(repo, "ScheduledEmailRepository", "<TO SUPPLY>", "Reads scheduled emails under src/data")
+  ComponentDb(store, "Scheduled email store", "<TO SUPPLY>", "Persists scheduled emails")
+}
+
+Rel(page, client, "Requests the list using")
+Rel(dialog, client, "Requests the preview using")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends ScheduledEmailQuery")
+Rel(ctrl, renderer, "Requests the preview from")
+Rel(handler, repo, "Reads through")
+Rel(repo, store, "Reads", "<TO SUPPLY>")
+@enduml

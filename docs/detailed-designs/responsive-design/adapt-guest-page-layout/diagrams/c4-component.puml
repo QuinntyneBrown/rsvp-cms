@@ -1,0 +1,22 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Adapt the public page layout to viewport width
+
+Person(guest, "Guest", "Reads the blocks and replies on the public page")
+Container_Boundary(rsvp, "Guest RSVP web application") {
+  Component(layout, "PublicPageLayout", "<TO SUPPLY>", "Stacks blocks in one column below 576 px and places Details and Schedule side by side at 992 px and wider")
+  Component(hero, "HeroBlockView", "<TO SUPPLY>", "Renders the hero image no taller than 60% of the viewport height")
+  Component(twoColumn, "TwoColumnGrid", "<TO SUPPLY>", "Places the Details and Schedule blocks side by side at LG and wider")
+  Component(form, "RsvpFormContainer", "<TO SUPPLY>", "Renders the RSVP form full width below 576 px and at most 720 px wide at LG and wider")
+}
+Container_Boundary(shared, "Shared UI library") {
+  Component(resolver, "ViewportBandResolver", "<TO SUPPLY>", "Maps a width in pixels to a viewport band")
+}
+
+Rel(guest, layout, "Views")
+Rel(layout, resolver, "Resolves the viewport band with")
+Rel(layout, hero, "Renders the hero block with")
+Rel(layout, twoColumn, "Places Details and Schedule with")
+Rel(layout, form, "Renders the RSVP form with")
+@enduml

@@ -1,0 +1,21 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Process bulk operations within limits
+
+Person(organiser, "Organiser", "Imports, exports and schedules invitations for up to 2,000 guests")
+System_Ext(mail, "Email provider", "Accepts invitation emails for delivery")
+
+System_Boundary(rsvp, "Invitely RSVP CMS") {
+  Container(adminApp, "Organiser admin app", "<TO SUPPLY>", "src/admin: starts imports, exports and scheduling")
+  Container(api, "API application", "<TO SUPPLY>", "src/api/guests: accepts bulk requests and returns after queuing")
+  Container(worker, "Job worker", "<TO SUPPLY>", "src/domain/jobs: runs queued imports and invitation sends")
+  ContainerDb(store, "Data store", "<TO SUPPLY>", "Holds guests, scheduled jobs and their progress")
+}
+
+Rel(organiser, adminApp, "Uses", "HTTPS")
+Rel(adminApp, api, "Sends bulk requests to", "JSON/HTTPS")
+Rel(api, store, "Writes guests and queued jobs to", "<TO SUPPLY>")
+Rel(worker, store, "Reads jobs and writes results to", "<TO SUPPLY>")
+Rel(worker, mail, "Sends invitations through", "<TO SUPPLY>")
+@enduml

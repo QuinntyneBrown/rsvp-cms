@@ -1,0 +1,20 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Save, publish and discard page drafts
+
+Person(organiser, "Organiser", "Publishes or discards page changes")
+Person_Ext(guest, "Guest", "Reads the published page")
+System_Boundary(cms, "RSVP CMS") {
+  Container(admin, "Organiser app", "<TO SUPPLY>", "Draft status, publish and discard controls under src/admin")
+  Container(rsvp, "Guest RSVP app", "<TO SUPPLY>", "Public page under src/rsvp")
+  Container(api, "Organiser API", "<TO SUPPLY>", "Draft and publish endpoints under src/api/events")
+  ContainerDb(db, "Application database", "<TO SUPPLY>", "Stores page drafts and published pages under src/data")
+}
+
+Rel(organiser, admin, "Publishes and discards using", "HTTPS")
+Rel(admin, api, "Sends draft, publish and discard requests to", "JSON/HTTPS")
+Rel(api, db, "Reads and writes drafts and published pages in", "<TO SUPPLY>")
+Rel(guest, rsvp, "Reads the page from", "HTTPS")
+Rel(rsvp, db, "Reads the published page from", "<TO SUPPLY>")
+@enduml

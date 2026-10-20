@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Track delivery outcomes and bounces
+
+Person(organiser, "Organiser", "Reviews delivery outcomes")
+System_Ext(mail, "Email provider", "Sends emails and reports bounces")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser app", "<TO SUPPLY>", "Organiser UI under src/admin")
+  Container(api, "API application", "<TO SUPPLY>", "Dispatcher and public endpoints under src/api, src/domain and src/shared")
+  ContainerDb(db, "Application database", "<TO SUPPLY>", "Stores delivery outcomes and scheduled email status")
+}
+
+Rel(organiser, admin, "Uses", "HTTPS")
+Rel(admin, api, "Reads outcomes through", "JSON/HTTPS")
+Rel(api, mail, "Sends scheduled emails through", "<TO SUPPLY>")
+Rel(mail, api, "Reports bounces to", "HTTPS webhook")
+Rel(api, db, "Reads and writes", "<TO SUPPLY>")
+@enduml

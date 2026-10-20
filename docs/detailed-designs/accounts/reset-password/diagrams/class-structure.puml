@@ -1,0 +1,61 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Reset a forgotten password
+
+enum ResetTokenState {
+  Valid
+  Expired
+  Used
+  Malformed
+}
+
+class PasswordResetToken {
+  +UUID Id
+  +UUID AccountId
+  +string TokenHash
+  +DateTime ExpiresAt
+  +DateTime? UsedAt
+  +State(at: DateTime): ResetTokenState
+  +MarkUsed(at: DateTime): void
+}
+
+class PasswordResetService {
+  +RequestReset(email: string): void
+  +GetTokenState(token: string): ResetTokenState
+  +CompleteReset(token: string, newPassword: string): ResetResult
+}
+
+class PasswordPolicy {
+  +int MinimumLength
+  +Check(password: string, email: string): PolicyResult
+}
+
+class ResetEmailSender {
+  +Send(to: string, resetLink: string): void
+}
+
+class OrganiserAccount {
+  +UUID Id
+  +string Email
+  +string PasswordHash
+  +DateTime? PasswordChangedAt
+  +SetPasswordHash(hash: string, at: DateTime): void
+}
+
+PasswordResetService ..> PasswordResetToken : issues and consumes
+PasswordResetService --> PasswordPolicy : checks new password with
+PasswordResetService --> ResetEmailSender : sends through
+PasswordResetService --> OrganiserAccount : changes password of
+PasswordResetToken "*" --> "1" OrganiserAccount : resets
+@enduml

@@ -1,0 +1,20 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Fit dialogs to the viewport
+
+Person(organiser, "Organiser", "Completes dialogs in the organiser pages")
+Person(guest, "Guest", "Completes dialogs on the public page")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser web application", "<TO SUPPLY>", "Organiser dialogs under src/admin")
+  Container(rsvp, "Guest RSVP web application", "<TO SUPPLY>", "Public page dialogs under src/rsvp")
+  Container(shared, "Shared UI library", "<TO SUPPLY>", "Dialog component and presentation rules under src/shared/ui/dialog")
+}
+System_Ext(browser, "Web browser", "Reports the viewport width and renders the dialog")
+
+Rel(organiser, admin, "Uses", "HTTPS")
+Rel(guest, rsvp, "Uses", "HTTPS")
+Rel(admin, shared, "Imports the dialog component from")
+Rel(rsvp, shared, "Imports the dialog component from")
+Rel(shared, browser, "Renders dialogs in")
+@enduml

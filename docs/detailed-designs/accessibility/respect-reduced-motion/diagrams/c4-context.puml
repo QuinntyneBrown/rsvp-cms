@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System Context — Respect reduced-motion preferences
+
+Person(organiser, "Organiser", "Sees toasts, dialogs and banners and reorders blocks")
+Person(guest, "Guest", "Sees dialogs and banners on the public page")
+System(invitely, "Invitely", "RSVP CMS for organisers and guests")
+System_Ext(browser, "Web browser", "Reports the reduced-motion preference of the operating system")
+
+Rel(organiser, invitely, "Works in")
+Rel(guest, invitely, "Reads the public page in")
+Rel(invitely, browser, "Reads the motion preference from")
+@enduml

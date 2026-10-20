@@ -1,0 +1,29 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Adapt the organiser layout to viewport width
+
+Person(organiser, "Organiser", "Opens the navigation and reads tables on a small screen")
+Container_Boundary(admin, "Organiser web application") {
+  Component(shell, "OrganiserShell", "<TO SUPPLY>", "Page frame with navigation slot and 16 px side gutter at XS")
+  Component(menuButton, "NavigationMenuButton", "<TO SUPPLY>", "Opens and closes the navigation panel below the MD band")
+  Component(navController, "NavigationController", "<TO SUPPLY>", "Holds the open or closed state of the navigation panel")
+  Component(sideArea, "NavigationSideArea", "<TO SUPPLY>", "Persistent navigation at MD and wider")
+}
+Container_Boundary(shared, "Shared UI library") {
+  Component(resolver, "ViewportBandResolver", "<TO SUPPLY>", "Maps a width in pixels to a viewport band")
+  Component(tokens, "BreakpointTokens", "<TO SUPPLY>", "Holds the minimum widths for SM, MD, LG and XL")
+  Component(table, "ResponsiveDataTable", "<TO SUPPLY>", "Renders a table at MD and wider and stacked cards below MD")
+  Component(scroll, "TableScrollRegion", "<TO SUPPLY>", "Scrolls a wide table inside its own container")
+  Component(card, "StackedRecordCard", "<TO SUPPLY>", "Renders one record as labelled fields with all of its actions")
+}
+
+Rel(organiser, menuButton, "Selects")
+Rel(shell, resolver, "Resolves the viewport band with")
+Rel(resolver, tokens, "Reads breakpoints from")
+Rel(shell, navController, "Delegates panel state to")
+Rel(menuButton, navController, "Opens and closes")
+Rel(shell, sideArea, "Shows at MD and wider")
+Rel(table, scroll, "Places a wide table inside")
+Rel(table, card, "Renders each row as below MD")
+@enduml

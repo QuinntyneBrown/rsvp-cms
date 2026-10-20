@@ -1,0 +1,54 @@
+@startuml
+title UML sequence behaviour — Ensure contrast and select a theme
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "ThemeSelectorControl" as selector
+  participant "ThemeController" as controller
+end box
+box "Frontend — Shared UI library" #E0F2FE
+  participant "ThemePreferenceStore" as store
+  participant "ColourSchemeQuery" as query
+  participant "ThemeTokens" as tokens
+end box
+database "Browser local storage" as storage
+actor -> controller : Load the organiser application
+controller -> store : Load saved theme
+store -> storage : Read saved choice
+storage --> store : Saved choice or none
+alt Saved choice exists
+  store --> controller : Saved theme
+else No saved choice
+  controller -> query : PrefersDark()
+  query --> controller : Operating system preference (L2-088 criterion 1)
+end
+controller -> tokens : PaletteFor(active theme)
+tokens --> controller : Colour tokens with 4.5:1 text contrast (L2-085)
+controller -> controller : Apply tokens to the page
+actor -> selector : Select Dark
+selector -> controller : Apply(Dark)
+controller -> store : TrySave(Dark)
+store -> storage : Write choice
+alt Storage is unavailable
+  storage --> store : Write fails
+  store --> controller : False
+  controller --> actor : Dark applies to the current page only (L2-088 criterion 3)
+else Storage accepts the write
+  storage --> store : Write succeeds
+  store --> controller : True
+  controller --> actor : Dark is applied and remembered (L2-088 criterion 2)
+end
+@enduml

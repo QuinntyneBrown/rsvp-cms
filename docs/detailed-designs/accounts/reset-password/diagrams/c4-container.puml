@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Reset a forgotten password
+
+Person(organiser, "Organiser", "Has forgotten the password to their account")
+System_Ext(email, "Email provider", "Delivers the reset link to the organiser")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser web application", "<TO SUPPLY>", "Forgot password and Reset password pages under src/admin")
+  Container(api, "API application", "<TO SUPPLY>", "Reset endpoints and reset logic under src/api and src/domain")
+  ContainerDb(db, "Database", "<TO SUPPLY>", "Organiser accounts and reset tokens under src/data")
+}
+
+Rel(organiser, admin, "Uses", "HTTPS")
+Rel(admin, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes accounts and tokens", "<TO SUPPLY>")
+Rel(api, email, "Sends reset emails through", "<TO SUPPLY>")
+Rel(email, organiser, "Delivers the reset link to")
+@enduml

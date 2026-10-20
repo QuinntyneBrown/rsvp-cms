@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Create notifications for key events
+
+Person_Ext(guest, "Guest", "Replies to the invitation")
+System_Ext(email, "Email provider", "Reports bounces")
+System_Boundary(invitely, "Invitely") {
+  Container(publicApi, "Public API application", "<TO SUPPLY>", "Saves replies under src/api/public")
+  Container(worker, "Scheduled job host", "<TO SUPPLY>", "Runs the reminder scanner on a schedule")
+  Container(api, "Organiser API application", "<TO SUPPLY>", "Bounce and count paths under src/api and src/domain")
+  ContainerDb(db, "Invitely database", "<TO SUPPLY>", "Notifications, reminders and milestones")
+}
+Rel(guest, publicApi, "Saves a reply through", "HTTPS")
+Rel(email, api, "Posts bounce reports to", "HTTPS")
+Rel(publicApi, db, "Writes the reply and the notification to", "<TO SUPPLY>")
+Rel(worker, db, "Reads reminders and writes notifications to", "<TO SUPPLY>")
+Rel(api, db, "Writes bounce notifications to", "<TO SUPPLY>")
+@enduml

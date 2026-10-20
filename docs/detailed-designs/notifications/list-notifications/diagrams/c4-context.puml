@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — List and mark notifications read
+
+Person(organiser, "Organiser", "Reads and clears in-app notifications")
+System(invitely, "Invitely", "RSVP content management system for event invitations")
+
+Rel(organiser, invitely, "Lists notifications and marks them read in", "HTTPS")
+@enduml

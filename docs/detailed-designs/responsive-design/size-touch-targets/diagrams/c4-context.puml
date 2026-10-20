@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System Context — Size touch targets and show touch actions
+
+Person(organiser, "Organiser", "Taps row actions and controls on a touch screen")
+Person(guest, "Guest", "Taps the RSVP controls on a touch screen")
+System(invitely, "Invitely", "RSVP CMS for organisers and guests")
+System_Ext(browser, "Web browser", "Reports the primary pointer type of the device")
+
+Rel(organiser, invitely, "Operates controls in")
+Rel(guest, invitely, "Operates controls in")
+Rel(invitely, browser, "Reads the pointer type from")
+@enduml

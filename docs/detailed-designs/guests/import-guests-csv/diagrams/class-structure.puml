@@ -1,0 +1,65 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Import guests from a CSV file
+
+enum ImportRowStatus {
+  Ready
+  Error
+  Duplicate
+}
+
+class ImportBatch {
+  +UUID Id
+  +UUID EventId
+  +DateTime? CommittedAt
+  +IReadOnlyList<ImportRow> Rows
+  +Commit(guests: GuestRepository): ImportResult
+}
+
+class ImportRow {
+  +int RowNumber
+  +IDictionary<string, string> Values
+  +ImportRowStatus Status
+  +IReadOnlyList<string> Errors
+  +bool GroupWillDefault
+  +UUID? CreatedGuestId
+}
+
+class CsvGuestParser {
+  +Parse(content: byte[], sizeBytes: long): ImportBatch
+}
+
+class GuestCsvTemplate {
+  +string FileName(eventSlug: string): string
+  +string Content()
+}
+
+class GuestImportController {
+  +Upload(eventId: UUID, file: UploadedFile): ImportBatchResponse
+  +Commit(eventId: UUID, batchId: UUID): ImportResultResponse
+  +DownloadTemplate(eventId: UUID): FileResult
+}
+
+class GuestRepository {
+  +ExistsWithEmail(eventId: UUID, email: string): bool
+  +Add(guest: Guest): void
+}
+
+ImportBatch "1" *-- "0..2000" ImportRow : holds
+ImportRow --> ImportRowStatus : has
+CsvGuestParser ..> ImportBatch : creates
+GuestImportController ..> CsvGuestParser : parses with
+GuestImportController ..> GuestCsvTemplate : returns
+ImportBatch ..> GuestRepository : commits through
+@enduml

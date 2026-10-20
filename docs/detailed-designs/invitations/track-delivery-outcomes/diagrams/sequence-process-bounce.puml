@@ -1,0 +1,39 @@
+@startuml
+title Sequence — Process a bounce
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+participant "Email provider" as provider
+box "Backend — API application" #D1FADF
+  participant "ProviderEventController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "BounceProcessor" as processor
+  participant "Notification trigger" as notify
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Delivery outcome store" as db
+end box
+
+provider -> controller : POST permanent bounce callback
+controller -> processor : Process bounce report
+processor -> db : Save Bounced outcome with time
+db --> processor : Saved
+processor -> db : Read the latest outcome of the guest
+db --> processor : Most recent outcome under L2-034 criterion 3
+processor -> notify : Create notification for the event
+notify --> processor : Notification created under L2-034 criterion 1
+processor --> controller : Processed
+controller --> provider : 200 OK
+@enduml

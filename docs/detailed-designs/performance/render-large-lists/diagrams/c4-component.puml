@@ -1,0 +1,28 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Render large lists within limits
+
+Person(organiser, "Organiser", "Browses and pages through a guest list of up to 2,000 guests")
+
+Container_Boundary(adminApp, "Organiser admin app") {
+  Component(page, "GuestsPage", "<TO SUPPLY>", "Hosts the Guests table and pager under src/admin/guests")
+  Component(store, "GuestListStore", "<TO SUPPLY>", "Holds the current page, sort order and page number under src/admin/guests")
+  Component(client, "GuestListApi", "<TO SUPPLY>", "Requests one page of guests under src/admin/guests")
+  Component(table, "GuestTable", "<TO SUPPLY>", "Renders only the rows of the current page under src/admin/guests")
+  Component(nav, "PageNavigator", "<TO SUPPLY>", "Renders page controls under src/shared/ui")
+}
+
+Container_Boundary(api, "API application") {
+  Component(ctrl, "GuestsController", "<TO SUPPLY>", "Exposes the guest list endpoint under src/api/guests")
+  Component(readSvc, "GuestListReadService", "<TO SUPPLY>", "Returns one bounded page under src/domain/guests")
+}
+
+Rel(organiser, page, "Scrolls and changes pages in")
+Rel(page, store, "Reads and updates")
+Rel(page, table, "Passes the current rows to")
+Rel(page, nav, "Passes the page count to")
+Rel(store, client, "Requests pages through")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, readSvc, "Reads the page through")
+@enduml

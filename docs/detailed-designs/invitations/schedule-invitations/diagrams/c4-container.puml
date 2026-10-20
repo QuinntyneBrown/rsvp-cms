@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Schedule invitation emails
+
+Person(organiser, "Organiser", "Schedules invitation emails")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser app", "<TO SUPPLY>", "Organiser UI under src/admin")
+  Container(api, "API application", "<TO SUPPLY>", "Endpoints under src/api and domain logic under src/domain")
+  ContainerDb(db, "Application database", "<TO SUPPLY>", "Stores scheduled emails and event settings")
+}
+
+Rel(organiser, admin, "Uses", "HTTPS")
+Rel(admin, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "<TO SUPPLY>")
+@enduml

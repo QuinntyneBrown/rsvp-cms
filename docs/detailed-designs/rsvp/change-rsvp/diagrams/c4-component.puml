@@ -1,0 +1,33 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Change an RSVP before the window closes
+
+Person(guest, "Guest", "Invitee with a saved reply")
+Container_Boundary(rsvp, "Guest RSVP application") {
+  Component(summary, "ReplySummaryPanel", "<TO SUPPLY>", "Shows the saved reply, the Change reply action or the read-only closed state")
+  Component(form, "RsvpForm", "<TO SUPPLY>", "Reused from the submit feature, prefilled with the saved reply")
+  Component(client, "PublicApiClient", "<TO SUPPLY>", "Typed client for the public endpoints")
+}
+Container_Boundary(publicApi, "Public API application") {
+  Component(ctrl, "RsvpController", "<TO SUPPLY>", "Exposes PUT /public/invitations/{token}/rsvp")
+}
+Container_Boundary(domain, "Domain — responses") {
+  Component(handler, "ChangeRsvpCommandHandler", "<TO SUPPLY>", "Replaces the saved reply inside the invite window")
+  Component(response, "Response", "Entity", "Changes its reply and clears the fields that no longer apply")
+  Component(window, "InvitationWindow", "Value object", "Reports whether the invite window is still open")
+}
+Container_Boundary(data, "Data") {
+  Component(repo, "ResponseRepository", "<TO SUPPLY>", "Reads and writes responses")
+}
+ComponentDb(db, "Invitely database", "<TO SUPPLY>", "Persists responses")
+Rel(guest, summary, "Chooses Change reply in")
+Rel(summary, form, "Opens with the saved reply in")
+Rel(form, client, "Sends the changed reply with")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends ChangeRsvpCommand to")
+Rel(handler, window, "Checks the window with")
+Rel(handler, response, "Applies the change to")
+Rel(handler, repo, "Saves through")
+Rel(repo, db, "Reads and writes", "<TO SUPPLY>")
+@enduml

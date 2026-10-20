@@ -1,0 +1,47 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Export the guest list
+
+enum ReplyStatus {
+  Waiting
+  Attending
+  Declined
+}
+
+class GuestExportRow {
+  +string Name
+  +string Email
+  +string Group
+  +ReplyStatus Reply
+  +int PlusOnes
+  +DateTime Updated
+}
+
+class GuestExportWriter {
+  +WriteCsv(eventId: UUID, output: Stream): int
+}
+
+interface GuestListReader {
+  +ReadAll(eventId: UUID): IReadOnlyList<GuestSummary>
+}
+
+class GuestExportController {
+  +Export(eventId: UUID): FileResult
+}
+
+GuestExportController ..> GuestExportWriter : writes the file with
+GuestExportWriter ..> GuestExportRow : creates
+GuestExportWriter --> GuestListReader : reads guests through
+GuestExportRow --> ReplyStatus : has
+@enduml

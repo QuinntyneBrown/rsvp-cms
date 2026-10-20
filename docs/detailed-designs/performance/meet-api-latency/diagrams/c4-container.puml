@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Meet API response-time targets
+
+Person(organiser, "Organiser", "Reads lists and saves records in the organiser screens")
+
+System_Boundary(rsvp, "Invitely RSVP CMS") {
+  Container(adminApp, "Organiser admin app", "<TO SUPPLY>", "src/admin: issues list reads and single-record writes")
+  Container(api, "API application", "<TO SUPPLY>", "src/api: validates requests and runs the read and write services")
+  ContainerDb(store, "Data store", "<TO SUPPLY>", "Holds events, guests and responses")
+}
+
+Rel(organiser, adminApp, "Uses", "HTTPS")
+Rel(adminApp, api, "Calls", "JSON/HTTPS")
+Rel(api, store, "Reads and writes", "<TO SUPPLY>")
+@enduml

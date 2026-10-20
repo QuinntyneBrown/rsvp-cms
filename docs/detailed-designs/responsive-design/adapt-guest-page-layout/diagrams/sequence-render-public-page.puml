@@ -1,0 +1,39 @@
+@startuml
+title UML sequence behaviour — Adapt the public page layout to viewport width
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Guest" as guest
+box "Frontend — Guest RSVP app" #E0F2FE
+  participant "PublicPageLayout" as layout
+  participant "HeroBlockView" as hero
+  participant "TwoColumnGrid" as grid
+  participant "RsvpFormContainer" as form
+end box
+box "Frontend — Shared UI library" #E0F2FE
+  participant "ViewportBandResolver" as resolver
+end box
+guest -> layout : Open the public page
+layout -> resolver : Resolve viewport band
+resolver --> layout : Viewport band
+layout -> hero : Render hero no taller than 60% of viewport height (L2-082 criterion 3)
+alt Viewport band is XS
+  layout -> grid : Stack Details and Schedule in one column with 16 px gutter (L2-082 criterion 1)
+  layout -> form : Render RSVP form full width
+else Viewport band is LG or wider
+  layout -> grid : Place Details and Schedule side by side (L2-082 criterion 2)
+  layout -> form : Render RSVP form at most 720 px wide
+end
+layout --> guest : Public page with every block rendered
+@enduml

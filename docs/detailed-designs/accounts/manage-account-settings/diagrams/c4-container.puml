@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Manage account settings
+
+Person(organiser, "Organiser", "Edits their profile, preferences and password")
+System_Ext(email, "Email provider", "Delivers the email change confirmation")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser web application", "<TO SUPPLY>", "Account settings page under src/admin")
+  Container(api, "API application", "<TO SUPPLY>", "Account endpoints and account services under src/api and src/domain")
+  ContainerDb(db, "Database", "<TO SUPPLY>", "Organiser accounts and email change requests under src/data")
+}
+
+Rel(organiser, admin, "Uses", "HTTPS")
+Rel(admin, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes accounts in", "<TO SUPPLY>")
+Rel(api, email, "Sends confirmation emails through", "<TO SUPPLY>")
+@enduml

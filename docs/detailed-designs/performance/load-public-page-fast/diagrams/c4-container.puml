@@ -1,0 +1,21 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Load the public page quickly
+
+Person(guest, "Guest", "Opens the public RSVP page on a phone")
+Person(organiser, "Organiser", "Publishes the page that guests load")
+
+System_Boundary(rsvp, "Invitely RSVP CMS") {
+  Container(rsvpApp, "Guest RSVP app", "<TO SUPPLY>", "src/rsvp: renders the public page")
+  Container(adminApp, "Organiser admin app", "<TO SUPPLY>", "src/admin: publishes the draft")
+  Container(api, "API application", "<TO SUPPLY>", "src/api/public: serves the published snapshot and photos")
+  ContainerDb(store, "Data store", "<TO SUPPLY>", "Holds published snapshots and gallery photos")
+}
+
+Rel(guest, rsvpApp, "Uses", "HTTPS")
+Rel(organiser, adminApp, "Uses", "HTTPS")
+Rel(rsvpApp, api, "Requests the published page from", "HTTPS, same origin")
+Rel(adminApp, api, "Publishes the draft through", "HTTPS")
+Rel(api, store, "Reads and writes", "<TO SUPPLY>")
+@enduml

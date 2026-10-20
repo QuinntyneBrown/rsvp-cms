@@ -1,0 +1,53 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Respect reduced-motion preferences
+
+enum MotionMode {
+  Animated
+  Immediate
+}
+
+enum MoveDirection {
+  Up
+  Down
+}
+
+class MotionPreferenceQuery {
+  +bool PrefersReducedMotion()
+}
+
+class MotionPolicy {
+  +MotionMode ModeFor(prefersReduced: bool)
+}
+
+class EntranceTransition {
+  +void Apply(mode: MotionMode, elementId: string)
+}
+
+class OverlayPresenter {
+  +void Show(overlayId: string, message: string)
+}
+
+class BlockListView {
+  +void MoveBlock(blockId: UUID, direction: MoveDirection)
+}
+
+OverlayPresenter --> MotionPolicy : asks for mode
+BlockListView --> MotionPolicy : asks for mode
+MotionPolicy --> MotionPreferenceQuery : reads preference from
+MotionPolicy ..> MotionMode : returns
+OverlayPresenter --> EntranceTransition : plays entrance with
+EntranceTransition ..> MotionMode : reads
+BlockListView ..> MoveDirection : reads
+@enduml

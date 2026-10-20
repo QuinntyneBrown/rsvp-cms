@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System Context — View, search and select guests
+
+Person(organiser, "Organiser", "Reviews and acts on the invitee list of an event")
+System(cms, "RSVP CMS", "Organiser and guest applications for running event RSVPs")
+
+Rel(organiser, cms, "Views, searches and selects guests using")
+@enduml

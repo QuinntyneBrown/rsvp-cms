@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System Context — Fit dialogs to the viewport
+
+Person(organiser, "Organiser", "Opens dialogs such as Add guest or Email preview on a phone or desktop")
+Person(guest, "Guest", "Opens the dialogs of the public page on a phone or desktop")
+System(invitely, "Invitely", "RSVP CMS for organisers and guests")
+System_Ext(browser, "Web browser", "Renders dialogs at the current viewport width")
+
+Rel(organiser, invitely, "Opens and completes dialogs in")
+Rel(guest, invitely, "Opens and completes dialogs in")
+Rel(invitely, browser, "Renders dialogs in")
+@enduml

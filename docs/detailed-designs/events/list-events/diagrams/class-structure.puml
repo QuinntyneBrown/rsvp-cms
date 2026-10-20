@@ -1,0 +1,72 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — List and find events
+
+enum EventStatus {
+  Draft
+  InvitesOpen
+  InvitesClosed
+}
+
+enum EventSortKey {
+  EventDate
+  Name
+  RecentlyUpdated
+}
+
+class ListEventsQuery {
+  +UUID RequestedBy
+  +string Search
+  +EventSortKey Sort
+  +int Page
+}
+
+class EventListSpecification {
+  +int PageSize = 50
+  +Matches(name: string, search: string): bool
+}
+
+class EventSummary {
+  +UUID Id
+  +string Name
+  +string Type
+  +DateTime Date
+  +int Invitees
+  +string ReplySummary
+  +EventStatus Status
+}
+
+class EventListSummary {
+  +int TotalEvents
+  +int InvitesOpenEvents
+}
+
+class EventListReader {
+  +Read(query: ListEventsQuery): EventListPage
+}
+
+class EventListPage {
+  +EventListSummary Summary
+  +EventSummary[] Rows
+  +int Page
+}
+
+EventListReader ..> ListEventsQuery : handles
+EventListReader ..> EventListSpecification : applies
+EventListReader ..> EventListPage : returns
+EventListPage "1" *-- "0..*" EventSummary : contains
+EventListPage "1" *-- "1" EventListSummary : contains
+EventSummary --> EventStatus : has
+ListEventsQuery --> EventSortKey : sorts by
+@enduml

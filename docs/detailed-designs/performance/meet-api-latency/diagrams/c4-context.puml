@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Meet API response-time targets
+
+Person(organiser, "Organiser", "Reads lists and saves records in the organiser screens")
+System(rsvp, "Invitely RSVP CMS", "Serves the organiser screens and their API")
+
+Rel(organiser, rsvp, "Reads lists and saves records using", "HTTPS")
+@enduml

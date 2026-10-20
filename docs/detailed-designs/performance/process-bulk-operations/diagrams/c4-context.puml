@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Process bulk operations within limits
+
+Person(organiser, "Organiser", "Imports, exports and schedules invitations for up to 2,000 guests")
+System(rsvp, "Invitely RSVP CMS", "Runs guest imports, guest exports and invitation scheduling")
+System_Ext(mail, "Email provider", "Accepts invitation emails for delivery")
+
+Rel(organiser, rsvp, "Starts bulk operations using", "HTTPS")
+Rel(rsvp, mail, "Hands over scheduled invitations to", "<TO SUPPLY>")
+@enduml

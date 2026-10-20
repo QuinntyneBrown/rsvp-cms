@@ -1,0 +1,54 @@
+@startuml
+title UML sequence behaviour — Prompt the organiser about due reminders
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "DueRemindersPrompt" as prompt
+  participant "RemindersPromptClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "RemindersPromptController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "ReminderPromptService" as service
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  participant "DueReminderReader" as reader
+  database "Event store" as db
+end box
+
+actor -> prompt : Load dashboard
+prompt -> client : Request due reminders
+client -> controller : GET /dashboard/reminder-prompts
+controller -> service : Get prompts for caller
+service -> reader : Read scheduled reminders over accessible events
+reader -> db : Select reminders not cancelled
+db --> reader : Reminder rows
+reader --> service : DueReminder rows
+service -> service : Apply ReminderPromptWindow, keep reminders due within 7 days
+service --> controller : Prompts
+controller --> client : 200 OK
+client --> prompt : Prompts
+alt One or more reminders are due within 7 days
+  prompt --> actor : Name reminder, event and due date with Review emails
+else No reminder is due within 7 days
+  prompt --> actor : Render nothing
+end
+note over prompt
+  Cancelling a reminder removes its row from the next load, so the
+  prompt disappears without a stored prompt record.
+end note
+@enduml

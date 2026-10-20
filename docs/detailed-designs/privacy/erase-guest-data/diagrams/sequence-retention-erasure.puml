@@ -1,0 +1,37 @@
+@startuml
+title UML sequence behaviour — Retention and erasure of ended events
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Backend — Application and domain" #ECFDF3
+  participant "RetentionScanner" as scanner
+  participant "RetentionNoticeService" as notices
+  participant "PersonalDataEraser" as eraser
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Primary store" as store
+end box
+scanner -> store : Find events ended more than 12 months ago
+store --> scanner : Events with EndedAt
+loop Each event due for notice
+  scanner -> notices : Send notice 30 days before EligibleAt
+  notices --> actor : Retention notice (L2-097 criterion 3)
+end
+loop Each event past EligibleAt with notice sent
+  scanner -> eraser : EraseEvent(eventId, deadline)
+  eraser -> store : Erase names, emails, replies and dietary notes
+  store --> eraser : Erased
+end
+@enduml

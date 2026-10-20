@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Manage account settings
+
+System_Ext(email, "Email provider", "Delivers the email change confirmation")
+Container_Boundary(admin, "Organiser web application") {
+  Component(page, "AccountSettingsPage", "<TO SUPPLY>", "Shows the profile, notification and password sections")
+}
+Container_Boundary(api, "API application") {
+  Component(endpoint, "AccountSettingsEndpoint", "<TO SUPPLY>", "Validates and dispatches account settings requests")
+  Component(settings, "AccountSettingsService", "<TO SUPPLY>", "Updates profile, preferences and the email change")
+  Component(password, "ChangePasswordService", "<TO SUPPLY>", "Verifies the current password and stores the new one")
+  Component(policy, "PasswordPolicy", "<TO SUPPLY>", "Checks the length and content of a new password")
+  Component(sessions, "SessionService", "<TO SUPPLY>", "Ends the other sessions of the account")
+}
+ComponentDb(store, "AccountStore", "<TO SUPPLY>", "Reads and updates accounts and email change requests")
+
+Rel(page, endpoint, "Sends settings changes to", "JSON/HTTPS")
+Rel(endpoint, settings, "Calls")
+Rel(endpoint, password, "Calls")
+Rel(password, policy, "Checks new passwords with")
+Rel(password, sessions, "Ends other sessions through")
+Rel(settings, store, "Reads and writes accounts in")
+Rel(password, store, "Reads and writes accounts in")
+Rel(settings, email, "Sends confirmation emails through", "<TO SUPPLY>")
+@enduml

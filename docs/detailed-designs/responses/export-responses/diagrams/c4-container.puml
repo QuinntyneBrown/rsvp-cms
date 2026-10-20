@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Export responses
+
+Person(organiser, "Organiser", "Event owner")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser admin application", "<TO SUPPLY>", "Export action on the Responses page under src/admin")
+  Container(api, "Organiser API application", "<TO SUPPLY>", "Export endpoint under src/api/responses")
+  ContainerDb(db, "Invitely database", "<TO SUPPLY>", "Replies, guests and events")
+}
+Rel(organiser, admin, "Starts the export in", "HTTPS")
+Rel(admin, api, "Requests the CSV file from", "HTTPS")
+Rel(api, db, "Reads replies from", "<TO SUPPLY>")
+@enduml

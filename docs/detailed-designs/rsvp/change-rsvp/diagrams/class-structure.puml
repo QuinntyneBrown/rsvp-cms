@@ -1,0 +1,73 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Change an RSVP before the window closes
+
+enum ReplyChoice {
+  Attending
+  Declining
+}
+
+enum InvitationWindowState {
+  NotOpened
+  Open
+  Closed
+}
+
+class InvitationWindow {
+  +DateTime ClosesAt
+  +StateAt(now: DateTime): InvitationWindowState
+}
+
+class ChangeRsvpCommand {
+  +string Token
+  +UUID SubmissionId
+  +RsvpReply Reply
+}
+
+class RsvpReply {
+  +ReplyChoice Choice
+  +int PartySize
+  +string Meal
+  +string[] GuestNames
+  +string DietaryNote
+  +string SongRequest
+  +string Message
+}
+
+class ChangeRsvpCommandHandler {
+  +Handle(command: ChangeRsvpCommand, now: DateTime): ChangeRsvpResult
+}
+
+class Response {
+  +UUID GuestId
+  +ReplyChoice Choice
+  +int PartySize
+  +string Meal
+  +DateTime UpdatedAt
+  +Change(reply: RsvpReply, now: DateTime): void
+}
+
+interface ResponseRepository {
+  +FindByGuest(guestId: UUID): Response
+  +Save(response: Response): void
+}
+
+ChangeRsvpCommandHandler ..> ChangeRsvpCommand : handles
+ChangeRsvpCommand --> RsvpReply : carries
+ChangeRsvpCommandHandler --> InvitationWindow : checks
+ChangeRsvpCommandHandler --> ResponseRepository : loads and saves through
+ChangeRsvpCommandHandler --> Response : changes
+InvitationWindow ..> InvitationWindowState : returns
+Response --> ReplyChoice : has
+@enduml

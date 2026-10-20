@@ -1,0 +1,69 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Render large lists within limits
+
+class GuestListStore {
+  +int PageNumber
+  +int PageSize
+  +SortKey Sort
+  +GuestRow[] CurrentRows
+  +int TotalCount
+  +LoadPage(number: int): void
+  +SetSort(key: SortKey): void
+}
+
+class GuestListApi {
+  +GetPage(eventId: UUID, number: int, sort: SortKey): PagedResult<GuestRow>
+}
+
+class GuestsPage {
+  +Render(): void
+}
+
+class GuestTable {
+  +Render(rows: GuestRow[]): void
+}
+
+class PageNavigator {
+  +Render(pageNumber: int, pageCount: int): void
+}
+
+class GuestRow {
+  +UUID Id
+  +string Name
+  +string Email
+  +string Group
+  +string Reply
+  +DateTime UpdatedAt
+}
+
+class PagedResult<T> {
+  +T[] Items
+  +int TotalCount
+}
+
+enum SortKey {
+  Name
+  Email
+  UpdatedAt
+}
+
+GuestsPage --> GuestListStore : reads and updates
+GuestsPage --> GuestTable : renders with
+GuestsPage --> PageNavigator : renders with
+GuestListStore --> GuestListApi : requests pages through
+GuestListStore --> SortKey : orders by
+GuestListApi ..> PagedResult : returns
+GuestTable ..> GuestRow : displays
+@enduml

@@ -1,0 +1,41 @@
+@startuml
+title UML sequence behaviour — Export the guest list
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "ExportGuestsButton" as button
+end box
+box "Backend — API application" #D1FADF
+  participant "GuestExportController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "GuestExportWriter" as writer
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Application database" as db
+end box
+
+actor -> button : Select Export
+button --> actor : Show the busy state
+button -> controller : GET guest export
+controller -> writer : WriteCsv(eventId, output)
+writer -> db : Read all guests of the event
+db --> writer : Guest rows
+writer --> controller : Row count
+controller --> button : CSV file with name, email, group, reply, plus-ones and updated columns
+button --> actor : Download the CSV file
+note over writer : Export of 2,000 guests completes within the limit in L2-078
+@enduml

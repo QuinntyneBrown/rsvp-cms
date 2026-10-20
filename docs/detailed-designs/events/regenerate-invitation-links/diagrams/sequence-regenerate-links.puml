@@ -1,0 +1,56 @@
+@startuml
+title UML sequence behaviour — Regenerate invitation links
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "RegenerateLinksDialog" as dialog
+  participant "InvitationLinksClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "InvitationLinksController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "InvitationLinkService" as service
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  participant "EventRepository" as repo
+  database "Event store" as db
+end box
+
+actor -> dialog : Select Regenerate
+dialog --> actor : Ask for confirmation
+actor -> dialog : Confirm
+dialog -> client : Send regenerate request
+client -> controller : POST /events/{id}/invitation-links/regenerate
+controller -> service : Dispatch RegenerateInvitationLinksCommand
+service -> repo : Advance invitation epoch
+repo -> db : Update epoch in one write
+alt Write fails
+  db --> repo : Failure, epoch unchanged
+  repo --> service : Failure
+  service --> controller : Failure
+  controller --> client : 500 Internal Server Error
+  client --> dialog : Failure
+  dialog --> actor : Old links still work, offer Try again
+else Write succeeds
+  db --> repo : New epoch
+  repo --> service : Advanced epoch
+  service --> controller : Regenerated, no link values
+  controller --> client : 200 OK with confirmation text
+  client --> dialog : Regenerated
+  dialog --> actor : Previous links rejected, new links sent with next invitation email
+end
+@enduml

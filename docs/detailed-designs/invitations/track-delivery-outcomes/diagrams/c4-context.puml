@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Track delivery outcomes and bounces
+
+Person(organiser, "Organiser", "Sees which emails did not arrive")
+Person(guest, "Guest", "Receives invitation and reminder emails")
+System(invitely, "Invitely", "RSVP content management system")
+System_Ext(mail, "Email provider", "Sends emails and reports bounces")
+
+Rel(invitely, mail, "Hands over scheduled emails to", "<TO SUPPLY>")
+Rel(mail, guest, "Delivers emails to")
+Rel(mail, invitely, "Reports bounces to", "<TO SUPPLY>")
+Rel(organiser, invitely, "Reviews delivery outcomes in")
+@enduml

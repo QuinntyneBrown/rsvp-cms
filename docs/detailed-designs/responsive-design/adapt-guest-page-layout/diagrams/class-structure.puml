@@ -1,0 +1,68 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Adapt the public page layout to viewport width
+
+enum ViewportBand {
+  XS
+  SM
+  MD
+  LG
+  XL
+}
+
+enum BlockType {
+  Hero
+  Details
+  Schedule
+  Map
+  RsvpForm
+  Faq
+  PhotoGallery
+  GiftList
+}
+
+class ContentBlock {
+  +UUID BlockId
+  +BlockType Type
+  +int Position
+}
+
+class PublicPageLayout {
+  +ViewportBand Band
+  +int GutterPx
+  +void Render(blocks: ContentBlock[])
+}
+
+class HeroBlockView {
+  +int MaxHeightPercentOfViewport
+  +string ImageUrl
+}
+
+class TwoColumnGrid {
+  +bool IsSideBySide(band: ViewportBand)
+}
+
+class RsvpFormContainer {
+  +int MaxWidthPx
+  +bool IsFullWidth(band: ViewportBand)
+}
+
+PublicPageLayout "1" *-- "0..*" ContentBlock : renders in order
+ContentBlock --> BlockType : has
+PublicPageLayout --> HeroBlockView : places hero with
+PublicPageLayout --> TwoColumnGrid : places Details and Schedule with
+PublicPageLayout --> RsvpFormContainer : places RSVP form with
+TwoColumnGrid ..> ViewportBand : reads
+RsvpFormContainer ..> ViewportBand : reads
+@enduml

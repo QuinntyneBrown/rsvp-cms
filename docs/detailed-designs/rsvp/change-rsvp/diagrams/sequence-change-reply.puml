@@ -1,0 +1,66 @@
+@startuml
+title UML sequence behaviour — Change an RSVP before the window closes
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Guest" as actor
+box "Frontend — Guest RSVP app" #E0F2FE
+  participant "ReplySummaryPanel" as summary
+  participant "RsvpForm" as form
+end box
+box "Backend — API application" #D1FADF
+  participant "RsvpController" as ctrl
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "ChangeRsvpCommandHandler" as handler
+  participant "InvitationWindow" as window
+  participant "Response" as response
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Invitely database" as db
+end box
+
+actor -> summary : Open the page with a saved reply
+alt Invite window has closed
+  summary --> actor : Reply shown read-only, "Replies closed on [close date]", no edit action (L2-043)
+else Invite window is open
+  summary --> actor : Saved reply with Change reply
+  actor -> summary : Change reply
+  summary -> form : Open prefilled with the saved reply
+  actor -> form : Choose a different answer and send
+  form -> ctrl : PUT /public/invitations/{token}/rsvp
+  ctrl -> handler : ChangeRsvpCommand
+  handler -> db : Load the saved reply
+  db --> handler : Response
+  handler -> window : StateAt(now)
+  alt Window closed since the page was opened (L2-009)
+    window --> handler : Closed
+    handler --> ctrl : Rejected
+    ctrl --> form : Rejection with the close date, nothing changed
+  else Window open
+    window --> handler : Open
+    handler -> response : Change(reply, now)
+    note right of response
+      A change from yes to no clears
+      the guest count and the meal choice (L2-043).
+    end note
+    response --> handler : Changed
+    handler -> db : Save the changed reply
+    db --> handler : Saved
+    handler --> ctrl : Saved reply
+    ctrl --> form : Success state with the new answer
+    form --> actor : Totals on the organiser side reflect the new reply (L2-047)
+  end
+end
+@enduml

@@ -1,0 +1,20 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Export the guest list
+
+Container_Boundary(admin, "Organiser app") {
+  Component(button, "ExportGuestsButton", "<TO SUPPLY>", "Starts the export and shows the busy state")
+}
+Container_Boundary(api, "Organiser API") {
+  Component(ctrl, "GuestExportController", "<TO SUPPLY>", "Exposes the export endpoint under src/api/guests/export")
+  Component(writer, "GuestExportWriter", "Domain service", "Turns guests into CSV rows")
+  Component(row, "GuestExportRow", "Domain type", "Holds the name, email, group, reply, plus-ones and updated values")
+  ComponentDb(reader, "GuestReadRepository", "<TO SUPPLY>", "Reads guests for an event under src/data")
+}
+
+Rel(button, ctrl, "Requests the CSV file from", "HTTPS")
+Rel(ctrl, writer, "Writes the file with")
+Rel(writer, row, "Creates one per guest")
+Rel(writer, reader, "Reads all guests of the event through")
+@enduml

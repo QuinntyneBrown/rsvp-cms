@@ -1,0 +1,33 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — List and mark notifications read
+
+Person(organiser, "Organiser", "Signed-in organiser")
+Container_Boundary(admin, "Organiser admin application") {
+  Component(page, "NotificationsPage", "<TO SUPPLY>", "Shows the list, the unread heading, the empty and error states")
+  Component(row, "NotificationRow", "<TO SUPPLY>", "Shows one message, its relative time, the unread marker and Mark read")
+  Component(badge, "NotificationCountBadge", "<TO SUPPLY>", "Shows the unread count in the navigation")
+  Component(client, "NotificationsApiClient", "<TO SUPPLY>", "Typed client for the notification endpoints")
+}
+Container_Boundary(api, "Organiser API application") {
+  Component(ctrl, "NotificationsController", "<TO SUPPLY>", "Exposes list, mark read and mark all read under src/api/events")
+}
+Container_Boundary(domain, "Domain — notifications") {
+  Component(service, "NotificationService", "<TO SUPPLY>", "Lists notifications and changes their read state")
+  Component(notification, "Notification", "Entity", "Holds the message, kind, creation time and read state")
+}
+Container_Boundary(data, "Data") {
+  Component(repo, "NotificationRepository", "<TO SUPPLY>", "Reads and updates notifications for one organiser")
+}
+ComponentDb(db, "Invitely database", "<TO SUPPLY>", "Persists notifications")
+Rel(organiser, page, "Reads notifications in")
+Rel(page, row, "Renders each notification with")
+Rel(page, badge, "Updates the count in")
+Rel(page, client, "Requests and updates notifications with")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, service, "Sends the request to")
+Rel(service, notification, "Reads and changes")
+Rel(service, repo, "Loads and saves through")
+Rel(repo, db, "Reads and writes", "<TO SUPPLY>")
+@enduml

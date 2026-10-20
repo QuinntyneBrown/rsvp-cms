@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Submit an RSVP
+
+Person(guest, "Guest", "Invitee who replies yes or no to the invitation")
+System(invitely, "Invitely", "RSVP content management system for event invitations")
+Person(organiser, "Organiser", "Reviews the saved replies")
+
+Rel(guest, invitely, "Submits a reply on the public RSVP page", "HTTPS")
+Rel(organiser, invitely, "Reads the saved replies in")
+@enduml

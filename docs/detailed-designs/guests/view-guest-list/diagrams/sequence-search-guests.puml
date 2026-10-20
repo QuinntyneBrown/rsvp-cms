@@ -1,0 +1,50 @@
+@startuml
+title UML sequence behaviour — Search and filter guests
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "GuestSearchField" as search
+  participant "GuestsPage" as page
+end box
+box "Backend — API application" #D1FADF
+  participant "GuestListController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "GuestListReader" as reader
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Application database" as db
+end box
+
+actor -> search : Type "Lisbon"
+search -> search : Wait 300 ms after the last keystroke (L2-020)
+search -> page : Search text changed
+page -> controller : GET guests with search text and filter
+controller -> reader : ReadPage(GuestQuery)
+reader -> db : Select guests by name or email, case-insensitive (L2-020)
+db --> reader : Matching rows and total count
+reader --> controller : GuestListPage (50 per page, L2-019)
+controller --> page : Guest list response
+alt No guest matches the search (L2-020)
+  page --> actor : "No guests match 'Lisbon'" with Clear search
+else One or more guests match
+  page --> actor : Rows with name, email, group, reply, party size and last updated
+end
+actor -> page : Select Clear search
+page -> controller : GET guests with no search text and All filter
+controller --> page : Full first page
+page --> actor : Full list with the All filter selected (L2-020)
+@enduml

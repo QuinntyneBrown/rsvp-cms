@@ -1,0 +1,49 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Enter an invitation code
+
+enum InvitationCodeResult {
+  Accepted
+  Rejected
+}
+
+class InvitationCode {
+  +string Value
+  +{static} Normalise(raw: string): string
+}
+
+class InvitationRecord {
+  +UUID GuestId
+  +UUID EventId
+  +bool IsActive
+}
+
+class InvitationCodeService {
+  +Redeem(rawCode: string, now: DateTime): InvitationCodeResult
+}
+
+interface InvitationCodeRepository {
+  +FindByCode(code: InvitationCode): InvitationRecord
+}
+
+class InvitationCodeController {
+  +Post(rawCode: string): HttpResult
+}
+
+InvitationCodeController --> InvitationCodeService : redeems with
+InvitationCodeService --> InvitationCode : normalises
+InvitationCodeService --> InvitationCodeRepository : looks up with
+InvitationCodeService ..> InvitationCodeResult : returns
+InvitationCodeRepository ..> InvitationRecord : returns
+@enduml

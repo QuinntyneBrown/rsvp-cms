@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Load the public page quickly
+
+Person(guest, "Guest", "Opens the public RSVP page on a phone")
+
+Container_Boundary(rsvpApp, "Guest RSVP app") {
+  Component(shell, "GuestPageShell", "<TO SUPPLY>", "Renders the published blocks and loads same-origin assets only")
+}
+
+Container_Boundary(api, "API application") {
+  Component(ctrl, "PublicPageController", "<TO SUPPLY>", "Exposes the public page endpoint under src/api/public")
+  Component(cache, "PageSnapshotCache", "<TO SUPPLY>", "Keeps snapshots keyed by version identifier")
+  Component(reader, "PublishedPageReader", "<TO SUPPLY>", "Returns the published snapshot under src/domain/pages")
+  Component(photos, "PhotoDelivery", "<TO SUPPLY>", "Serves gallery photos outside the page weight budget")
+  ComponentDb(store, "Snapshot store", "<TO SUPPLY>", "Persists published snapshots")
+}
+
+Rel(guest, shell, "Views the page in")
+Rel(shell, ctrl, "Requests the snapshot from", "HTTPS")
+Rel(shell, photos, "Requests gallery photos from", "HTTPS")
+Rel(ctrl, cache, "Looks up the snapshot in")
+Rel(ctrl, reader, "Reads the published snapshot through")
+Rel(reader, store, "Loads the snapshot from", "<TO SUPPLY>")
+@enduml

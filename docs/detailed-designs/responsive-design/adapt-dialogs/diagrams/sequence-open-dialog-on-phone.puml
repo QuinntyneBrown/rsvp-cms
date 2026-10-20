@@ -1,0 +1,42 @@
+@startuml
+title UML sequence behaviour — Fit dialogs to the viewport
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "EmailPreviewDialog" as preview
+  participant "Dialog" as dialog
+  participant "DialogBody" as body
+  participant "DialogFooter" as footer
+end box
+box "Frontend — Shared UI library" #E0F2FE
+  participant "DialogPresenter" as presenter
+  participant "ViewportBandResolver" as resolver
+end box
+actor -> preview : Select Preview on an email
+preview -> dialog : Open with title and content
+dialog -> presenter : PresentationFor(current band)
+presenter -> resolver : Resolve viewport band
+resolver --> presenter : XS
+presenter --> dialog : FullScreen (L2-083 criterion 1)
+dialog -> body : Show email content
+dialog -> footer : Pin Close and footer actions at the bottom
+alt Email is longer than the body area
+  body -> body : Scroll inside the dialog body
+  note right of footer : Header and Close stay visible (L2-083 criterion 3)
+end
+actor -> dialog : Read the email
+dialog --> actor : Dialog fills the screen with footer visible
+@enduml

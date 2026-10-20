@@ -1,0 +1,70 @@
+@startuml
+title UML sequence behaviour — Reset password with a token
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "ResetPasswordPage" as page
+end box
+box "Backend — API application" #D1FADF
+  participant "PasswordResetEndpoint" as endpoint
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "PasswordResetService" as service
+  participant "PasswordPolicy" as policy
+  participant "SessionService" as sessions
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "AccountAndTokenStore" as db
+end box
+actor -> page : Open reset link
+page -> endpoint : Get token state
+endpoint -> service : GetTokenState(token)
+service -> db : Load token
+db --> service : Token record or none
+alt Token is expired (L2-004)
+  service --> endpoint : Expired
+  endpoint --> page : Expired state
+  page --> actor : Expired state with Request new link button
+else Token is used or malformed (L2-004)
+  service --> endpoint : Used or Malformed
+  endpoint --> page : Invalid state
+  page --> actor : Invalid state, no form
+else Token is valid
+  endpoint --> page : Valid state
+  page --> actor : Show new password form
+  actor -> page : Enter new password twice and submit
+  alt Passwords do not match (L2-004)
+    page --> actor : "Passwords do not match" on Confirm, no request sent
+  else Passwords match
+    page -> endpoint : Complete reset
+    endpoint -> service : CompleteReset(token, newPassword)
+    service -> policy : Check length and email content (L2-004)
+    alt Password is shorter than 12 characters or equals the email
+      policy --> service : Rule failed
+      service --> endpoint : Field error
+      endpoint --> page : Field error explaining the rule
+      page --> actor : Password is not changed
+    else Password passes the policy
+      service -> db : Store new password hash and mark token used
+      service -> sessions : End all sessions of the account
+      sessions --> service : Sessions ended
+      service --> endpoint : Reset complete
+      endpoint --> page : Success
+      page --> actor : Success with link to sign in
+    end
+  end
+end
+@enduml

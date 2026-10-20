@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Edit event details
+
+Person(organiser, "Organiser", "Signed-in user who owns the event")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser app", "<TO SUPPLY>", "Organiser UI in src/admin")
+  Container(api, "API application", "<TO SUPPLY>", "HTTP endpoints in src/api")
+  ContainerDb(db, "Invitely database", "<TO SUPPLY>", "Stores event details and version")
+}
+
+Rel(organiser, admin, "Edits details using", "HTTPS")
+Rel(admin, api, "Sends updates to", "HTTPS, JSON")
+Rel(api, db, "Writes conditionally to", "<TO SUPPLY>")
+@enduml

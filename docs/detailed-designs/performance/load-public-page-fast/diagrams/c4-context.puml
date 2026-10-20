@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Load the public page quickly
+
+Person(guest, "Guest", "Opens the public RSVP page on a phone")
+Person(organiser, "Organiser", "Publishes the page that guests load")
+System(rsvp, "Invitely RSVP CMS", "Serves the public event page and the organiser screens")
+
+Rel(guest, rsvp, "Opens the public page using", "HTTPS")
+Rel(organiser, rsvp, "Publishes the page using", "HTTPS")
+@enduml

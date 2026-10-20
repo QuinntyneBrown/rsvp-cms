@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System Context — Compose the public page from blocks
+
+Person(organiser, "Organiser", "Builds and edits the public event page")
+System(cms, "RSVP CMS", "Organiser and guest applications for running event RSVPs")
+Person_Ext(guest, "Guest", "Reads the published public page")
+
+Rel(organiser, cms, "Adds, orders and edits page blocks using")
+Rel(guest, cms, "Reads the published page from")
+@enduml

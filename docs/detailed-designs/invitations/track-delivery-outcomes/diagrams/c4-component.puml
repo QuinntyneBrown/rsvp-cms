@@ -1,0 +1,34 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Track delivery outcomes and bounces
+
+Container_Boundary(api, "API application") {
+  Component(scheduler, "Scheduler host", "<TO SUPPLY>", "Invokes the dispatcher under src/config")
+  Component(dispatcher, "DueEmailDispatcher", "<TO SUPPLY>", "Selects due scheduled emails under src/domain/invitations")
+  Component(sender, "EmailSendService", "<TO SUPPLY>", "Sends each email with a stable idempotency key")
+  Component(retry, "SendRetryPolicy", "<TO SUPPLY>", "Allows 5 retries within 1 hour")
+  Component(port, "MailProviderPort", "<TO SUPPLY>", "Outbound contract for one send")
+  Component(callback, "ProviderEventController", "<TO SUPPLY>", "Receives provider callbacks under src/api/public")
+  Component(bounce, "BounceProcessor", "<TO SUPPLY>", "Records bounces as delivery outcomes")
+  Component(reader, "LatestDeliveryStatusReader", "<TO SUPPLY>", "Returns the latest outcome of each guest")
+  Component(repo, "DeliveryOutcomeRepository", "<TO SUPPLY>", "Stores outcomes under src/data")
+  ComponentDb(store, "Delivery outcome store", "<TO SUPPLY>", "Persists outcomes and scheduled email status")
+}
+Container_Boundary(shared, "Shared mail adapter") {
+  Component(adapter, "MailProviderAdapter", "<TO SUPPLY>", "Implements MailProviderPort under src/shared/mail")
+}
+System_Ext(provider, "Email provider", "Sends emails and reports bounces")
+
+Rel(scheduler, dispatcher, "Invokes")
+Rel(dispatcher, sender, "Passes each due email to")
+Rel(sender, retry, "Decides retries with")
+Rel(sender, port, "Sends through")
+Rel(port, adapter, "Implemented by")
+Rel(adapter, provider, "Calls", "<TO SUPPLY>")
+Rel(provider, callback, "Reports bounces to", "HTTPS webhook")
+Rel(callback, bounce, "Passes bounces to")
+Rel(bounce, repo, "Saves outcomes through")
+Rel(reader, repo, "Reads outcomes through")
+Rel(repo, store, "Reads and writes", "<TO SUPPLY>")
+@enduml

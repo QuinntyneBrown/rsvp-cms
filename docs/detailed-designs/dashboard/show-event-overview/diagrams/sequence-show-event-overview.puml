@@ -1,0 +1,48 @@
+@startuml
+title UML sequence behaviour — Show the event overview
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "EventOverviewPage" as page
+  participant "EventOverviewClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "EventOverviewController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "EventOverviewService" as service
+  participant "ReplyProgress" as progress
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  participant "EventOverviewReader" as reader
+  database "Event store" as db
+end box
+
+actor -> page : Open event overview
+page -> client : Request overview
+client -> controller : GET /events/{id}/overview
+controller -> service : Get overview
+service -> reader : Read counts and five latest replies
+reader -> db : Query figures for the event
+db --> reader : Counts and replies
+reader --> service : Figures
+service -> progress : Compute attending percentage
+progress --> service : Percentage, attending divided by invitees
+service --> controller : EventOverview
+controller --> client : 200 OK
+client --> page : Overview
+page --> actor : Figures shown : Public page link opens the guest page in a new tab with rel="noopener"
+@enduml

@@ -1,0 +1,50 @@
+@startuml
+title UML sequence behaviour — Process bulk operations within limits
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser admin app" #E0F2FE
+  participant "ScheduleInvitationsDialog" as dialog
+end box
+box "Backend — API application" #D1FADF
+  participant "InvitationScheduleController" as ctrl
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "InvitationScheduleService" as svc
+  participant "JobRunner" as runner
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Job queue" as queue
+end box
+actor -> dialog : Schedule invitations for 2,000 invitees
+dialog -> ctrl : Send schedule request
+ctrl -> svc : Schedule(eventId, request)
+alt Request valid
+  svc -> queue : Enqueue send job with status Queued
+  queue --> svc : Job identifier
+  svc --> ctrl : Accepted with job identifier
+  ctrl --> dialog : Response within 5 seconds (L2-078 criterion 2)
+  dialog --> actor : Show the scheduled send time
+else Request invalid
+  svc --> ctrl : Validation errors
+  ctrl --> dialog : Rejected, nothing queued
+  dialog --> actor : Show the field errors
+end
+== Background processing ==
+runner -> queue : Take next queued job
+queue --> runner : Job with batch key
+runner -> runner : Send invitations in batches, one per guest (L2-035)
+runner -> queue : Mark job Completed
+@enduml

@@ -1,0 +1,64 @@
+@startuml
+title UML sequence behaviour — Create an event
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "NewEventPage" as page
+  participant "EventsClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "EventsController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "EventCreationService" as service
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  participant "EventRepository" as repo
+  database "Event store" as db
+end box
+
+actor -> page : Select Create event
+page -> page : Apply L2-006 name and date checks
+page -> client : Send create request
+client -> controller : POST /events
+controller -> service : Dispatch CreateEventCommand
+service -> service : Apply L2-006 name length and past-date rules
+
+alt Name or date is refused
+  service --> controller : Field errors
+  controller --> client : 400 with field errors
+  client --> page : Field errors
+  page --> actor : Show field errors, nothing saved
+else Values are accepted
+  service -> repo : Add Draft event
+  repo -> db : Insert event
+  alt Write fails
+    db --> repo : Failure
+    repo --> service : Write failed
+    service --> controller : Failure
+    controller --> client : 500 Internal Server Error
+    client --> page : Failure
+    page --> actor : Keep entered values, show Try again
+  else Write succeeds
+    db --> repo : Stored
+    repo --> service : Saved
+    service --> controller : Created event identifier
+    controller --> client : 201 Created with identifier
+    client --> page : Created event identifier
+    page --> actor : Open Event overview with success toast
+  end
+end
+@enduml

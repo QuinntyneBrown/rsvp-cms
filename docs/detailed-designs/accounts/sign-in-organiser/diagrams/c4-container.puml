@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Sign in as an organiser
+
+Person(organiser, "Organiser", "Signs in to manage their events")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser web application", "<TO SUPPLY>", "Sign-in pages under src/admin")
+  Container(api, "API application", "<TO SUPPLY>", "Sign-in endpoint and session cookie under src/api")
+  ContainerDb(db, "Database", "<TO SUPPLY>", "Organiser accounts and failure counters under src/data")
+}
+
+Rel(organiser, admin, "Signs in using", "HTTPS")
+Rel(admin, api, "Posts credentials to", "JSON/HTTPS")
+Rel(api, db, "Reads and writes accounts", "<TO SUPPLY>")
+@enduml

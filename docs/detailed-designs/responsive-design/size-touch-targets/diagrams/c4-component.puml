@@ -1,0 +1,22 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Size touch targets and show touch actions
+
+Person(organiser, "Organiser", "Taps row actions on a touch device")
+Container_Boundary(shared, "Shared UI library") {
+  Component(hitArea, "ControlHitArea", "<TO SUPPLY>", "Gives every control a hit area of at least 44 by 44 CSS pixels")
+  Component(detector, "PointerCapabilityDetector", "<TO SUPPLY>", "Reports whether the primary pointer is coarse (touch)")
+  Component(policy, "ActionVisibilityPolicy", "<TO SUPPLY>", "Returns Visible for touch and RevealOnHover for fine pointers")
+  Component(rowBar, "RowActionBar", "<TO SUPPLY>", "Renders the actions of one table or list row")
+}
+Container_Boundary(admin, "Organiser web application") {
+  Component(guestTable, "GuestTable", "<TO SUPPLY>", "Shows guest rows that use the row action bar")
+}
+
+Rel(organiser, guestTable, "Taps actions in")
+Rel(guestTable, rowBar, "Renders each row's actions with")
+Rel(rowBar, detector, "Reads the pointer type from")
+Rel(rowBar, policy, "Asks for action visibility from")
+Rel(rowBar, hitArea, "Sizes each action with")
+@enduml

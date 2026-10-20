@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System Context — Label form controls and announce errors
+
+Person(organiser, "Organiser", "Fills in event, guest and settings forms with a screen reader or keyboard")
+Person(guest, "Guest", "Fills in the RSVP form with a screen reader or keyboard")
+System(invitely, "Invitely", "RSVP CMS for organisers and guests")
+System_Ext(assistive, "Assistive technology", "Reads labels, field errors and live announcements aloud")
+
+Rel(organiser, invitely, "Submits forms in")
+Rel(guest, invitely, "Submits the RSVP form in")
+Rel(invitely, assistive, "Exposes names, errors and status messages to")
+@enduml

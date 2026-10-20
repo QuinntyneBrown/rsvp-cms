@@ -1,0 +1,55 @@
+@startuml
+title UML sequence behaviour — Change sign-in email address
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+actor "New address holder" as newAddress
+box "Frontend — Organiser app" #E0F2FE
+  participant "AccountSettingsPage" as page
+end box
+box "Backend — API application" #D1FADF
+  participant "AccountSettingsEndpoint" as endpoint
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "AccountSettingsService" as service
+  participant "SessionService" as sessions
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "AccountStore" as db
+  participant "Email provider" as mail
+end box
+actor -> page : Save a new email address
+page -> endpoint : Change email request
+endpoint -> service : RequestEmailChange(accountId, newEmail)
+service -> db : Store request with token hash
+service -> mail : Send confirmation link to new address
+service --> endpoint : Pending
+endpoint --> page : Confirmation is pending
+page --> actor : Old address remains active until confirmed
+mail -> newAddress : Confirmation link
+newAddress -> endpoint : Open confirmation link
+endpoint -> service : ConfirmEmailChange(token, now)
+service -> db : Load request and check expiry
+alt Token is valid and unused (L2-058)
+  service -> db : Replace sign-in email and mark request confirmed
+  service -> sessions : End all other sessions of the account
+  sessions --> service : Sessions ended
+  service --> endpoint : Confirmed
+  endpoint --> newAddress : Email changed
+else Token is expired, used or unknown
+  service --> endpoint : Not confirmed
+  endpoint --> newAddress : Link does not work
+end
+@enduml

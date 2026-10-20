@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Review scheduled and sent emails
+
+Person(organiser, "Organiser", "Reviews planned and sent emails for an event")
+System(invitely, "Invitely", "RSVP content management system")
+
+Rel(organiser, invitely, "Reviews scheduled emails and previews using")
+@enduml

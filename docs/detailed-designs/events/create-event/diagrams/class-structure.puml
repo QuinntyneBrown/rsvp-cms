@@ -1,0 +1,74 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Create an event
+
+enum EventType {
+  Birthday
+  Holiday
+  Anniversary
+  Other
+}
+
+enum EventStatus {
+  Draft
+  InvitesOpen
+  InvitesClosed
+}
+
+class CreateEventRequest {
+  +EventType Type
+  +string Name
+  +Date Date
+  +Time StartTime
+  +string Venue
+}
+
+class CreateEventCommand {
+  +UUID OrganiserId
+  +EventType Type
+  +string Name
+  +Date Date
+  +Time StartTime
+  +string Venue
+}
+
+class EventCreationService {
+  +Create(command: CreateEventCommand): Result<UUID>
+}
+
+class Event {
+  +UUID Id
+  +EventType Type
+  +string Name
+  +EventStatus Status
+  +DateTime StartsAt
+  +string Venue
+}
+
+interface IEventRepository {
+  +Add(event: Event): void
+}
+
+class EventRepository {
+  +Add(event: Event): void
+}
+
+EventsController ..> CreateEventCommand : builds
+EventCreationService ..> CreateEventCommand : handles
+EventCreationService --> Event : creates
+EventCreationService --> IEventRepository : saves through
+EventRepository ..|> IEventRepository
+Event --> EventStatus : has
+Event --> EventType : has
+@enduml

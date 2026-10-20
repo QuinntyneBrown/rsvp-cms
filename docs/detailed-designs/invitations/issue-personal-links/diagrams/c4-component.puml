@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Issue personal invitation links
+
+Container_Boundary(rsvp, "Guest RSVP app") {
+  Component(route, "InvitationPageRoute", "<TO SUPPLY>", "Renders the invitation page under src/rsvp")
+}
+Container_Boundary(api, "API application") {
+  Component(endpoint, "InvitationLinkController", "<TO SUPPLY>", "Exposes GET /invitations/{token} under src/api/public")
+  Component(issuer, "InvitationLinkIssuer", "<TO SUPPLY>", "Issues or returns the link of a guest")
+  Component(generator, "InvitationTokenGenerator", "<TO SUPPLY>", "Generates tokens of at least 128 bits")
+  Component(hasher, "TokenHasher", "<TO SUPPLY>", "Computes the hash of a token")
+  Component(resolver, "InvitationLinkResolver", "<TO SUPPLY>", "Resolves a hashed token to its guest")
+  Component(repo, "InvitationLinkRepository", "<TO SUPPLY>", "Stores link records under src/data")
+  ComponentDb(store, "Invitation link store", "<TO SUPPLY>", "Persists token hashes and link metadata")
+}
+
+Rel(route, endpoint, "Requests the guest from", "JSON/HTTPS")
+Rel(endpoint, resolver, "Resolves the token with")
+Rel(issuer, generator, "Generates the token with")
+Rel(issuer, hasher, "Hashes the token with")
+Rel(issuer, repo, "Saves the link through")
+Rel(resolver, hasher, "Hashes the presented token with")
+Rel(resolver, repo, "Reads the link through")
+Rel(repo, store, "Reads and writes", "<TO SUPPLY>")
+@enduml

@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — List and mark notifications read
+
+Person(organiser, "Organiser", "Signed-in organiser")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser admin application", "<TO SUPPLY>", "Notifications page and navigation count under src/admin")
+  Container(api, "Organiser API application", "<TO SUPPLY>", "Notification endpoints under src/api/events")
+  ContainerDb(db, "Invitely database", "<TO SUPPLY>", "Notifications with their read state")
+}
+Rel(organiser, admin, "Uses", "HTTPS")
+Rel(admin, api, "Requests and updates notifications through", "JSON/HTTPS")
+Rel(api, db, "Reads and updates notifications in", "<TO SUPPLY>")
+@enduml

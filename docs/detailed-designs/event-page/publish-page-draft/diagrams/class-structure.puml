@@ -1,0 +1,71 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Save, publish and discard page drafts
+
+enum DraftSaveState {
+  Saved
+  Pending
+  Failed
+}
+
+class PageDraft {
+  +UUID EventId
+  +DateTime SavedAt
+  +bool HasUnpublishedChanges
+  +IReadOnlyList<PageBlock> Blocks
+  +IReadOnlyList<FieldError> Validate()
+  +ResetTo(published: PublishedPage): void
+}
+
+class PublishedPage {
+  +UUID EventId
+  +DateTime PublishedAt
+  +IReadOnlyList<PageBlock> Blocks
+}
+
+class PageBlock {
+  +UUID Id
+  +BlockType Type
+  +int Position
+}
+
+class PagePublisher {
+  +Publish(draft: PageDraft): PublishResult
+  +Discard(draft: PageDraft): PublishResult
+}
+
+class PageDraftController {
+  +SaveDraft(eventId: UUID, request: SaveDraftRequest): DraftResponse
+  +Publish(eventId: UUID): PublishResponse
+  +Discard(eventId: UUID): DraftResponse
+}
+
+class PageDraftRepository {
+  +Load(eventId: UUID): PageDraft
+  +Save(draft: PageDraft): void
+}
+
+class PublishedPageRepository {
+  +Load(eventId: UUID): PublishedPage
+  +Replace(page: PublishedPage): void
+}
+
+PageDraft "1" *-- "0..12" PageBlock : holds
+PublishedPage "1" *-- "0..12" PageBlock : holds
+PagePublisher ..> PageDraft : validates and reads
+PagePublisher ..> PublishedPage : writes
+PageDraftController ..> PagePublisher : requests publish or discard
+PageDraftController ..> PageDraftRepository : loads and saves
+PagePublisher ..> PublishedPageRepository : replaces through
+@enduml

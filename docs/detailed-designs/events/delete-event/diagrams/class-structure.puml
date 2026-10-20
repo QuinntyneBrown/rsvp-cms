@@ -1,0 +1,36 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Delete an event
+
+class DeleteEventCommand {
+  +UUID EventId
+}
+
+class EventDeletionService {
+  +Delete(command: DeleteEventCommand): Result
+}
+
+interface IEventRepository {
+  +DeleteWithDependents(eventId: UUID): void
+}
+
+class Event {
+  +UUID Id
+  +string Name
+}
+
+EventDeletionService ..> DeleteEventCommand : handles
+EventDeletionService --> IEventRepository : deletes through
+IEventRepository ..> Event : removes
+@enduml

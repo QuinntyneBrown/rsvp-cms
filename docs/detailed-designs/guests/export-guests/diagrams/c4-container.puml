@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Export the guest list
+
+Person(organiser, "Organiser", "Exports the guest list")
+System_Boundary(cms, "RSVP CMS") {
+  Container(admin, "Organiser app", "<TO SUPPLY>", "Export action under src/admin")
+  Container(api, "Organiser API", "<TO SUPPLY>", "Export endpoint under src/api/guests")
+  ContainerDb(db, "Application database", "<TO SUPPLY>", "Stores guests and replies under src/data")
+}
+
+Rel(organiser, admin, "Starts the export using", "HTTPS")
+Rel(admin, api, "Requests the CSV file from", "HTTPS")
+Rel(api, db, "Reads guests from", "<TO SUPPLY>")
+@enduml

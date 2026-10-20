@@ -1,0 +1,62 @@
+@startuml
+title UML sequence behaviour — Save event details
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "EventSettingsPage" as page
+  participant "EventsClient" as client
+end box
+box "Backend — API application" #D1FADF
+  participant "EventsController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "EventUpdateService" as service
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  participant "EventRepository" as repo
+  database "Event store" as db
+end box
+
+actor -> page : Select Save changes
+page -> page : Set fields read-only and show busy state
+page -> client : Send update with loaded version
+client -> controller : PUT /events/{id}
+controller -> service : Dispatch UpdateEventCommand
+alt Invalid value
+  service --> controller : Field errors
+  controller --> client : 400 with field errors
+  client --> page : Field errors
+  page --> actor : Show field error, stored event unchanged
+else Valid value
+  service -> repo : Update where version equals expected version
+  repo -> db : Conditional write
+  alt Stored version differs
+    db --> repo : No rows changed
+    repo --> service : Version conflict
+    service --> controller : EventVersionConflict
+    controller --> client : 409 Conflict
+    client --> page : Conflict
+    page --> actor : "This event was changed elsewhere. Reload to see the latest version."
+  else Stored version matches
+    db --> repo : Row updated with new version
+    repo --> service : Saved event
+    service --> controller : Saved event
+    controller --> client : 200 OK with new version
+    client --> page : Saved event
+    page --> actor : Show "Changes saved" toast and saved values
+  end
+end
+@enduml

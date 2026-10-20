@@ -1,0 +1,53 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Manage the invite window and event status
+
+enum EventStatus {
+  Draft
+  InvitesOpen
+  InvitesClosed
+}
+
+class InviteWindow {
+  +DateTime OpensAt
+  +DateTime ClosesAt
+}
+
+class Event {
+  +UUID Id
+  +DateTime StartsAt
+  +bool IsPublished
+  +InviteWindow Window
+}
+
+class InviteWindowPolicy {
+  +Evaluate(window: InviteWindow, startsAt: DateTime): PolicyResult
+}
+
+class PolicyResult {
+  +bool IsValid
+  +string FieldError
+  +string Warning
+}
+
+class EventStatusCalculator {
+  +Derive(event: Event, now: DateTime): EventStatus
+}
+
+InviteWindowPolicy ..> InviteWindow : checks
+InviteWindowPolicy ..> PolicyResult : returns
+Event "1" *-- "1" InviteWindow : owns
+EventStatusCalculator ..> Event : reads
+EventStatusCalculator ..> EventStatus : returns
+@enduml

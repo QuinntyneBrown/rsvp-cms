@@ -1,0 +1,49 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Meet API response-time targets
+
+class PagedQuery {
+  +UUID EventId
+  +int Page
+  +int PageSize
+  +string SortKey
+  +Validate(): void
+}
+
+class PagedResult<T> {
+  +T[] Items
+  +int TotalCount
+  +int Page
+}
+
+class GuestListReadService {
+  +ReadPage(query: PagedQuery): PagedResult<Guest>
+}
+
+class GuestWriteService {
+  +Save(guest: Guest): Guest
+}
+
+class Guest {
+  +UUID Id
+  +UUID EventId
+  +string Name
+  +DateTime UpdatedAt
+}
+
+GuestListReadService --> PagedQuery : accepts
+GuestListReadService ..> PagedResult : returns
+GuestListReadService ..> Guest : reads
+GuestWriteService ..> Guest : saves
+@enduml

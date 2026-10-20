@@ -1,0 +1,54 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Manage organiser sessions
+
+enum SessionCheck {
+  Valid
+  Missing
+  Revoked
+  Inactive
+}
+
+class Session {
+  +UUID Id
+  +UUID AccountId
+  +bool KeepSignedIn
+  +DateTime LastActivityAt
+  +DateTime? ExpiresAt
+  +DateTime? RevokedAt
+  +IsInactive(at: DateTime): bool
+  +Touch(at: DateTime): void
+  +Revoke(at: DateTime): void
+}
+
+class SessionService {
+  +Create(accountId: UUID, keepSignedIn: bool): UUID
+  +Check(sessionId: UUID, at: DateTime): SessionCheck
+  +End(sessionId: UUID, at: DateTime): void
+  +EndAllFor(accountId: UUID, exceptSessionId: UUID?, at: DateTime): void
+}
+
+class SessionGuard {
+  +Authorise(sessionId: UUID?): bool
+}
+
+class SignOutEndpoint {
+  +SignOut(sessionId: UUID): void
+}
+
+SessionService ..> Session : manages
+SessionService --> SessionCheck : returns
+SessionGuard --> SessionService : checks through
+SignOutEndpoint --> SessionService : ends through
+@enduml

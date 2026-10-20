@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Adapt the organiser layout to viewport width
+
+Person(organiser, "Organiser", "Manages events on any viewport from 360 px to 1920 px")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser web application", "<TO SUPPLY>", "Organiser shell and pages under src/admin")
+  Container(shared, "Shared UI library", "<TO SUPPLY>", "Breakpoints, layout and table components under src/shared")
+}
+System_Ext(browser, "Web browser", "Reports the viewport width and applies layout rules")
+
+Rel(organiser, admin, "Uses", "HTTPS")
+Rel(admin, shared, "Imports layout and table components from")
+Rel(admin, browser, "Lays out pages in")
+@enduml

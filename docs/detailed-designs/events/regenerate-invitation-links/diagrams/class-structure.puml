@@ -1,0 +1,44 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Regenerate invitation links
+
+class RegenerateInvitationLinksCommand {
+  +UUID EventId
+  +UUID RequestedBy
+}
+
+class InvitationEpoch {
+  +int Value
+  +Next(): InvitationEpoch
+}
+
+class Event {
+  +UUID Id
+  +InvitationEpoch Epoch
+  +AdvanceEpoch(): void
+}
+
+class InvitationLinkService {
+  +Regenerate(command: RegenerateInvitationLinksCommand): Result
+}
+
+interface IEventRepository {
+  +AdvanceEpoch(eventId: UUID): InvitationEpoch
+}
+
+InvitationLinkService ..> RegenerateInvitationLinksCommand : handles
+InvitationLinkService --> Event : changes
+Event "1" *-- "1" InvitationEpoch : holds
+InvitationLinkService --> IEventRepository : saves through
+@enduml

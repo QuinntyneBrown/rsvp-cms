@@ -1,0 +1,21 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Erase guest personal data on deletion and retention
+
+Person(organiser, "Organiser", "Deletes events, removes guests and receives retention notices")
+System_Ext(mail, "Email provider", "Delivers retention notices to the organiser")
+
+System_Boundary(rsvp, "Invitely RSVP CMS") {
+  Container(adminApp, "Organiser admin app", "<TO SUPPLY>", "src/admin: starts deletion and guest erasure")
+  Container(api, "API application", "<TO SUPPLY>", "src/api: runs guest erasure and event deletion")
+  Container(worker, "Job worker", "<TO SUPPLY>", "src/domain/jobs: runs erasure jobs and the retention scan")
+  ContainerDb(primary, "Primary data store", "<TO SUPPLY>", "Holds events, guests, responses and dietary notes")
+}
+
+Rel(organiser, adminApp, "Uses", "HTTPS")
+Rel(adminApp, api, "Requests erasure from", "JSON/HTTPS")
+Rel(api, primary, "Erases guest records in", "<TO SUPPLY>")
+Rel(worker, primary, "Erases personal data in and scans events in", "<TO SUPPLY>")
+Rel(worker, mail, "Sends retention notices through", "<TO SUPPLY>")
+@enduml

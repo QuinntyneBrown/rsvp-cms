@@ -1,0 +1,75 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Add, edit and remove guests
+
+enum GuestGroup {
+  Friends
+  Family
+  Work
+}
+
+enum ReplyStatus {
+  Waiting
+  Attending
+  Declined
+}
+
+class Guest {
+  +UUID Id
+  +UUID EventId
+  +string FullName
+  +string Email
+  +GuestGroup Group
+  +int PlusOnes
+  +int ConfirmedGuestCount
+  +ReplyStatus Status
+  +DateTime LastUpdatedAt
+  +ChangePlusOnes(newValue: int): void
+}
+
+class GuestRoster {
+  +Add(eventId: UUID, candidate: Guest): Guest
+  +Update(guestId: UUID, changes: GuestChanges): Guest
+  +Remove(eventId: UUID, guestIds: IReadOnlyList<UUID>): int
+}
+
+class GuestRepository {
+  +ExistsWithEmail(eventId: UUID, email: string, exceptId: UUID?): bool
+  +Add(guest: Guest): void
+  +Update(guest: Guest): void
+  +DeleteMany(guestIds: IReadOnlyList<UUID>): int
+}
+
+class GuestController {
+  +AddGuest(eventId: UUID, request: AddGuestRequest): GuestResponse
+  +UpdateGuest(eventId: UUID, guestId: UUID, request: UpdateGuestRequest): GuestResponse
+  +RemoveGuests(eventId: UUID, request: RemoveGuestsRequest): RemoveGuestsResponse
+}
+
+class AddGuestDialog {
+  +Submit(values: GuestFormValues): void
+}
+
+class GuestFormRules {
+  +Validate(values: GuestFormValues): IReadOnlyList<FieldError>
+}
+
+GuestController ..> GuestRoster : applies changes through
+GuestRoster ..> GuestRepository : loads and saves through
+GuestRoster "1" *-- "0..*" Guest : holds
+Guest --> GuestGroup : belongs to
+Guest --> ReplyStatus : has
+AddGuestDialog ..> GuestFormRules : validates with
+AddGuestDialog ..> GuestController : requests the add from
+@enduml

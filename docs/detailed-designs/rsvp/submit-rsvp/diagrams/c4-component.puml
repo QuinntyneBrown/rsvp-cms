@@ -1,0 +1,36 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Submit an RSVP
+
+Person(guest, "Guest", "Invitee with a personal link or invitation code")
+Container_Boundary(rsvp, "Guest RSVP application") {
+  Component(form, "RsvpForm", "<TO SUPPLY>", "Shows the RSVP fields and their conditional visibility")
+  Component(dialog, "DeclineDialog", "<TO SUPPLY>", "Offers Keep my reply and Send my regrets")
+  Component(client, "PublicApiClient", "<TO SUPPLY>", "Typed client for the public endpoints")
+  Component(limits, "RsvpFieldLimits", "Shared constants", "Field limits used by the form and the API from src/shared")
+}
+Container_Boundary(publicApi, "Public API application") {
+  Component(ctrl, "RsvpController", "<TO SUPPLY>", "Exposes POST /public/invitations/{token}/rsvp")
+}
+Container_Boundary(domain, "Domain — responses") {
+  Component(handler, "SubmitRsvpCommandHandler", "<TO SUPPLY>", "Stores one reply per submission")
+  Component(policy, "RsvpPolicy", "<TO SUPPLY>", "Checks a reply against the places on the invitation")
+  Component(response, "Response", "Entity", "Holds the saved reply of one guest")
+}
+Container_Boundary(data, "Data") {
+  Component(repo, "ResponseRepository", "<TO SUPPLY>", "Reads and writes responses")
+}
+ComponentDb(db, "Invitely database", "<TO SUPPLY>", "Persists responses")
+Rel(guest, form, "Fills in")
+Rel(form, dialog, "Opens for a decline with")
+Rel(form, limits, "Applies limits from")
+Rel(form, client, "Sends the reply with")
+Rel(dialog, client, "Sends the regrets with")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends SubmitRsvpCommand to")
+Rel(handler, policy, "Validates the reply with")
+Rel(handler, response, "Creates and applies the reply to")
+Rel(handler, repo, "Saves through")
+Rel(repo, db, "Reads and writes", "<TO SUPPLY>")
+@enduml

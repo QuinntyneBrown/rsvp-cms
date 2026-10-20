@@ -1,0 +1,48 @@
+@startuml
+title UML sequence behaviour — Preview the draft as a guest
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "PagePreviewPanel" as panel
+  participant "PageBlockRenderer" as renderer
+end box
+box "Backend — API application" #D1FADF
+  participant "PagePreviewController" as controller
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "PageRenderModelBuilder" as builder
+  participant "PageDraft" as draft
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Application database" as db
+end box
+
+actor -> panel : Select Preview
+panel --> actor : Show busy state in the preview body
+panel -> controller : GET draft preview
+controller -> builder : Build(eventId, Draft)
+builder -> db : Load page draft
+db --> builder : Draft blocks
+builder -> draft : Read blocks
+draft --> builder : Ordered blocks
+builder --> controller : PageRenderModel
+controller --> panel : Render model
+panel -> renderer : Render(model)
+renderer --> panel : Rendered page
+panel --> actor : Show the draft as the guest page shows it (L2-017)
+note over panel : Preview fills the width at XS with no horizontal scroll (L2-017)
+note over db : A guest request reads the published page only (L2-017)
+@enduml

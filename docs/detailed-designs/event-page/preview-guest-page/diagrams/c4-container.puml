@@ -1,0 +1,23 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Preview the page as a guest
+
+Person(organiser, "Organiser", "Previews the page draft")
+Person_Ext(guest, "Guest", "Reads the published page")
+System_Boundary(cms, "RSVP CMS") {
+  Container(admin, "Organiser app", "<TO SUPPLY>", "Preview panel under src/admin")
+  Container(rsvp, "Guest RSVP app", "<TO SUPPLY>", "Public page under src/rsvp")
+  Container(shared, "Shared page renderer", "<TO SUPPLY>", "Block renderers and render model under src/shared/page-blocks")
+  Container(api, "Organiser API", "<TO SUPPLY>", "Preview endpoint under src/api/events")
+  ContainerDb(db, "Application database", "<TO SUPPLY>", "Stores page drafts and published pages under src/data")
+}
+
+Rel(organiser, admin, "Opens the preview using", "HTTPS")
+Rel(admin, api, "Requests the draft render model from", "JSON/HTTPS")
+Rel(api, db, "Reads the draft from", "<TO SUPPLY>")
+Rel(admin, shared, "Renders the draft with")
+Rel(guest, rsvp, "Reads the page from", "HTTPS")
+Rel(rsvp, shared, "Renders the published page with")
+Rel(rsvp, db, "Reads the published page from", "<TO SUPPLY>")
+@enduml

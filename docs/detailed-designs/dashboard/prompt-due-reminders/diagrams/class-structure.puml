@@ -1,0 +1,40 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Prompt the organiser about due reminders
+
+class ReminderPromptWindow {
+  +int LookAheadDays = 7
+  +Contains(sendAtUtc: DateTime, nowUtc: DateTime): bool
+}
+
+class DueReminder {
+  +UUID EventId
+  +string EventName
+  +string ReminderName
+  +DateTime SendAtUtc
+  +bool IsCancelled
+}
+
+class ReminderPromptService {
+  +GetPrompts(userId: UUID, nowUtc: DateTime): DueReminder[]
+}
+
+class DueReminderReader {
+  +Read(userId: UUID): DueReminder[]
+}
+
+ReminderPromptService ..> ReminderPromptWindow : applies
+ReminderPromptService ..> DueReminder : returns
+ReminderPromptService --> DueReminderReader : reads through
+@enduml

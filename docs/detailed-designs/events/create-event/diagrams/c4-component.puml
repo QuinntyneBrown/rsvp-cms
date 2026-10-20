@@ -1,0 +1,22 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Create an event
+
+Container_Boundary(admin, "Organiser app") {
+  Component(page, "NewEventPage", "<TO SUPPLY>", "Renders the New event form in src/admin/events")
+  Component(client, "EventsClient", "<TO SUPPLY>", "Sends create requests in src/admin/events")
+}
+Container_Boundary(api, "API application") {
+  Component(ctrl, "EventsController", "<TO SUPPLY>", "Exposes POST /events in src/api/events")
+  Component(service, "EventCreationService", "<TO SUPPLY>", "Creates Draft events in src/domain/events")
+  Component(repo, "EventRepository", "<TO SUPPLY>", "Persists events in src/data/events")
+  ComponentDb(db, "Event store", "<TO SUPPLY>", "Holds event records")
+}
+
+Rel(page, client, "Submits form values to")
+Rel(client, ctrl, "Sends POST /events to", "HTTPS, JSON")
+Rel(ctrl, service, "Dispatches CreateEventCommand to")
+Rel(service, repo, "Saves the Draft event through")
+Rel(repo, db, "Writes to", "<TO SUPPLY>")
+@enduml

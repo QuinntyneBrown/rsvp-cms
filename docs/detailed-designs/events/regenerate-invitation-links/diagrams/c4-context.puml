@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System context — Regenerate invitation links
+
+Person(organiser, "Organiser", "Signed-in user who owns the event")
+Person(guest, "Guest", "Invitee holding a personal link or invitation code")
+System(invitely, "Invitely", "RSVP content management system for organisers and guests")
+
+Rel(organiser, invitely, "Regenerates invitation links in", "HTTPS")
+Rel(guest, invitely, "Is refused with an old link by", "HTTPS")
+@enduml

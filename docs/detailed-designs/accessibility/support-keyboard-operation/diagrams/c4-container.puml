@@ -1,0 +1,20 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Containers — Support keyboard operation and focus
+
+Person(organiser, "Organiser", "Moves through pages and lists with the keyboard")
+Person(guest, "Guest", "Moves through the RSVP page with the keyboard")
+System_Boundary(invitely, "Invitely") {
+  Container(admin, "Organiser web application", "<TO SUPPLY>", "Organiser pages, lists and dialogs under src/admin")
+  Container(rsvp, "Guest RSVP web application", "<TO SUPPLY>", "Public page under src/rsvp")
+  Container(shared, "Shared UI library", "<TO SUPPLY>", "Dialog, skip link and focus rules under src/shared/a11y and src/shared/ui")
+}
+System_Ext(browser, "Web browser", "Delivers key presses and holds keyboard focus")
+
+Rel(organiser, admin, "Uses with the keyboard", "HTTPS")
+Rel(guest, rsvp, "Uses with the keyboard", "HTTPS")
+Rel(admin, shared, "Imports focus management from")
+Rel(rsvp, shared, "Imports the skip link and focus rules from")
+Rel(shared, browser, "Moves keyboard focus in")
+@enduml

@@ -1,0 +1,11 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title System Context — Import guests from a CSV file
+
+Person(organiser, "Organiser", "Imports an invitee list from a spreadsheet")
+System(cms, "RSVP CMS", "Organiser and guest applications for running event RSVPs")
+
+Rel(organiser, cms, "Uploads, reviews and commits a guest CSV file using")
+Rel(organiser, cms, "Downloads the guest CSV template from")
+@enduml

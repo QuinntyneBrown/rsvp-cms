@@ -1,0 +1,22 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Delete an event
+
+Container_Boundary(admin, "Organiser app") {
+  Component(dialog, "DeleteEventDialog", "<TO SUPPLY>", "Confirms deletion in src/admin/events")
+  Component(client, "EventsClient", "<TO SUPPLY>", "Sends delete requests in src/admin/events")
+}
+Container_Boundary(api, "API application") {
+  Component(ctrl, "EventsController", "<TO SUPPLY>", "Exposes DELETE /events/{id} in src/api/events")
+  Component(service, "EventDeletionService", "<TO SUPPLY>", "Starts deletion in src/domain/events")
+  Component(repo, "EventRepository", "<TO SUPPLY>", "Deletes in one transaction in src/data/events")
+  ComponentDb(db, "Event store", "<TO SUPPLY>", "Holds events, guests, links, emails and responses")
+}
+
+Rel(dialog, client, "Sends the confirmed delete through")
+Rel(client, ctrl, "Sends DELETE /events/{id} to", "HTTPS")
+Rel(ctrl, service, "Dispatches DeleteEventCommand to")
+Rel(service, repo, "Deletes the event through")
+Rel(repo, db, "Deletes records from", "<TO SUPPLY>")
+@enduml

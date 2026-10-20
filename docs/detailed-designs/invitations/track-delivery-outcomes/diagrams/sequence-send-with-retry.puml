@@ -1,0 +1,51 @@
+@startuml
+title Sequence — Send once with retries
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+box "Backend — Application and domain" #ECFDF3
+  participant "DueEmailDispatcher" as dispatcher
+  participant "EmailSendService" as sender
+  participant "SendRetryPolicy" as retry
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  participant "MailProviderAdapter" as adapter
+  database "Delivery outcome store" as db
+  participant "Email provider" as provider
+end box
+
+dispatcher -> sender : Send scheduled email to guest
+loop Attempt until accepted or retries exhausted
+  sender -> adapter : Send with IdempotencyKey of scheduled email and guest
+  adapter -> provider : Submit email with the same key
+  alt Provider accepts
+    provider --> adapter : Accepted
+    adapter --> sender : Accepted
+    sender -> db : Record Delivered outcome
+    db --> sender : Saved
+  else Temporary error or timeout
+    provider --> adapter : Error or no response
+    adapter --> sender : Temporary failure
+    sender -> retry : Next delay for attempt
+    alt Retries remain within 1 hour
+      retry --> sender : Exponential back-off delay under L2-035 criterion 2
+    else Retries exhausted
+      retry --> sender : No further attempt
+      sender -> db : Mark scheduled email Failed
+      db --> sender : Saved under L2-035 criterion 3
+    end
+  end
+end
+sender --> dispatcher : Result for guest
+@enduml

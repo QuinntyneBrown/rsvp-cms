@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Open a personal invitation link
+
+Person(guest, "Guest", "Invitee with a personal link")
+Container_Boundary(rsvp, "Guest RSVP application") {
+  Component(page, "InvitationPage", "<TO SUPPLY>", "Shows the loading, ready, error and invalid states of the invitation")
+  Component(renderer, "PublicPageRenderer", "<TO SUPPLY>", "Renders the published blocks from src/shared")
+}
+Container_Boundary(publicApi, "Public API application") {
+  Component(ctrl, "PersonalInvitationController", "<TO SUPPLY>", "Exposes GET /public/invitations/{token}")
+  Component(assembler, "InvitationViewAssembler", "<TO SUPPLY>", "Builds a response that holds only the guest's own data")
+}
+Container_Boundary(domain, "Domain — invitations") {
+  Component(resolver, "PersonalLinkResolver", "<TO SUPPLY>", "Resolves a token to a guest page view")
+  Component(window, "InvitationWindow", "Value object", "Derives the window state at a given instant")
+}
+ComponentDb(db, "Invitely database", "<TO SUPPLY>", "Stores links, events and published pages")
+Rel(guest, page, "Opens the link in")
+Rel(page, renderer, "Passes published content to")
+Rel(page, ctrl, "Requests the invitation from", "JSON/HTTPS")
+Rel(ctrl, resolver, "Resolves the token with")
+Rel(ctrl, assembler, "Shapes the response with")
+Rel(resolver, window, "Derives the window state with")
+Rel(resolver, db, "Reads links and events from", "<TO SUPPLY>")
+@enduml

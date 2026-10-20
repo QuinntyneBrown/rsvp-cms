@@ -1,0 +1,42 @@
+@startuml
+title UML sequence behaviour — Adapt the organiser layout to viewport width
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "OrganiserShell" as shell
+  participant "NavigationMenuButton" as menu
+  participant "NavigationController" as nav
+  participant "NavigationPanel" as panel
+end box
+box "Frontend — Shared UI library" #E0F2FE
+  participant "ViewportBandResolver" as resolver
+end box
+actor -> shell : Load a page at XS width
+shell -> resolver : Resolve viewport band
+resolver --> shell : XS
+shell -> menu : Render menu button (L2-080 criterion 1)
+actor -> menu : Select menu
+menu -> nav : Open panel
+nav -> panel : Show full-width panel with 16 px gutter
+panel --> actor : Navigation links are reachable
+alt Viewport widens to MD or wider
+  shell -> resolver : Resolve viewport band
+  resolver --> shell : MD
+  shell -> nav : OnBandChanged(MD)
+  nav -> panel : Close panel
+  shell --> actor : Persistent side area is shown (L2-080 criterion 2)
+end
+@enduml

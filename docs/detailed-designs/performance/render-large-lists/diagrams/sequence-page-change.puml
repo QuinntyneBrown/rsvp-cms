@@ -1,0 +1,42 @@
+@startuml
+title UML sequence behaviour — Render large lists within limits
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser admin app" #E0F2FE
+  participant "GuestsPage" as page
+  participant "GuestListStore" as store
+  participant "GuestTable" as table
+end box
+box "Backend — API application" #D1FADF
+  participant "GuestsController" as ctrl
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "GuestListReadService" as svc
+end box
+actor -> page : Select next page
+page -> store : LoadPage(next number)
+store -> ctrl : Request page of 50 guests
+ctrl -> svc : Read bounded page
+svc --> ctrl : PagedResult<Guest>
+ctrl --> store : Page of rows
+store --> page : Replace current rows
+page -> table : Render the 50 rows of the page
+note right of table
+  The DOM holds no more than 50 rows at a time (L2-077 criterion 2).
+  The first page renders within 1 second of data arrival (L2-077 criterion 1).
+end note
+table --> actor : Rows shown with pager state
+@enduml

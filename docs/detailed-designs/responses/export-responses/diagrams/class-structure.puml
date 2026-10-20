@@ -1,0 +1,53 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Export responses
+
+class ResponseExportService {
+  +Export(eventId: UUID, now: DateTime): ResponseExportFile
+}
+
+class ResponseExportFile {
+  +string FileName
+  +string[] Header
+  +ExportRow[] Rows
+}
+
+class ExportRow {
+  +string Name
+  +string Reply
+  +int Guests
+  +string Meal
+  +string DietaryNote
+  +string Message
+  +DateTime Updated
+}
+
+class CsvFileWriter {
+  +Write(file: ResponseExportFile): byte[]
+}
+
+interface ResponseQueryRepository {
+  +ReadAll(eventId: UUID): ExportRow[]
+}
+
+class ResponseExportController {
+  +Get(eventId: UUID): HttpResult
+}
+
+ResponseExportController --> ResponseExportService : exports with
+ResponseExportService --> ResponseQueryRepository : reads through
+ResponseExportService ..> ResponseExportFile : returns
+ResponseExportFile *-- ExportRow : contains
+CsvFileWriter ..> ResponseExportFile : writes
+@enduml

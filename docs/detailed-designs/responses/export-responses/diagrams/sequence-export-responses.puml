@@ -1,0 +1,39 @@
+@startuml
+title UML sequence behaviour — Export responses
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Organiser" as actor
+box "Frontend — Organiser app" #E0F2FE
+  participant "ExportResponsesAction" as action
+end box
+box "Backend — API application" #D1FADF
+  participant "ResponseExportController" as ctrl
+end box
+box "Backend — Application and domain" #ECFDF3
+  participant "ResponseExportService" as exporter
+end box
+box "Backend — Data and infrastructure" #FFF4E5
+  database "Invitely database" as db
+end box
+
+actor -> action : Select Export CSV
+action -> ctrl : GET /events/{eventId}/responses/export
+ctrl -> exporter : Export(eventId)
+exporter -> db : Read all replies of the event
+db --> exporter : Replies
+exporter --> ctrl : File with name, header and rows
+ctrl --> action : CSV file named with the event slug and date (L2-049)
+action --> actor : Browser downloads the file
+@enduml
