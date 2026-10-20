@@ -40,6 +40,7 @@ export * from './Stepper/index.js';
 export * from './Switch/index.js';
 export * from './Table/index.js';
 export * from './Tabs/index.js';
+export * from './Text/index.js';
 export * from './TextField/index.js';
 export * from './Textarea/index.js';
 export * from './Toast/index.js';

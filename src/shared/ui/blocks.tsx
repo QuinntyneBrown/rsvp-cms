@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Block, BlockType } from '../../domain/blocks.js';
-import { Button, Stack } from './components/index.js';
+import { Button, Stack, Text } from './components/index.js';
 
 export interface BlockSpec {
   label: string;
@@ -42,12 +42,12 @@ export function BlockView({ block, rsvpSlot }: { block: Block; rsvpSlot?: ReactN
       return (
         <Stack as="section" aria-label="Hero">
           <h1>{f.headline}</h1>
-          {f.subhead && <p className="text-muted">{f.subhead}</p>}
+          {f.subhead && <Text tone="muted">{f.subhead}</Text>}
           {f.buttonLabel && <div><Button variant="primary" href="#rsvp">{f.buttonLabel}</Button></div>}
         </Stack>
       );
     case 'rsvp':
-      return <section id="rsvp" aria-label="RSVP">{rsvpSlot ?? <p className="text-muted">The RSVP form appears here for guests.</p>}</section>;
+      return <section id="rsvp" aria-label="RSVP">{rsvpSlot ?? <Text tone="muted">The RSVP form appears here for guests.</Text>}</section>;
     default: {
       const spec = BLOCK_SPECS[block.type];
       return (

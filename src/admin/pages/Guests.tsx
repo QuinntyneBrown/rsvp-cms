@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { ApiError, get, post, put } from '../../shared/ui/api.js';
 import {
   Alert, Button, Card, Checkbox, Chip, Cluster, Dialog, EmptyState, FormActions, Pagination, Skeleton, Stack,
-  Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, TextField,
+  Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, TextField, Text,
 } from '../../shared/ui/components/index.js';
 import { useDebounced, useLoad } from '../../shared/ui/hooks.js';
 
@@ -73,7 +73,7 @@ export function GuestsTab({ eventId, showToast }: { eventId: number; showToast: 
   return (
     <Stack>
       <Cluster justify="between">
-        <h2>Guests {data && <span className="text-muted">· {data.invitees.toLocaleString()} invitees</span>}</h2>
+        <h2>Guests {data && <Text as="span" tone="muted">· {data.invitees.toLocaleString()} invitees</Text>}</h2>
         <Button variant="primary" onClick={() => setEditing('new')}>Add guest</Button>
       </Cluster>
 
