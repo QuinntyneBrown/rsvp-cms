@@ -5,12 +5,12 @@ title Containers — Compose the public page from blocks
 
 Person(organiser, "Organiser", "Builds the public event page")
 System_Boundary(cms, "RSVP CMS") {
-  Container(admin, "Organiser app", "<TO SUPPLY>", "Block editor under src/admin")
-  Container(api, "Organiser API", "<TO SUPPLY>", "Block endpoints under src/api/events and domain rules under src/domain")
-  ContainerDb(db, "Application database", "<TO SUPPLY>", "Stores page drafts under src/data")
+  Container(admin, "Organiser app", "React 19, Vite", "Block editor under src/admin")
+  Container(api, "Organiser API", "Node.js 24, Express 5", "Draft endpoint under src/api/events and block rules under src/domain")
+  ContainerDb(db, "Application database", "PostgreSQL 17", "Stores page drafts as jsonb in the pages table")
 }
 
 Rel(organiser, admin, "Edits blocks using", "HTTPS")
-Rel(admin, api, "Sends block commands to", "JSON/HTTPS")
-Rel(api, db, "Reads and writes page drafts in", "<TO SUPPLY>")
+Rel(admin, api, "Autosaves the ordered block list to", "JSON/HTTPS")
+Rel(api, db, "Reads and writes page drafts in", "Prisma ORM 7, @prisma/adapter-pg")
 @enduml

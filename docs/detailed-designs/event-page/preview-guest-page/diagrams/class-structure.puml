@@ -25,23 +25,23 @@ class PageRenderModelBuilder {
 class PageRenderModel {
   +UUID EventId
   +PageSource Source
-  +IReadOnlyList<RenderedBlock> Blocks
+  +RenderedBlock[] Blocks
 }
 
 class RenderedBlock {
   +UUID BlockId
   +BlockType Type
-  +IDictionary<string, string> Fields
+  +Record<string, string> Fields
 }
 
 class PageDraft {
   +UUID EventId
-  +IReadOnlyList<PageBlock> Blocks
+  +PageBlock[] Blocks
 }
 
 class PublishedPage {
   +UUID EventId
-  +IReadOnlyList<PageBlock> Blocks
+  +PageBlock[] Blocks
 }
 
 class PagePreviewController {

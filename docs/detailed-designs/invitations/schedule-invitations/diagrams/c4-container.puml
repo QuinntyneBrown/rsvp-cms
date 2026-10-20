@@ -5,12 +5,12 @@ title Containers — Schedule invitation emails
 
 Person(organiser, "Organiser", "Schedules invitation emails")
 System_Boundary(invitely, "Invitely") {
-  Container(admin, "Organiser app", "<TO SUPPLY>", "Organiser UI under src/admin")
-  Container(api, "API application", "<TO SUPPLY>", "Endpoints under src/api and domain logic under src/domain")
-  ContainerDb(db, "Application database", "<TO SUPPLY>", "Stores scheduled emails and event settings")
+  Container(admin, "Organiser app", "React 19, Vite", "Organiser UI under src/admin")
+  Container(api, "API application", "Node.js 24, Express 5", "Endpoints under src/api, domain logic under src/domain and the mail worker under src/shared/mail")
+  ContainerDb(db, "Application database", "PostgreSQL 17", "Stores scheduled emails (emails and deliveries tables) and events")
 }
 
 Rel(organiser, admin, "Uses", "HTTPS")
 Rel(admin, api, "Calls", "JSON/HTTPS")
-Rel(api, db, "Reads and writes", "<TO SUPPLY>")
+Rel(api, db, "Reads and writes", "Prisma ORM 7, @prisma/adapter-pg")
 @enduml

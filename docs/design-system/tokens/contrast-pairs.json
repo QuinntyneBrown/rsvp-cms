@@ -386,12 +386,6 @@
       "note": "toast: danger icon on inverse surface"
     },
     {
-      "fg": "--color-fg-muted",
-      "bg": "--color-bg-subtle-hover",
-      "min": 4.5,
-      "note": "badge text on hovered neutral surfaces"
-    },
-    {
       "fg": "--color-fg-on-accent",
       "bg": "--color-info-solid",
       "min": 4.5,
@@ -456,12 +450,6 @@
       "bg": "--color-bg-surface",
       "min": 3,
       "note": "error empty-state icon vs card"
-    },
-    {
-      "fg": "--color-fg-subtle",
-      "bg": "--color-bg-subtle",
-      "min": 4.5,
-      "note": "sidebar group labels / counters on subtle surfaces"
     },
     {
       "fg": "--color-accent",

@@ -5,19 +5,19 @@ title Components — Enter an invitation code
 
 Person(guest, "Guest", "Invitee with an invitation code")
 Container_Boundary(rsvp, "Guest RSVP application") {
-  Component(form, "InvitationCodeForm", "<TO SUPPLY>", "Collects the code and shows field errors")
-  Component(rsvpClient, "PublicApiClient", "<TO SUPPLY>", "Typed client for the public endpoints")
+  Component(form, "InvitationCodeForm", "React 19 component", "Collects the code and shows field errors; CodeEntry in src/rsvp/CodeEntry.tsx")
+  Component(rsvpClient, "PublicApiClient", "TypeScript fetch helper", "Typed client for the public endpoints; src/shared/ui/api.ts")
 }
 Container_Boundary(publicApi, "Public API application") {
-  Component(ctrl, "InvitationCodeController", "<TO SUPPLY>", "Exposes POST /public/invitation-codes")
+  Component(ctrl, "InvitationCodeController", "Express 5 route", "POST /api/public/code in src/api/public/routes.ts")
 }
 Container_Boundary(domain, "Domain — invitations") {
-  Component(service, "InvitationCodeService", "<TO SUPPLY>", "Normalises the code and resolves the invitation")
-  Component(code, "InvitationCode", "Value object", "Normalises a raw code into its canonical form")
+  Component(service, "InvitationCodeService", "TypeScript, merged into the route", "Normalises the code and resolves the invitation inside POST /api/public/code")
+  Component(code, "InvitationCode", "Value object", "Normalises a raw code into its canonical form; normaliseCode in src/domain/code.ts")
 }
 Container_Boundary(data, "Data") {
-  Component(repo, "InvitationCodeRepository", "<TO SUPPLY>", "Finds the invitation record for a code")
-  ComponentDb(store, "Invitation store", "<TO SUPPLY>", "Persists invitation codes")
+  Component(repo, "InvitationCodeRepository", "Store interface; PrismaStore on PostgreSQL 17", "Finds the guest for a code; Store.guestByCode in src/data/store.ts")
+  ComponentDb(store, "Invitation store", "PostgreSQL 17", "guests.code: unique, upper case, XXXX-XXXX")
 }
 Rel(guest, form, "Types a code into")
 Rel(form, rsvpClient, "Passes the code to")
@@ -25,5 +25,5 @@ Rel(rsvpClient, ctrl, "Calls", "JSON/HTTPS")
 Rel(ctrl, service, "Redeems the code with")
 Rel(service, code, "Normalises the raw code with")
 Rel(service, repo, "Looks up the code with")
-Rel(repo, store, "Reads", "<TO SUPPLY>")
+Rel(repo, store, "Reads", "Prisma ORM 7")
 @enduml

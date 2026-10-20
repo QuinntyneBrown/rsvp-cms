@@ -4,23 +4,23 @@ LAYOUT_WITH_LEGEND()
 title Components — Review scheduled and sent emails
 
 Container_Boundary(admin, "Organiser app") {
-  Component(page, "EmailsPage", "<TO SUPPLY>", "Lists scheduled emails under src/admin/invitations")
-  Component(dialog, "EmailPreviewDialog", "<TO SUPPLY>", "Shows the rendered email")
-  Component(client, "EmailsApiClient", "<TO SUPPLY>", "Requests the list and previews")
+  Component(page, "EmailsPage", "React 19 component", "Lists scheduled emails; EmailsTab in src/admin/pages/Emails.tsx")
+  Component(dialog, "EmailPreviewDialog", "React 19 component", "Shows the rendered email; PreviewDialog in src/admin/pages/Emails.tsx")
+  Component(client, "EmailsApiClient", "TypeScript fetch helper", "Requests the list and previews; get in src/shared/ui/api.ts")
 }
 Container_Boundary(api, "API application") {
-  Component(ctrl, "ScheduledEmailsController", "<TO SUPPLY>", "Exposes list and preview endpoints under src/api/guests")
-  Component(handler, "ScheduledEmailQueryHandler", "<TO SUPPLY>", "Maps scheduled emails to list items")
-  Component(renderer, "InvitationPreviewRenderer", "<TO SUPPLY>", "Renders the email with sample values")
-  Component(repo, "ScheduledEmailRepository", "<TO SUPPLY>", "Reads scheduled emails under src/data")
-  ComponentDb(store, "Scheduled email store", "<TO SUPPLY>", "Persists scheduled emails")
+  Component(ctrl, "ScheduledEmailsController", "Express 5 routes", "GET /api/events/:id/emails and GET /api/events/:id/emails/:emailId/preview in src/api/guests/routes.ts")
+  Component(handler, "ScheduledEmailQueryHandler", "TypeScript, merged into the route", "Maps scheduled emails to list items; emailJson in src/api/guests/routes.ts")
+  Component(renderer, "InvitationPreviewRenderer", "TypeScript module", "Renders the email with sample values; invitationText and SAMPLE_GUEST in src/domain/invitations/message.ts")
+  Component(repo, "ScheduledEmailRepository", "Store interface; PrismaStore on PostgreSQL 17", "Reads scheduled emails; Store.listEmails and Store.getEmail")
+  ComponentDb(store, "Scheduled email store", "PostgreSQL 17", "emails table")
 }
 
 Rel(page, client, "Requests the list using")
 Rel(dialog, client, "Requests the preview using")
 Rel(client, ctrl, "Calls", "JSON/HTTPS")
-Rel(ctrl, handler, "Sends ScheduledEmailQuery")
+Rel(ctrl, handler, "Maps the list with")
 Rel(ctrl, renderer, "Requests the preview from")
 Rel(handler, repo, "Reads through")
-Rel(repo, store, "Reads", "<TO SUPPLY>")
+Rel(repo, store, "Reads", "Prisma ORM 7")
 @enduml

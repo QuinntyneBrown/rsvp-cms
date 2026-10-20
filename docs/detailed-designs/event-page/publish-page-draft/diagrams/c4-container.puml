@@ -6,15 +6,15 @@ title Containers — Save, publish and discard page drafts
 Person(organiser, "Organiser", "Publishes or discards page changes")
 Person_Ext(guest, "Guest", "Reads the published page")
 System_Boundary(cms, "RSVP CMS") {
-  Container(admin, "Organiser app", "<TO SUPPLY>", "Draft status, publish and discard controls under src/admin")
-  Container(rsvp, "Guest RSVP app", "<TO SUPPLY>", "Public page under src/rsvp")
-  Container(api, "Organiser API", "<TO SUPPLY>", "Draft and publish endpoints under src/api/events")
-  ContainerDb(db, "Application database", "<TO SUPPLY>", "Stores page drafts and published pages under src/data")
+  Container(admin, "Organiser app", "React 19, Vite", "Draft status, publish and discard controls under src/admin")
+  Container(rsvp, "Guest RSVP app", "React 19, Vite", "Public page under src/rsvp")
+  Container(api, "API application", "Node.js 24, Express 5", "Draft and publish endpoints under src/api/events and public invitation endpoint under src/api/public")
+  ContainerDb(db, "Application database", "PostgreSQL 17", "Stores page drafts and published pages in the pages table")
 }
 
 Rel(organiser, admin, "Publishes and discards using", "HTTPS")
 Rel(admin, api, "Sends draft, publish and discard requests to", "JSON/HTTPS")
-Rel(api, db, "Reads and writes drafts and published pages in", "<TO SUPPLY>")
+Rel(api, db, "Reads and writes drafts and published pages in", "Prisma ORM 7, @prisma/adapter-pg")
 Rel(guest, rsvp, "Reads the page from", "HTTPS")
-Rel(rsvp, db, "Reads the published page from", "<TO SUPPLY>")
+Rel(rsvp, api, "Reads the published page from", "JSON/HTTPS")
 @enduml

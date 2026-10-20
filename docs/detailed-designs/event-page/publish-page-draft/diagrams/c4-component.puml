@@ -4,19 +4,19 @@ LAYOUT_WITH_LEGEND()
 title Components — Save, publish and discard page drafts
 
 Container_Boundary(admin, "Organiser app") {
-  Component(status, "DraftStatusBar", "<TO SUPPLY>", "Shows the Draft saved and Published status texts")
-  Component(autosave, "DraftAutosave", "<TO SUPPLY>", "Saves the draft 2 seconds after the last keystroke")
-  Component(guard, "UnsavedChangesGuard", "<TO SUPPLY>", "Warns before the organiser leaves with unpublished changes")
-  Component(discard, "DiscardChangesDialog", "<TO SUPPLY>", "Asks the organiser to confirm the discard")
+  Component(status, "DraftStatusBar", "React 19 component", "Shows the Draft saved and Published status texts; status line of Composer in src/admin/pages/PageComposer.tsx")
+  Component(autosave, "DraftAutosave", "React 19 effect", "Saves the draft 2 seconds after the last keystroke; inside Composer")
+  Component(guard, "UnsavedChangesGuard", "React 19 effect", "Warns before the organiser leaves with unpublished changes; beforeunload listener in Composer")
+  Component(discard, "DiscardChangesDialog", "React 19 component", "Asks the organiser to confirm the discard; shared Dialog used by Composer")
 }
-Container_Boundary(api, "Organiser API") {
-  Component(ctrl, "PageDraftController", "<TO SUPPLY>", "Exposes the draft, publish and discard endpoints under src/api/events/page-draft")
+Container_Boundary(api, "API application") {
+  Component(ctrl, "PageDraftController", "Express 5 routes", "PUT /page/draft, POST /page/publish and POST /page/discard under /api/events/:id in src/api/events/routes.ts")
   Component(publisher, "PagePublisher", "Domain service", "Copies a valid draft to the published page and resets the draft")
   Component(draft, "PageDraft", "Domain aggregate", "Holds the unpublished blocks")
-  ComponentDb(drafts, "PageDraftRepository", "<TO SUPPLY>", "Loads and saves page drafts under src/data")
-  ComponentDb(published, "PublishedPageRepository", "<TO SUPPLY>", "Loads and saves the published page under src/data")
+  ComponentDb(drafts, "PageDraftRepository", "Store interface; PrismaStore on PostgreSQL 17", "pages.draft (jsonb); Store.saveDraft and Store.discardDraft")
+  ComponentDb(published, "PublishedPageRepository", "Store interface; PrismaStore on PostgreSQL 17", "pages.published (jsonb) and events.status; Store.publishDraft")
 }
-Container(rsvp, "Guest RSVP app", "<TO SUPPLY>", "Serves the public page under src/rsvp")
+Container(rsvp, "Guest RSVP app", "React 19, Vite", "Serves the public page under src/rsvp")
 
 Rel(status, ctrl, "Reads draft state from", "JSON/HTTPS")
 Rel(autosave, ctrl, "Saves the draft through", "JSON/HTTPS")
@@ -25,5 +25,5 @@ Rel(ctrl, publisher, "Requests publish or discard from")
 Rel(publisher, draft, "Validates and resets")
 Rel(ctrl, drafts, "Saves the draft through")
 Rel(publisher, published, "Writes the published page through")
-Rel(rsvp, published, "Reads the published page from")
+Rel(rsvp, published, "Reads the published page through GET /api/public/invite/:token from", "JSON/HTTPS")
 @enduml

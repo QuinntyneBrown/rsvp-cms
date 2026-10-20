@@ -5,23 +5,23 @@ title Components — Open a personal invitation link
 
 Person(guest, "Guest", "Invitee with a personal link")
 Container_Boundary(rsvp, "Guest RSVP application") {
-  Component(page, "InvitationPage", "<TO SUPPLY>", "Shows the loading, ready, error and invalid states of the invitation")
-  Component(renderer, "PublicPageRenderer", "<TO SUPPLY>", "Renders the published blocks from src/shared")
+  Component(page, "InvitationPage", "React 19 component", "Shows the loading, ready, error and invalid states of the invitation; InvitePage in src/rsvp/InvitePage.tsx")
+  Component(renderer, "PublicPageRenderer", "React 19 component", "Renders the published blocks; BlockView in src/shared/ui/blocks.tsx")
 }
 Container_Boundary(publicApi, "Public API application") {
-  Component(ctrl, "PersonalInvitationController", "<TO SUPPLY>", "Exposes GET /public/invitations/{token}")
-  Component(assembler, "InvitationViewAssembler", "<TO SUPPLY>", "Builds a response that holds only the guest's own data")
+  Component(ctrl, "PersonalInvitationController", "Express 5 route", "GET /api/public/invite/:token in src/api/public/routes.ts")
+  Component(assembler, "InvitationViewAssembler", "TypeScript, merged into the route", "Builds a response that holds only the guest's own data")
 }
 Container_Boundary(domain, "Domain — invitations") {
-  Component(resolver, "PersonalLinkResolver", "<TO SUPPLY>", "Resolves a token to a guest page view")
-  Component(window, "InvitationWindow", "Value object", "Derives the window state at a given instant")
+  Component(resolver, "PersonalLinkResolver", "TypeScript, merged into the route", "Resolves a token to a guest page view; Store.guestByToken and Store.getEvent")
+  Component(window, "InvitationWindow", "Value object", "Derives the window state at a given instant; windowState in src/api/public/routes.ts")
 }
-ComponentDb(db, "Invitely database", "<TO SUPPLY>", "Stores links, events and published pages")
+ComponentDb(db, "Invitely database", "Store interface; PrismaStore on PostgreSQL 17", "guests (unique token), events, pages and responses tables")
 Rel(guest, page, "Opens the link in")
 Rel(page, renderer, "Passes published content to")
 Rel(page, ctrl, "Requests the invitation from", "JSON/HTTPS")
 Rel(ctrl, resolver, "Resolves the token with")
 Rel(ctrl, assembler, "Shapes the response with")
 Rel(resolver, window, "Derives the window state with")
-Rel(resolver, db, "Reads links and events from", "<TO SUPPLY>")
+Rel(resolver, db, "Reads links and events from", "Prisma ORM 7")
 @enduml

@@ -5,11 +5,11 @@ title Containers — Change an RSVP before the window closes
 
 Person(guest, "Guest", "Invitee with a saved reply")
 System_Boundary(invitely, "Invitely") {
-  Container(rsvp, "Guest RSVP application", "<TO SUPPLY>", "Public RSVP page under src/rsvp")
-  Container(publicApi, "Public API application", "<TO SUPPLY>", "RSVP endpoints under src/api/public")
-  ContainerDb(db, "Invitely database", "<TO SUPPLY>", "Saved replies, guests and events")
+  Container(rsvp, "Guest RSVP application", "React 19, Vite", "Public RSVP page under src/rsvp")
+  Container(publicApi, "Public API application", "Node.js 24, Express 5", "RSVP endpoints under src/api/public")
+  ContainerDb(db, "Invitely database", "PostgreSQL 17", "Saved replies (responses table), guests and events")
 }
 Rel(guest, rsvp, "Changes the reply in", "HTTPS")
 Rel(rsvp, publicApi, "Sends the changed reply to", "JSON/HTTPS")
-Rel(publicApi, db, "Reads and replaces the saved reply in", "<TO SUPPLY>")
+Rel(publicApi, db, "Reads and replaces the saved reply in", "Prisma ORM 7, @prisma/adapter-pg")
 @enduml

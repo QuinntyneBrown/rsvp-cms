@@ -5,14 +5,12 @@ title Containers — Add, edit and remove guests
 
 Person(organiser, "Organiser", "Maintains the invitee list")
 System_Boundary(cms, "RSVP CMS") {
-  Container(admin, "Organiser app", "<TO SUPPLY>", "Guest dialogs under src/admin")
-  Container(api, "Organiser API", "<TO SUPPLY>", "Guest command endpoints under src/api/guests")
-  ContainerDb(db, "Application database", "<TO SUPPLY>", "Stores guests and replies under src/data")
+  Container(admin, "Organiser app", "React 19, Vite", "Guest dialogs under src/admin")
+  Container(api, "Organiser API", "Node.js 24, Express 5", "Guest command endpoints under src/api/guests")
+  ContainerDb(db, "Application database", "PostgreSQL 17", "Stores guests, replies and the scheduled email queue (emails and deliveries tables)")
 }
-System_Ext(queue, "Scheduled email queue", "Holds pending reminders")
 
 Rel(organiser, admin, "Adds, edits and removes guests using", "HTTPS")
 Rel(admin, api, "Sends guest commands to", "JSON/HTTPS")
-Rel(api, db, "Reads and writes guests in", "<TO SUPPLY>")
-Rel(api, queue, "Cancels pending reminders in", "<TO SUPPLY>")
+Rel(api, db, "Reads and writes guests in; removal cascades to replies and pending deliveries", "Prisma ORM 7, @prisma/adapter-pg")
 @enduml

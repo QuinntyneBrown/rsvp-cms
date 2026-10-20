@@ -5,12 +5,12 @@ title Containers — View, search and select guests
 
 Person(organiser, "Organiser", "Views the guest list")
 System_Boundary(cms, "RSVP CMS") {
-  Container(admin, "Organiser app", "<TO SUPPLY>", "Guests page under src/admin")
-  Container(api, "Organiser API", "<TO SUPPLY>", "Guest list endpoint under src/api/guests")
-  ContainerDb(db, "Application database", "<TO SUPPLY>", "Stores guests and replies under src/data")
+  Container(admin, "Organiser app", "React 19, Vite", "Guests page under src/admin")
+  Container(api, "Organiser API", "Node.js 24, Express 5", "Guest list endpoint under src/api/guests")
+  ContainerDb(db, "Application database", "PostgreSQL 17", "Stores guests and replies in the guests and responses tables")
 }
 
 Rel(organiser, admin, "Views and searches guests using", "HTTPS")
 Rel(admin, api, "Requests pages of guests from", "JSON/HTTPS")
-Rel(api, db, "Reads guests from", "<TO SUPPLY>")
+Rel(api, db, "Reads guests from", "Prisma ORM 7, @prisma/adapter-pg")
 @enduml

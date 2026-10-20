@@ -5,12 +5,12 @@ title Containers — Review scheduled and sent emails
 
 Person(organiser, "Organiser", "Reviews scheduled emails")
 System_Boundary(invitely, "Invitely") {
-  Container(admin, "Organiser app", "<TO SUPPLY>", "Organiser UI under src/admin")
-  Container(api, "API application", "<TO SUPPLY>", "Endpoints under src/api and query logic under src/domain")
-  ContainerDb(db, "Application database", "<TO SUPPLY>", "Stores scheduled emails")
+  Container(admin, "Organiser app", "React 19, Vite", "Organiser UI under src/admin")
+  Container(api, "API application", "Node.js 24, Express 5", "Endpoints under src/api and message text under src/domain")
+  ContainerDb(db, "Application database", "PostgreSQL 17", "Stores scheduled emails in the emails table")
 }
 
 Rel(organiser, admin, "Uses", "HTTPS")
 Rel(admin, api, "Requests the list and previews from", "JSON/HTTPS")
-Rel(api, db, "Reads", "<TO SUPPLY>")
+Rel(api, db, "Reads", "Prisma ORM 7, @prisma/adapter-pg")
 @enduml

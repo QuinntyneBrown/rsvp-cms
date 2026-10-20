@@ -5,12 +5,12 @@ title Containers — Create an event
 
 Person(organiser, "Organiser", "Signed-in user who owns the event")
 System_Boundary(invitely, "Invitely") {
-  Container(admin, "Organiser app", "<TO SUPPLY>", "Organiser UI in src/admin")
-  Container(api, "API application", "<TO SUPPLY>", "HTTP endpoints in src/api")
-  ContainerDb(db, "Invitely database", "<TO SUPPLY>", "Stores events")
+  Container(admin, "Organiser app", "React 19, Vite", "Organiser UI in src/admin")
+  Container(api, "API application", "Node.js 24, Express 5", "HTTP endpoints in src/api")
+  ContainerDb(db, "Invitely database", "PostgreSQL 17", "Stores events in the events table")
 }
 
 Rel(organiser, admin, "Creates events using", "HTTPS")
 Rel(admin, api, "Sends create-event requests to", "HTTPS, JSON")
-Rel(api, db, "Writes events to", "<TO SUPPLY>")
+Rel(api, db, "Writes events to", "Prisma ORM 7, @prisma/adapter-pg")
 @enduml

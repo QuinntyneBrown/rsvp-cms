@@ -5,29 +5,29 @@ title Components — Change an RSVP before the window closes
 
 Person(guest, "Guest", "Invitee with a saved reply")
 Container_Boundary(rsvp, "Guest RSVP application") {
-  Component(summary, "ReplySummaryPanel", "<TO SUPPLY>", "Shows the saved reply, the Change reply action or the read-only closed state")
-  Component(form, "RsvpForm", "<TO SUPPLY>", "Reused from the submit feature, prefilled with the saved reply")
-  Component(client, "PublicApiClient", "<TO SUPPLY>", "Typed client for the public endpoints")
+  Component(summary, "ReplySummaryPanel", "React 19 component", "Shows the saved reply, the Change reply action or the read-only closed state; RsvpForm summary view, ReplySummary and InvitePage")
+  Component(form, "RsvpForm", "React 19 component", "Reused from the submit feature, prefilled with the saved reply; src/rsvp/RsvpForm.tsx")
+  Component(client, "PublicApiClient", "TypeScript fetch helper", "Typed client for the public endpoints; src/shared/ui/api.ts")
 }
 Container_Boundary(publicApi, "Public API application") {
-  Component(ctrl, "RsvpController", "<TO SUPPLY>", "Exposes PUT /public/invitations/{token}/rsvp")
+  Component(ctrl, "RsvpController", "Express 5 route", "POST /api/public/invite/:token/rsvp in src/api/public/routes.ts, shared with Submit an RSVP")
 }
 Container_Boundary(domain, "Domain — responses") {
-  Component(handler, "ChangeRsvpCommandHandler", "<TO SUPPLY>", "Replaces the saved reply inside the invite window")
+  Component(handler, "ChangeRsvpCommandHandler", "TypeScript, merged into the route", "Replaces the saved reply inside the invite window")
   Component(response, "Response", "Entity", "Changes its reply and clears the fields that no longer apply")
-  Component(window, "InvitationWindow", "Value object", "Reports whether the invite window is still open")
+  Component(window, "InvitationWindow", "Value object", "Reports whether the invite window is still open; windowState in src/api/public/routes.ts")
 }
 Container_Boundary(data, "Data") {
-  Component(repo, "ResponseRepository", "<TO SUPPLY>", "Reads and writes responses")
+  Component(repo, "ResponseRepository", "Store interface; PrismaStore on PostgreSQL 17", "Reads and writes responses; Store.getResponse and Store.saveResponse")
 }
-ComponentDb(db, "Invitely database", "<TO SUPPLY>", "Persists responses")
+ComponentDb(db, "Invitely database", "PostgreSQL 17", "responses table, primary key guest_id")
 Rel(guest, summary, "Chooses Change reply in")
 Rel(summary, form, "Opens with the saved reply in")
 Rel(form, client, "Sends the changed reply with")
 Rel(client, ctrl, "Calls", "JSON/HTTPS")
-Rel(ctrl, handler, "Sends ChangeRsvpCommand to")
+Rel(ctrl, handler, "Passes the changed reply to")
 Rel(handler, window, "Checks the window with")
 Rel(handler, response, "Applies the change to")
 Rel(handler, repo, "Saves through")
-Rel(repo, db, "Reads and writes", "<TO SUPPLY>")
+Rel(repo, db, "Upserts by guest in", "Prisma ORM 7, INSERT ... ON CONFLICT")
 @enduml

@@ -9,6 +9,6 @@ System(invitely, "Invitely", "RSVP content management system")
 System_Ext(mail, "Email provider", "Delivers invitation emails to guests")
 
 Rel(organiser, invitely, "Schedules invitation emails using")
-Rel(invitely, mail, "Hands over scheduled emails to", "<TO SUPPLY>")
+Rel(invitely, mail, "Hands over scheduled emails to", "SMTP through nodemailer, from the mail worker")
 Rel(mail, guest, "Delivers invitation emails to")
 @enduml

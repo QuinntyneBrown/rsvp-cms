@@ -4,19 +4,19 @@ LAYOUT_WITH_LEGEND()
 title Components — Compose the public page from blocks
 
 Container_Boundary(admin, "Organiser app") {
-  Component(editor, "PageBlockEditor", "<TO SUPPLY>", "Shows the outline, the block picker and the block fields")
-  Component(catalogue, "PageBlockCatalogue", "<TO SUPPLY>", "Lists the eight block types with descriptions under src/shared/page-blocks")
+  Component(editor, "PageBlockEditor", "React 19 component", "Shows the outline, the block picker and the block fields; Composer in src/admin/pages/PageComposer.tsx")
+  Component(catalogue, "PageBlockCatalogue", "TypeScript constant", "Lists the eight block types with descriptions and fields; BLOCK_SPECS in src/shared/ui/blocks.tsx")
 }
 Container_Boundary(api, "Organiser API") {
-  Component(ctrl, "PageBlocksController", "<TO SUPPLY>", "Exposes the block endpoints under src/api/events/page-blocks")
+  Component(ctrl, "PageBlocksController", "Express 5 route", "PUT /api/events/:id/page/draft in src/api/events/routes.ts; saves the ordered blocks")
   Component(draft, "PageDraft", "Domain aggregate", "Owns the ordered blocks and enforces the 12-block limit")
-  Component(rules, "BlockFieldRules", "Domain rules", "Validates typed block fields")
-  ComponentDb(store, "PageDraftRepository", "<TO SUPPLY>", "Loads and saves page drafts under src/data")
+  Component(rules, "BlockFieldRules", "Domain rules", "Validates typed block fields; validateBlocks in src/domain/blocks.ts")
+  ComponentDb(store, "PageDraftRepository", "Store interface; PrismaStore on PostgreSQL 17", "pages.draft (jsonb); Store.getPage and Store.saveDraft")
 }
 
 Rel(editor, catalogue, "Lists block types from")
-Rel(editor, ctrl, "Sends block commands to", "JSON/HTTPS")
-Rel(ctrl, draft, "Applies add, move, update and remove commands to")
+Rel(editor, ctrl, "Autosaves the ordered block list to", "JSON/HTTPS")
+Rel(ctrl, draft, "Applies the saved block list to")
 Rel(draft, rules, "Validates block fields with")
 Rel(ctrl, store, "Loads and saves the draft through")
 @enduml

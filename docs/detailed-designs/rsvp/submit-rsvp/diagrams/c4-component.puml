@@ -5,32 +5,32 @@ title Components — Submit an RSVP
 
 Person(guest, "Guest", "Invitee with a personal link or invitation code")
 Container_Boundary(rsvp, "Guest RSVP application") {
-  Component(form, "RsvpForm", "<TO SUPPLY>", "Shows the RSVP fields and their conditional visibility")
-  Component(dialog, "DeclineDialog", "<TO SUPPLY>", "Offers Keep my reply and Send my regrets")
-  Component(client, "PublicApiClient", "<TO SUPPLY>", "Typed client for the public endpoints")
-  Component(limits, "RsvpFieldLimits", "Shared constants", "Field limits used by the form and the API from src/shared")
+  Component(form, "RsvpForm", "React 19 component", "Shows the RSVP fields and their conditional visibility; src/rsvp/RsvpForm.tsx")
+  Component(dialog, "DeclineDialog", "React 19 component", "Offers Keep my reply and Send my regrets; the Send your regrets dialog inside RsvpForm")
+  Component(client, "PublicApiClient", "TypeScript fetch helper", "Typed client for the public endpoints; src/shared/ui/api.ts")
+  Component(limits, "RsvpFieldLimits", "Shared constants", "Field limits used by the form and the API; LIMITS in src/domain/rsvp.ts")
 }
 Container_Boundary(publicApi, "Public API application") {
-  Component(ctrl, "RsvpController", "<TO SUPPLY>", "Exposes POST /public/invitations/{token}/rsvp")
+  Component(ctrl, "RsvpController", "Express 5 route", "POST /api/public/invite/:token/rsvp in src/api/public/routes.ts")
 }
 Container_Boundary(domain, "Domain — responses") {
-  Component(handler, "SubmitRsvpCommandHandler", "<TO SUPPLY>", "Stores one reply per submission")
-  Component(policy, "RsvpPolicy", "<TO SUPPLY>", "Checks a reply against the places on the invitation")
+  Component(handler, "SubmitRsvpCommandHandler", "TypeScript, merged into the route", "Checks the invite window, validates and stores one reply per guest")
+  Component(policy, "RsvpPolicy", "TypeScript module", "Checks a reply against the places on the invitation; validateReply in src/domain/rsvp.ts")
   Component(response, "Response", "Entity", "Holds the saved reply of one guest")
 }
 Container_Boundary(data, "Data") {
-  Component(repo, "ResponseRepository", "<TO SUPPLY>", "Reads and writes responses")
+  Component(repo, "ResponseRepository", "Store interface; PrismaStore on PostgreSQL 17", "Reads and writes responses; Store.getResponse and Store.saveResponse")
 }
-ComponentDb(db, "Invitely database", "<TO SUPPLY>", "Persists responses")
+ComponentDb(db, "Invitely database", "PostgreSQL 17", "responses table, primary key guest_id")
 Rel(guest, form, "Fills in")
 Rel(form, dialog, "Opens for a decline with")
 Rel(form, limits, "Applies limits from")
 Rel(form, client, "Sends the reply with")
 Rel(dialog, client, "Sends the regrets with")
 Rel(client, ctrl, "Calls", "JSON/HTTPS")
-Rel(ctrl, handler, "Sends SubmitRsvpCommand to")
+Rel(ctrl, handler, "Passes the reply to")
 Rel(handler, policy, "Validates the reply with")
 Rel(handler, response, "Creates and applies the reply to")
 Rel(handler, repo, "Saves through")
-Rel(repo, db, "Reads and writes", "<TO SUPPLY>")
+Rel(repo, db, "Upserts by guest in", "Prisma ORM 7, INSERT ... ON CONFLICT")
 @enduml

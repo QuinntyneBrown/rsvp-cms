@@ -4,26 +4,27 @@ LAYOUT_WITH_LEGEND()
 title Components — Add, edit and remove guests
 
 Container_Boundary(admin, "Organiser app") {
-  Component(addDlg, "AddGuestDialog", "<TO SUPPLY>", "Collects a new guest and shows field errors")
-  Component(editDlg, "EditGuestDialog", "<TO SUPPLY>", "Changes a guest's details, group and places")
-  Component(removeDlg, "RemoveGuestsDialog", "<TO SUPPLY>", "Confirms the removal of one or many guests")
-  Component(rules, "GuestFormRules", "<TO SUPPLY>", "Checks name length, email format and the 0 to 9 plus-ones range before submit")
+  Component(addDlg, "AddGuestDialog", "React 19 component", "Collects a new guest and shows field errors; GuestDialog in add mode, src/admin/pages/Guests.tsx")
+  Component(editDlg, "EditGuestDialog", "React 19 component", "Changes a guest's details, group and places; GuestDialog in edit mode")
+  Component(removeDlg, "RemoveGuestsDialog", "React 19 component", "Confirms the removal of one or many guests; remove dialog in GuestsTab")
+  Component(rules, "GuestFormRules", "TypeScript module", "Name 1 to 120 characters, email like name@example.com, plus-ones 0 to 9; validateGuest in src/domain/guests.ts")
 }
 Container_Boundary(api, "Organiser API") {
-  Component(ctrl, "GuestController", "<TO SUPPLY>", "Exposes the add, update and remove endpoints under src/api/guests")
+  Component(ctrl, "GuestController", "Express 5 routes", "POST, PUT and POST remove under /api/events/:id/guests in src/api/guests/routes.ts")
   Component(roster, "GuestRoster", "Domain service", "Enforces unique emails per event and the confirmed-places rule")
   Component(guest, "Guest", "Domain entity", "Holds one invitee and changes its details")
-  ComponentDb(guests, "GuestRepository", "<TO SUPPLY>", "Saves guests under src/data")
+  ComponentDb(guests, "GuestRepository", "Store interface; PrismaStore on PostgreSQL 17", "guests table; Store.guestByEmail, insertGuest, updateGuest and deleteGuests")
+  ComponentDb(queue, "Scheduled email queue", "PostgreSQL 17", "emails and deliveries tables; a guest's deliveries are deleted with the guest")
 }
-System_Ext(queue, "Scheduled email queue", "Holds pending reminders")
 
 Rel(addDlg, rules, "Validates with")
 Rel(editDlg, rules, "Validates with")
 Rel(removeDlg, ctrl, "Requests removal from", "JSON/HTTPS")
 Rel(addDlg, ctrl, "Requests the add from", "JSON/HTTPS")
 Rel(editDlg, ctrl, "Requests the update from", "JSON/HTTPS")
+Rel(ctrl, rules, "Validates each add and update with")
 Rel(ctrl, roster, "Applies changes through")
 Rel(roster, guest, "Adds, updates and removes")
 Rel(roster, guests, "Loads and saves through")
-Rel(ctrl, queue, "Cancels pending reminders in", "<TO SUPPLY>")
+Rel(guests, queue, "Removes the guests' pending deliveries from", "ON DELETE CASCADE")
 @enduml

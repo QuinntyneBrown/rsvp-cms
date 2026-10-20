@@ -26,7 +26,7 @@ box "Backend — Application and domain" #ECFDF3
 end box
 box "Backend — Data and infrastructure" #FFF4E5
   database "Application database" as db
-  participant "Scheduled email queue" as queue
+  database "Scheduled email queue (deliveries)" as queue
 end box
 
 actor -> dialog : Select Remove for two or more guests
@@ -35,10 +35,10 @@ actor -> dialog : Select Remove
 dialog --> actor : Remove shows a busy state and Cancel is disabled (L2-023)
 dialog -> controller : DELETE guests with identifiers
 controller -> roster : Remove(eventId, guestIds)
-roster -> db : Delete guests, invitation links and replies
+roster -> db : Delete guests, their invitation links and replies
+db -> queue : ON DELETE CASCADE removes the guests' pending deliveries (L2-023)
+queue --> db : Deliveries removed
 db --> roster : Commit result
-roster -> queue : Cancel pending reminders for the guests (L2-023)
-queue --> roster : Cancelled
 roster --> controller : Removed count
 controller --> dialog : Removed count
 alt Removal fails (L2-023)

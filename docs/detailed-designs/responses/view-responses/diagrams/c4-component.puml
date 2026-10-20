@@ -5,21 +5,21 @@ title Components — View and filter responses
 
 Person(organiser, "Organiser", "Event owner")
 Container_Boundary(admin, "Organiser admin application") {
-  Component(page, "ResponsesPage", "<TO SUPPLY>", "Shows the table, totals, filter, search and states")
-  Component(totalsStrip, "ResponseTotalsStrip", "<TO SUPPLY>", "Shows Attending, Guests coming and meal counts")
-  Component(client, "ResponsesApiClient", "<TO SUPPLY>", "Typed client for the responses endpoints")
+  Component(page, "ResponsesPage", "React 19 component", "Shows the table, totals, filter, search and states; ResponsesTab in src/admin/pages/Responses.tsx")
+  Component(totalsStrip, "ResponseTotalsStrip", "React 19 component", "Shows Attending, Guests coming and meal counts; totals list in ResponsesTab, refreshed every 5 seconds")
+  Component(client, "ResponsesApiClient", "TypeScript fetch helper", "Typed client for the responses endpoint; get in src/shared/ui/api.ts")
 }
 Container_Boundary(api, "Organiser API application") {
-  Component(ctrl, "ResponsesController", "<TO SUPPLY>", "Exposes the responses list and totals endpoints")
+  Component(ctrl, "ResponsesController", "Express 5 route", "GET /api/events/:id/responses in src/api/responses/routes.ts; returns rows and totals together")
 }
 Container_Boundary(domain, "Domain — responses") {
   Component(query, "ResponseListQuery", "Value object", "Holds the event, filter, search term and page")
-  Component(totals, "ResponseTotalsCalculator", "<TO SUPPLY>", "Computes attending, guest and meal totals")
+  Component(totals, "ResponseTotalsCalculator", "Store method", "Computes attending, guest and meal totals; Store.responseTotals")
 }
 Container_Boundary(data, "Data") {
-  Component(repo, "ResponseQueryRepository", "<TO SUPPLY>", "Returns pages of replies and the totals")
+  Component(repo, "ResponseQueryRepository", "Store interface; PrismaStore on PostgreSQL 17", "Returns pages of replies, newest first, 50 per page; Store.listResponses")
 }
-ComponentDb(db, "Invitely database", "<TO SUPPLY>", "Persists replies, guests and events")
+ComponentDb(db, "Invitely database", "PostgreSQL 17", "responses joined to guests")
 Rel(organiser, page, "Reviews replies in")
 Rel(page, totalsStrip, "Shows totals in")
 Rel(page, client, "Requests data with")
@@ -28,5 +28,5 @@ Rel(ctrl, query, "Builds")
 Rel(ctrl, totals, "Requests totals from")
 Rel(ctrl, repo, "Reads pages through")
 Rel(totals, repo, "Reads replies for totals through")
-Rel(repo, db, "Queries", "<TO SUPPLY>")
+Rel(repo, db, "Queries", "Prisma ORM 7")
 @enduml

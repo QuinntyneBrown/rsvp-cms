@@ -4,9 +4,7 @@ LAYOUT_WITH_LEGEND()
 title System Context — Add, edit and remove guests
 
 Person(organiser, "Organiser", "Maintains the invitee list of an event")
-System(cms, "RSVP CMS", "Organiser and guest applications for running event RSVPs")
-System_Ext(email, "Scheduled email queue", "Holds reminders that may still be sent to a guest")
+System(cms, "RSVP CMS", "Organiser and guest applications for running event RSVPs, including the scheduled email queue")
 
 Rel(organiser, cms, "Adds, edits and removes guests using")
-Rel(cms, email, "Removes pending reminders for removed guests in", "<TO SUPPLY>")
 @enduml

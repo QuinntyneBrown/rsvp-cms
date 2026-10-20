@@ -4,22 +4,22 @@ LAYOUT_WITH_LEGEND()
 title Components — Preview the page as a guest
 
 Container_Boundary(admin, "Organiser app") {
-  Component(preview, "PagePreviewPanel", "<TO SUPPLY>", "Shows the draft preview at every viewport width")
+  Component(preview, "PagePreviewPanel", "React 19 component", "Shows the draft preview at every viewport width; preview mode of Composer in src/admin/pages/PageComposer.tsx")
 }
 Container_Boundary(shared, "Shared page renderer") {
-  Component(renderer, "PageBlockRenderer", "<TO SUPPLY>", "Renders each block type from a render model")
+  Component(renderer, "PageBlockRenderer", "React 19 component", "Renders each block type; BlockView in src/shared/ui/blocks.tsx")
   Component(model, "PageRenderModel", "Shared type", "Ordered, display-ready blocks for one page")
 }
-Container_Boundary(api, "Organiser API") {
-  Component(ctrl, "PagePreviewController", "<TO SUPPLY>", "Exposes the preview endpoint under src/api/events/page-preview")
+Container_Boundary(api, "API application") {
+  Component(ctrl, "PagePreviewController", "Express 5 route", "GET /api/events/:id/page/preview in src/api/events/routes.ts")
   Component(builder, "PageRenderModelBuilder", "Domain service", "Builds a render model from a page source")
   Component(draft, "PageDraft", "Domain aggregate", "Holds the unpublished blocks")
-  ComponentDb(drafts, "PageDraftRepository", "<TO SUPPLY>", "Loads page drafts under src/data")
+  ComponentDb(drafts, "PageDraftRepository", "Store interface; PrismaStore on PostgreSQL 17", "pages.draft (jsonb); Store.getPage")
 }
 Container_Boundary(rsvp, "Guest RSVP app") {
-  Component(guestPage, "GuestPageView", "<TO SUPPLY>", "Renders the published page under src/rsvp")
+  Component(guestPage, "GuestPageView", "React 19 component", "Renders the published page; InvitePage in src/rsvp/InvitePage.tsx")
 }
-ComponentDb(published, "PublishedPageRepository", "<TO SUPPLY>", "Loads the published page under src/data")
+ComponentDb(published, "PublishedPageRepository", "Store interface; PrismaStore on PostgreSQL 17", "pages.published (jsonb); Store.getPage")
 
 Rel(preview, ctrl, "Requests the draft render model from", "JSON/HTTPS")
 Rel(ctrl, builder, "Requests a render model from")
@@ -28,5 +28,5 @@ Rel(ctrl, drafts, "Loads the draft through")
 Rel(builder, model, "Produces")
 Rel(preview, renderer, "Renders the model with")
 Rel(guestPage, renderer, "Renders the model with")
-Rel(guestPage, published, "Reads the published page from")
+Rel(guestPage, published, "Reads the published page through GET /api/public/invite/:token from", "JSON/HTTPS")
 @enduml

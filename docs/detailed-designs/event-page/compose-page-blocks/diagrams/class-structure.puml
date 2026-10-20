@@ -29,25 +29,25 @@ class PageBlock {
   +BlockType Type
   +int Position
   +bool IsCollapsed
-  +IDictionary<string, string> Fields
+  +Record<string, string> Fields
 }
 
 class PageDraft {
   +UUID EventId
   +int MaxBlocks = 12
-  +IReadOnlyList<PageBlock> Blocks
+  +PageBlock[] Blocks
   +AddBlock(type: BlockType): PageBlock
   +MoveBlock(blockId: UUID, direction: MoveDirection): void
-  +UpdateBlock(blockId: UUID, fields: IDictionary<string, string>): void
+  +UpdateBlock(blockId: UUID, fields: Record<string, string>): void
   +RemoveBlock(blockId: UUID): void
 }
 
 class BlockFieldRules {
-  +Validate(type: BlockType, fields: IDictionary<string, string>): IReadOnlyList<FieldError>
+  +Validate(type: BlockType, fields: Record<string, string>): FieldError[]
 }
 
 class PageBlockCatalogue {
-  +All(): IReadOnlyList<BlockTypeInfo>
+  +All(): BlockTypeInfo[]
 }
 
 class PageDraftRepository {

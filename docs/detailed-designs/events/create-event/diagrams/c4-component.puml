@@ -4,19 +4,19 @@ LAYOUT_WITH_LEGEND()
 title Components — Create an event
 
 Container_Boundary(admin, "Organiser app") {
-  Component(page, "NewEventPage", "<TO SUPPLY>", "Renders the New event form in src/admin/events")
-  Component(client, "EventsClient", "<TO SUPPLY>", "Sends create requests in src/admin/events")
+  Component(page, "NewEventPage", "React 19 component", "Renders the New event form; src/admin/pages/NewEvent.tsx")
+  Component(client, "EventsClient", "TypeScript fetch helper", "Sends create requests; post in src/shared/ui/api.ts")
 }
 Container_Boundary(api, "API application") {
-  Component(ctrl, "EventsController", "<TO SUPPLY>", "Exposes POST /events in src/api/events")
-  Component(service, "EventCreationService", "<TO SUPPLY>", "Creates Draft events in src/domain/events")
-  Component(repo, "EventRepository", "<TO SUPPLY>", "Persists events in src/data/events")
-  ComponentDb(db, "Event store", "<TO SUPPLY>", "Holds event records")
+  Component(ctrl, "EventsController", "Express 5 router", "Exposes POST /api/events; eventRoutes in src/api/events/routes.ts")
+  Component(service, "EventCreationService", "TypeScript module", "Checks a new event; validateNewEvent in src/domain/events.ts")
+  Component(repo, "EventRepository", "Store interface; PrismaStore on PostgreSQL 17", "Persists Draft events; Store.createEvent in src/data/store.ts")
+  ComponentDb(db, "Event store", "PostgreSQL 17", "events table, plus an empty pages row for each event")
 }
 
 Rel(page, client, "Submits form values to")
-Rel(client, ctrl, "Sends POST /events to", "HTTPS, JSON")
-Rel(ctrl, service, "Dispatches CreateEventCommand to")
-Rel(service, repo, "Saves the Draft event through")
-Rel(repo, db, "Writes to", "<TO SUPPLY>")
+Rel(client, ctrl, "Sends POST /api/events to", "HTTPS, JSON")
+Rel(ctrl, service, "Validates the request with")
+Rel(ctrl, repo, "Saves the Draft event through")
+Rel(repo, db, "Writes to", "Prisma ORM 7")
 @enduml

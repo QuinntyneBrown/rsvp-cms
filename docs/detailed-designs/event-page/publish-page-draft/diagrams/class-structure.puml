@@ -23,15 +23,15 @@ class PageDraft {
   +UUID EventId
   +DateTime SavedAt
   +bool HasUnpublishedChanges
-  +IReadOnlyList<PageBlock> Blocks
-  +IReadOnlyList<FieldError> Validate()
+  +PageBlock[] Blocks
+  +FieldError[] Validate()
   +ResetTo(published: PublishedPage): void
 }
 
 class PublishedPage {
   +UUID EventId
   +DateTime PublishedAt
-  +IReadOnlyList<PageBlock> Blocks
+  +PageBlock[] Blocks
 }
 
 class PageBlock {

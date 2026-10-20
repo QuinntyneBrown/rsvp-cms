@@ -4,23 +4,23 @@ LAYOUT_WITH_LEGEND()
 title Components — Schedule invitation emails
 
 Container_Boundary(admin, "Organiser app") {
-  Component(dialog, "ScheduleInvitationsDialog", "<TO SUPPLY>", "Collects the schedule under src/admin/invitations")
-  Component(client, "EmailsApiClient", "<TO SUPPLY>", "Sends the schedule request")
+  Component(dialog, "ScheduleInvitationsDialog", "React 19 component", "Collects the schedule; ScheduleDialog in src/admin/pages/Emails.tsx")
+  Component(client, "EmailsApiClient", "TypeScript fetch helper", "Sends the schedule request; post in src/shared/ui/api.ts")
 }
 Container_Boundary(api, "API application") {
-  Component(ctrl, "InvitationScheduleController", "<TO SUPPLY>", "Exposes the schedule endpoint under src/api/guests")
-  Component(handler, "ScheduleInvitationsCommandHandler", "<TO SUPPLY>", "Validates and schedules under src/domain/invitations")
-  Component(policy, "InvitationSchedulePolicy", "<TO SUPPLY>", "Applies subject and send date rules")
-  Component(sender, "SenderIdentity", "<TO SUPPLY>", "Normalises sender name and reply-to address")
-  Component(repo, "ScheduledEmailRepository", "<TO SUPPLY>", "Saves scheduled emails under src/data")
-  ComponentDb(store, "Scheduled email store", "<TO SUPPLY>", "Persists scheduled emails")
+  Component(ctrl, "InvitationScheduleController", "Express 5 route", "POST /api/events/:id/emails in src/api/guests/routes.ts")
+  Component(handler, "ScheduleInvitationsCommandHandler", "TypeScript, merged into the route", "Validates, counts the planned recipients and saves one email row")
+  Component(policy, "InvitationSchedulePolicy", "TypeScript module", "Subject 1 to 150 characters and send date on or before invites close; validateSchedule in src/domain/invitations/schedule.ts")
+  Component(sender, "SenderIdentity", "TypeScript module", "Strips line breaks from the sender name and checks the reply-to address; inside validateSchedule")
+  Component(repo, "ScheduledEmailRepository", "Store interface; PrismaStore on PostgreSQL 17", "Saves scheduled emails; Store.insertEmail")
+  ComponentDb(store, "Scheduled email store", "PostgreSQL 17", "emails table (send_at at 9:00 am) and deliveries table filled at send time")
 }
 
 Rel(dialog, client, "Requests the schedule using")
 Rel(client, ctrl, "Calls", "JSON/HTTPS")
-Rel(ctrl, handler, "Sends ScheduleInvitationsCommand")
+Rel(ctrl, handler, "Passes the request body to")
 Rel(handler, policy, "Validates with")
 Rel(handler, sender, "Normalises with")
 Rel(handler, repo, "Saves the schedule through")
-Rel(repo, store, "Reads and writes", "<TO SUPPLY>")
+Rel(repo, store, "Reads and writes", "Prisma ORM 7")
 @enduml

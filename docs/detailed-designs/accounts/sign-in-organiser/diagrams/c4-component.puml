@@ -4,14 +4,14 @@ LAYOUT_WITH_LEGEND()
 title Components — Sign in as an organiser
 
 Container_Boundary(admin, "Organiser web application") {
-  Component(page, "SignInPage", "<TO SUPPLY>", "Renders the sign-in form, its loading state and its errors")
+  Component(page, "SignInPage", "React 19 component", "Renders the sign-in form, its loading state and its errors; src/admin/pages/SignIn.tsx")
 }
 Container_Boundary(api, "API application") {
-  Component(endpoint, "SignInEndpoint", "<TO SUPPLY>", "Receives the sign-in request and sets the session cookie")
-  Component(service, "SignInService", "<TO SUPPLY>", "Runs one sign-in attempt")
-  Component(sessions, "SessionService", "<TO SUPPLY>", "Creates the server-side session")
+  Component(endpoint, "SignInEndpoint", "Express 5 route", "POST /api/auth/sign-in in src/api/auth.ts; sets the session cookie")
+  Component(service, "SignInService", "TypeScript, merged into the route", "Runs one sign-in attempt in the sign-in handler; verifyPassword (scrypt) in src/domain/password.ts")
+  Component(sessions, "SessionService", "TypeScript", "Store.createSession with the lifetimes in src/domain/session.ts")
 }
-ComponentDb(store, "AccountStore", "<TO SUPPLY>", "Reads and updates organiser accounts")
+ComponentDb(store, "AccountStore", "Store interface; PrismaStore on PostgreSQL 17", "organisers table; Store.findOrganiserByEmail in src/data/store.ts")
 
 Rel(page, endpoint, "Sends credentials to", "JSON/HTTPS")
 Rel(endpoint, service, "Calls")
