@@ -57,7 +57,7 @@ describe('L2-015 Draft and publish', () => {
     expect(first.status).toBe(200);
     expect(second.body.published).toEqual(first.body.published);
     s.clock.now = Date.parse('2026-10-20T00:00:00Z');
-    const pub = await s.api.get(`/api/public/invite/${tokenOf(s, g.id)}`);
+    const pub = await s.api.get(`/api/public/invite/${await tokenOf(s, g.id)}`);
     expect(pub.body.blocks[0].fields.headline).toBe('Join us');
   });
 
@@ -91,7 +91,7 @@ describe('L2-017 Preview', () => {
     const preview = await s.api.get(`/api/events/${s.eventId}/page/preview`).set('Cookie', s.cookie);
     expect(preview.body.blocks[0].fields.headline).toBe('Unpublished edit');
     s.clock.now = Date.parse('2026-10-20T00:00:00Z');
-    const guest = await s.api.get(`/api/public/invite/${tokenOf(s, g.id)}`);
+    const guest = await s.api.get(`/api/public/invite/${await tokenOf(s, g.id)}`);
     expect(guest.body.blocks[0].fields.headline).toBe('Join us');
   });
 });

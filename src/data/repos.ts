@@ -36,10 +36,12 @@ export async function createOrganiser(db: Db, email: string, name: string, passw
   return row.id;
 }
 
-/** Changing the password bumps its version, which ends every session minted under the old one (L2-005 AC3). */
+/**
+ * Changing the password bumps its version, which ends every session minted under the old one (L2-005 AC3).
+ * The old rows stay until their next request, so that device is told "Your session ended" rather than a bare 401.
+ */
 export async function setPassword(db: Db, id: number, hash: string): Promise<number> {
   const row = await db.organiser.update({ where: { id }, data: { passwordHash: hash, passwordVersion: { increment: 1 } } });
-  await db.session.deleteMany({ where: { organiserId: id, passwordVersion: { lt: row.passwordVersion } } });
   return row.passwordVersion;
 }
 
@@ -227,15 +229,16 @@ export async function guestByEmail(db: Db, eventId: number, email: string): Prom
 }
 
 /** Each guest gets a random personal-link token and a short invitation code (L2-033). */
-export async function insertGuest(db: Db, eventId: number, g: GuestInput): Promise<number> {
+export async function insertGuest(db: Db, eventId: number, g: GuestInput, now: number): Promise<number> {
+  const at = new Date(now);
   const row = await db.guest.create({
-    data: { eventId, name: g.name, email: g.email, groupName: g.group, plusOnes: g.plusOnes, token: randomUUID(), code: generateCode() },
+    data: { eventId, name: g.name, email: g.email, groupName: g.group, plusOnes: g.plusOnes, token: randomUUID(), code: generateCode(), createdAt: at, updatedAt: at },
   });
   return row.id;
 }
 
-export async function updateGuest(db: Db, id: number, g: GuestInput) {
-  await db.guest.update({ where: { id }, data: { name: g.name, email: g.email, groupName: g.group, plusOnes: g.plusOnes } });
+export async function updateGuest(db: Db, id: number, g: GuestInput, now: number) {
+  await db.guest.update({ where: { id }, data: { name: g.name, email: g.email, groupName: g.group, plusOnes: g.plusOnes, updatedAt: new Date(now) } });
 }
 
 /** Removing a guest cascades to their reply and their pending deliveries (L2-023 AC2). */

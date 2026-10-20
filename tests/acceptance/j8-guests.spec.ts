@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addGuest, setup, tokenOf } from '../helpers.js';
+import { addGuest, setup, storeReply, tokenOf } from '../helpers.js';
 
 describe('L2-019/020 Guest list, search and filter', () => {
   it('lists guests with status Waiting, searches case-insensitively and filters by status', async () => {
@@ -18,6 +18,16 @@ describe('L2-019/020 Guest list, search and filter', () => {
     expect(attending.body.total).toBe(0);
   });
 
+  it('L2-019 AC1 each row carries reply, party size and last updated', async () => {
+    const s = await setup();
+    const g = await addGuest(s, { plusOnes: 2 });
+    s.clock.now += 60_000;
+    await storeReply(s, g.id, true, 3, 'Beef');
+    const [row] = (await s.api.get(`/api/events/${s.eventId}/guests`).set('Cookie', s.cookie)).body.guests;
+    expect(row).toMatchObject({ name: 'Maya Chen', email: 'maya@example.com', status: 'attending', partySize: 3 });
+    expect(row.updatedAt).toBe(new Date(s.clock.now).toISOString());
+  });
+
   it('pages at 50 rows', async () => {
     const s = await setup();
     for (let i = 0; i < 52; i++) await addGuest(s, { name: `Guest ${i}`, email: `g${i}@example.com` });
@@ -33,7 +43,7 @@ describe('L2-021 Add a guest', () => {
     const s = await setup();
     const g = await addGuest(s);
     expect(g.code).toMatch(/^[A-Z0-9]{4}-[A-Z0-9]{4}$/);
-    expect(tokenOf(s, g.id)).toBeTruthy();
+    expect(await tokenOf(s, g.id)).toBeTruthy();
   });
 
   it('AC2 rejects a malformed email', async () => {
@@ -47,6 +57,13 @@ describe('L2-021 Add a guest', () => {
     await addGuest(s);
     const res = await s.api.post(`/api/events/${s.eventId}/guests`).set('Cookie', s.cookie).send({ name: 'B', email: 'MAYA@example.com' });
     expect(res.body.errors.email).toBe('This email is already on the list');
+  });
+
+  it('AC3 two simultaneous adds of the same email store one guest', async () => {
+    const s = await setup();
+    const results = await Promise.all([addGuest(s), addGuest(s), addGuest(s)]);
+    expect(results.filter(Boolean)).toHaveLength(1);
+    expect(await s.db.guest.count()).toBe(1);
   });
 
   it('AC4 validates the name and AC5 plus-ones 0..9', async () => {
@@ -80,7 +97,7 @@ describe('L2-022 Edit a guest', () => {
   it('AC4 refuses to lower plus-ones below the places already confirmed', async () => {
     const s = await setup();
     const g = await addGuest(s, { plusOnes: 2 });
-    s.db.prepare("insert into responses (guest_id, attending, party_size, meal, updated_at) values (?, 1, 3, 'Beef', 'x')").run(g.id);
+    await storeReply(s, g.id, true, 3, 'Beef');
     const res = await s.api.put(`/api/events/${s.eventId}/guests/${g.id}`).set('Cookie', s.cookie).send({ name: 'Maya', email: 'maya@example.com', plusOnes: 1 });
     expect(res.status).toBe(422);
     expect(res.body.errors.plusOnes).toMatch(/ask them/i);
@@ -92,11 +109,11 @@ describe('L2-023 Remove guests', () => {
     const s = await setup();
     const a = await addGuest(s);
     const b = await addGuest(s, { name: 'Sam', email: 'sam@example.com' });
-    s.db.prepare("insert into responses (guest_id, attending, party_size, meal, updated_at) values (?, 1, 1, 'Fish', 'x')").run(a.id);
-    const token = tokenOf(s, a.id);
+    await storeReply(s, a.id, true);
+    const token = await tokenOf(s, a.id);
     const res = await s.api.post(`/api/events/${s.eventId}/guests/remove`).set('Cookie', s.cookie).send({ ids: [a.id, b.id] });
     expect(res.body.removed).toBe(2);
-    expect((s.db.prepare('select count(*) c from responses').get() as { c: number }).c).toBe(0);
+    expect(await s.db.response.count()).toBe(0);
     expect((await s.api.get(`/api/public/invite/${token}`)).status).toBe(404);
   });
 

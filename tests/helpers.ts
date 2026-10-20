@@ -1,30 +1,60 @@
 import request from 'supertest';
+import { afterAll } from 'vitest';
 import { createApp } from '../src/api/app.js';
-import { openDb } from '../src/data/db.js';
+import { openDb, type Db } from '../src/data/db.js';
+import { resetSchema, TABLES } from '../src/data/migrate.js';
 import { createOrganiser } from '../src/data/repos.js';
 import { hashPassword } from '../src/domain/password.js';
 
 export const T0 = Date.parse('2026-10-19T12:00:00Z');
 export const PASSWORD = 'correct horse';
+export const RSVP_URL = 'https://rsvp.example';
 
-export function makeEnv() {
-  const db = openDb();
+/**
+ * Tests run against PostgreSQL (start it with `npm run db:up`). Each Vitest worker gets its own schema,
+ * rebuilt from the Prisma migrations once per test file, and every makeEnv() starts from empty tables.
+ */
+const URL = process.env.TEST_DATABASE_URL ?? 'postgresql://rsvp:rsvp@localhost:5433/rsvp_test';
+const SCHEMA = `w_${process.env.VITEST_POOL_ID ?? process.env.VITEST_WORKER_ID ?? '0'}`;
+
+let shared: Promise<Db> | null = null;
+
+function testDb(): Promise<Db> {
+  shared ??= resetSchema(URL, SCHEMA).then(() => openDb({ url: URL, schema: SCHEMA }));
+  return shared;
+}
+
+afterAll(async () => {
+  if (shared) await (await shared).$disconnect();
+  shared = null;
+});
+
+export async function emptyDb(): Promise<Db> {
+  const db = await testDb();
+  await db.$executeRawUnsafe(`truncate ${TABLES.map((t) => `"${SCHEMA}"."${t}"`).join(', ')} restart identity cascade`);
+  return db;
+}
+
+export async function makeEnv() {
+  const db = await emptyDb();
   const clock = { now: T0 };
-  const app = createApp({ db, now: () => clock.now });
-  const organiserId = createOrganiser(db, 'olivia@example.com', 'Olivia', hashPassword(PASSWORD));
+  const app = createApp({ db, now: () => clock.now, rsvpUrl: RSVP_URL });
+  const organiserId = await createOrganiser(db, 'olivia@example.com', 'Olivia', hashPassword(PASSWORD));
   const api = request(app);
 
   /** Sign in and return a Cookie header; supertest is plain http so the Secure cookie is replayed by hand. */
-  async function signIn(email = 'olivia@example.com', keepSignedIn = false) {
-    const res = await api.post('/api/auth/sign-in').send({ email, password: PASSWORD, keepSignedIn });
-    const raw = (res.headers['set-cookie'] as unknown as string[] | undefined)?.[0] ?? '';
-    return { res, cookie: raw.split(';')[0] ?? '' };
+  async function signIn(email = 'olivia@example.com', keepSignedIn = false, password = PASSWORD) {
+    const res = await api.post('/api/auth/sign-in').send({ email, password, keepSignedIn });
+    return { res, cookie: cookieOf(res) };
   }
 
   return { db, clock, api, organiserId, signIn };
 }
 
-export type Env = ReturnType<typeof makeEnv>;
+export const cookieOf = (res: { headers: Record<string, unknown> }) =>
+  ((res.headers['set-cookie'] as string[] | undefined)?.[0] ?? '').split(';')[0] ?? '';
+
+export type Env = Awaited<ReturnType<typeof makeEnv>>;
 
 export const futureEvent = (over: Record<string, unknown> = {}) => ({
   type: 'Wedding',
@@ -36,7 +66,7 @@ export const futureEvent = (over: Record<string, unknown> = {}) => ({
 });
 
 export async function setup() {
-  const env = makeEnv();
+  const env = await makeEnv();
   const { cookie } = await env.signIn();
   const created = await env.api.post('/api/events').set('Cookie', cookie).send(futureEvent());
   return { ...env, cookie, eventId: created.body.event.id as number };
@@ -52,8 +82,13 @@ export async function addGuest(s: Setup, over: Record<string, unknown> = {}) {
   return res.body.guest as { id: number; code: string; name: string };
 }
 
-export function tokenOf(s: Setup, guestId: number): string {
-  return (s.db.prepare('select token from guests where id = ?').get(guestId) as { token: string }).token;
+export async function tokenOf(s: Setup, guestId: number): Promise<string> {
+  return (await s.db.guest.findUniqueOrThrow({ where: { id: guestId } })).token;
+}
+
+/** Stores a reply directly, for tests that need replies without going through the guest page. */
+export async function storeReply(s: Setup, guestId: number, attending: boolean, partySize = attending ? 1 : 0, meal: string | null = attending ? 'Fish' : null) {
+  await s.db.response.create({ data: { guestId, attending, partySize, meal, updatedAt: new Date(s.clock.now) } });
 }
 
 /** Publish a page with a hero so the event is open to guests. */

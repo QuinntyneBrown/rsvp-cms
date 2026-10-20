@@ -66,7 +66,7 @@ export function guestRoutes(ctx: Ctx): Router {
       return;
     }
     try {
-      const id = await insertGuest(ctx.db, eventId, v.value);
+      const id = await insertGuest(ctx.db, eventId, v.value, ctx.now());
       res.status(201).json({ guest: guestJson((await getGuest(ctx.db, id))!) });
     } catch (e) {
       // Two adds of the same email racing each other: the unique index lets only one through.
@@ -98,7 +98,7 @@ export function guestRoutes(ctx: Ctx): Router {
       return;
     }
     try {
-      await updateGuest(ctx.db, guest.id, v.value);
+      await updateGuest(ctx.db, guest.id, v.value, ctx.now());
     } catch (e) {
       if (!isUniqueViolation(e)) throw e;
       res.status(422).json(DUPLICATE_EMAIL);

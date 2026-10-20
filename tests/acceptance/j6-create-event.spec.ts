@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { futureEvent, makeEnv } from '../helpers.js';
 
 async function signedIn() {
-  const env = makeEnv();
+  const env = await makeEnv();
   const { cookie } = await env.signIn();
   const post = (body: Record<string, unknown>) => env.api.post('/api/events').set('Cookie', cookie).send(body);
   return { env, cookie, post };

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addGuest, publish, setup, tokenOf, type Setup } from '../helpers.js';
+import { fromDay } from '../../src/data/repos.js';
 
 const OPEN_DAY = Date.parse('2026-10-20T12:00:00Z');
 
@@ -9,7 +10,7 @@ async function openEvent(guest: Record<string, unknown> = {}) {
   await publish(s);
   s.clock.now = OPEN_DAY;
   s.cookie = (await s.signIn()).cookie; // a day later the organiser's idle session has ended
-  const token = tokenOf(s, g.id);
+  const token = await tokenOf(s, g.id);
   return { s, g, token };
 }
 
@@ -27,7 +28,7 @@ describe('J1 L2-038 Personal link access', () => {
   it('AC2/3 an unknown link and a deleted event look the same and disclose nothing', async () => {
     const { s, token } = await openEvent();
     const unknown = await s.api.get('/api/public/invite/not-a-token');
-    s.db.prepare('delete from events').run();
+    await s.db.event.deleteMany();
     const deleted = await s.api.get(`/api/public/invite/${token}`);
     expect(unknown.status).toBe(404);
     expect(deleted.status).toBe(404);
@@ -47,14 +48,14 @@ describe('J1 L2-039 Invitation page states', () => {
   it('AC4 a Draft event is not-open and exposes no content', async () => {
     const s = await setup();
     const g = await addGuest(s);
-    const res = await s.api.get(`/api/public/invite/${tokenOf(s, g.id)}`);
+    const res = await s.api.get(`/api/public/invite/${await tokenOf(s, g.id)}`);
     expect(res.body.state).toBe('not-open');
     expect(res.body.blocks).toBeUndefined();
   });
 
   it('AC2 before the window opens the state is not-open', async () => {
     const { s, token } = await openEvent();
-    s.db.prepare("update events set invite_open = '2026-11-01'").run();
+    await s.db.event.updateMany({ data: { inviteOpen: fromDay('2026-11-01') } });
     expect((await s.api.get(`/api/public/invite/${token}`)).body.state).toBe('not-open');
     expect((await rsvp(s, token, yes)).status).toBe(403);
   });
@@ -63,7 +64,10 @@ describe('J1 L2-039 Invitation page states', () => {
     const { s, token } = await openEvent();
     s.clock.now = Date.parse('2026-12-13T12:00:00Z');
     expect((await s.api.get(`/api/public/invite/${token}`)).body.state).toBe('closed');
-    expect((await rsvp(s, token, yes)).status).toBe(403);
+    const refused = await rsvp(s, token, yes);
+    expect(refused.status).toBe(403);
+    expect(refused.body.error).toBe('Replies closed on Sat 12 Dec, 11:59 pm'); // L2-009 AC4 wording
+    expect(await s.db.response.count()).toBe(0);
   });
 });
 
@@ -97,7 +101,7 @@ describe('J1 L2-042/044 Submission and regrets', () => {
     const { s, token } = await openEvent();
     const [a, b] = await Promise.all([rsvp(s, token, yes), rsvp(s, token, yes)]);
     expect([a.status, b.status]).toEqual([200, 200]);
-    expect((s.db.prepare('select count(*) c from responses').get() as { c: number }).c).toBe(1);
+    expect(await s.db.response.count()).toBe(1);
     const again = await s.api.get(`/api/public/invite/${token}`);
     expect(again.body.reply).toMatchObject({ attending: true, partySize: 1, meal: 'Fish' });
   });
@@ -165,7 +169,7 @@ describe('J4 L2-046/047/048 Review responses', () => {
     await addGuest(s, { name: 'Lee Waiting', email: 'lee@example.com' });
     await rsvp(s, token, { attending: true, partySize: 3, meal: 'Beef', guestNames: ['A', 'B'], dietary: 'No nuts' });
     s.clock.now += 60_000;
-    await rsvp(s, tokenOf(s, sam.id), { attending: false, message: 'Sorry' });
+    await rsvp(s, await tokenOf(s, sam.id), { attending: false, message: 'Sorry' });
     return s;
   }
 
@@ -178,11 +182,13 @@ describe('J4 L2-046/047/048 Review responses', () => {
 
   it('L2-046 AC3 pages at 50 rows', async () => {
     const { s } = await openEvent();
-    const ins = s.db.prepare('insert into guests (event_id, name, email, token, code, created_at) values (?, ?, ?, ?, ?, ?)');
-    const rep = s.db.prepare("insert into responses (guest_id, attending, party_size, meal, updated_at) values (?, 1, 1, 'Fish', ?)");
     for (let i = 0; i < 120; i++) {
-      const id = Number(ins.run(s.eventId, `G${i}`, `g${i}@x.co`, `t${i}`, `C${i}`, 'x').lastInsertRowid);
-      rep.run(id, `2026-10-20T00:${String(i % 60).padStart(2, '0')}:00Z`);
+      await s.db.guest.create({
+        data: {
+          eventId: s.eventId, name: `G${i}`, email: `g${i}@x.co`, token: `t${i}`, code: `C${i}`,
+          response: { create: { attending: true, partySize: 1, meal: 'Fish', updatedAt: new Date(`2026-10-20T00:${String(i % 60).padStart(2, '0')}:00Z`) } },
+        },
+      });
     }
     const p3 = await s.api.get(`/api/events/${s.eventId}/responses?page=3`).set('Cookie', s.cookie);
     expect(p3.body.total).toBe(120);
@@ -197,7 +203,7 @@ describe('J4 L2-046/047/048 Review responses', () => {
 
   it('L2-047 AC3 removing a reply removes it from totals', async () => {
     const s = await withReplies();
-    const maya = s.db.prepare("select id from guests where name = 'Maya Chen'").get() as { id: number };
+    const maya = await s.db.guest.findFirstOrThrow({ where: { name: 'Maya Chen' } });
     await s.api.post(`/api/events/${s.eventId}/guests/remove`).set('Cookie', s.cookie).send({ ids: [maya.id] });
     const { totals } = (await s.api.get(`/api/events/${s.eventId}/responses`).set('Cookie', s.cookie)).body;
     expect(totals).toMatchObject({ attending: 0, guestsComing: 0, meals: {} });
@@ -209,5 +215,22 @@ describe('J4 L2-046/047/048 Review responses', () => {
     expect((await get('status=declined')).body.responses.map((r: { guest: string }) => r.guest)).toEqual(['Sam Okafor']);
     expect((await get('q=MAYA')).body.total).toBe(1);
     expect((await get('q=nobody')).body.total).toBe(0);
+  });
+
+  it('L2-048 AC1 the Waiting filter lists the guests who have not replied', async () => {
+    const s = await withReplies();
+    const res = await s.api.get(`/api/events/${s.eventId}/responses?status=waiting`).set('Cookie', s.cookie);
+    expect(res.body.total).toBe(1);
+    expect(res.body.responses[0]).toMatchObject({ guest: 'Lee Waiting', reply: 'waiting', updatedAt: null });
+  });
+
+  it('L2-047 AC2 a change is visible on the very next read', async () => {
+    const s = await withReplies();
+    const before = (await s.api.get(`/api/events/${s.eventId}/responses`).set('Cookie', s.cookie)).body.totals;
+    const lee = await s.db.guest.findFirstOrThrow({ where: { name: 'Lee Waiting' } });
+    await rsvp(s, await tokenOf(s, lee.id), { attending: true, partySize: 1, meal: 'Fish' });
+    const after = (await s.api.get(`/api/events/${s.eventId}/responses`).set('Cookie', s.cookie)).body.totals;
+    expect(after.attending).toBe(before.attending + 1);
+    expect(after.waiting).toBe(0);
   });
 });
