@@ -1,0 +1,2 @@
+/* Well. Design system: docs/design-system/components/well.html. Rules copied from docs/mocks/assets/ui.css. */
+.well { background: var(--color-bg-surface-sunken); border-radius: var(--radius-md); padding: var(--space-4); }

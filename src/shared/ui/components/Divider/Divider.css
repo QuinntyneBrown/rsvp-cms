@@ -1,0 +1,2 @@
+/* Divider. Design system: docs/design-system/components/divider.html. Rules copied from docs/mocks/assets/ui.css. */
+.divider { border: 0; border-top: 1px solid var(--color-border-default); margin: var(--space-6) 0; }

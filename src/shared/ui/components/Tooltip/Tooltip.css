@@ -1,0 +1,8 @@
+/* Tooltip. Design system: docs/design-system/components/tooltip.html. Rules copied from docs/mocks/assets/ui.css. */
+.tooltip { position: absolute; z-index: var(--z-tooltip); padding: var(--space-1) var(--space-2); background: var(--color-bg-inverse); color: var(--color-fg-inverse); border-radius: var(--radius-sm); font: var(--text-caption); white-space: nowrap; pointer-events: none; box-shadow: var(--shadow-2); }
+.tooltip::after { content: ""; position: absolute; top: 100%; left: 50%; translate: -50% 0; border: 5px solid transparent; border-top-color: var(--color-bg-inverse); }
+.has-tooltip { position: relative; display: inline-flex; }
+.has-tooltip .tooltip { bottom: calc(100% + var(--space-2)); left: 50%; translate: -50% 0; animation: fade-in var(--duration-fast) var(--ease-standard); }
+/* Visibility is driven by state (hover, focus, Escape) through the hidden attribute rather than :hover,
+   so Escape can dismiss it (WCAG 1.4.13) and a closed tooltip is not read out on its own. */
+.has-tooltip .tooltip[hidden] { display: none; }

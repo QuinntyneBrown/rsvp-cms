@@ -1,0 +1,1 @@
+.textarea { min-height: calc(var(--control-height-md) * 2.5); resize: vertical; }

@@ -1,0 +1,8 @@
+/* The danger alert skin (shared with Alert, repeated so the summary stands alone) plus the summary's own rules. */
+.alert { --alert-bg: var(--color-info-bg); --alert-fg: var(--color-info-fg); --alert-border: var(--color-info-border); --alert-icon: var(--color-info-icon); display: flex; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--alert-border); border-left-width: 4px; border-radius: var(--radius-md); background: var(--alert-bg); color: var(--alert-fg); }
+.alert--danger { --alert-bg: var(--color-danger-bg); --alert-fg: var(--color-danger-fg); --alert-border: var(--color-danger-border); --alert-icon: var(--color-danger-icon); }
+.alert__body { flex: 1; display: flex; flex-direction: column; gap: var(--space-1); }
+.alert__title { font: var(--text-label); }
+.form-summary { border-left: 4px solid var(--color-danger-solid); }
+.form-summary a { color: inherit; }
+.form-summary__list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-1); }

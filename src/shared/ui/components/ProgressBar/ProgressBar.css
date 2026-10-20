@@ -1,0 +1,28 @@
+/* ProgressBar: docs/design-system/components/progress-bar.html. The indeterminate keyframes live in styles.css. */
+.progress {
+  --progress-fill: var(--color-accent);
+  --progress-track: var(--color-bg-subtle-hover);
+  display: block; width: 100%; height: 0.5rem; border: 0; border-radius: var(--radius-full);
+  background: var(--progress-track); overflow: hidden; color: var(--progress-fill);
+  appearance: none; -webkit-appearance: none;
+}
+.progress--success { --progress-fill: var(--color-success-solid); }
+.progress--danger { --progress-fill: var(--color-danger-solid); }
+
+/* Native <progress> (determinate). */
+.progress::-webkit-progress-bar { background: var(--progress-track); border-radius: inherit; }
+.progress::-webkit-progress-value { background: var(--progress-fill); border-radius: inherit; transition: width var(--duration-slow) var(--ease-standard); }
+.progress::-moz-progress-bar { background: var(--progress-fill); border-radius: inherit; }
+
+/* Indeterminate: a sliding bar inside a role="progressbar" track. */
+.progress__bar { height: 100%; width: 40%; background: var(--progress-fill); border-radius: inherit; animation: indeterminate 1.4s var(--ease-standard) infinite; }
+
+.progress-group__header { display: flex; justify-content: space-between; gap: var(--space-2); margin-bottom: var(--space-2); font: var(--text-caption); color: var(--color-fg-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .progress--indeterminate .progress__bar { animation: none; width: 100%; opacity: 0.6; }
+}
+@media (forced-colors: active) {
+  .progress { border: 1px solid CanvasText; }
+  .progress__bar { background: Highlight; }
+}
