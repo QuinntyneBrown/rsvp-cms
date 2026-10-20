@@ -2,7 +2,7 @@
 
 | Design | Effort | Complete |
 |---|---|---|
-| change-rsvp | 3 days | 0% |
-| enter-invitation-code | 3 days | 0% |
-| open-personal-invitation | 3 days | 0% |
-| submit-rsvp | 4 days | 0% |
+| change-rsvp | 3 days | 80% |
+| enter-invitation-code | 3 days | 90% |
+| open-personal-invitation | 3 days | 80% |
+| submit-rsvp | 4 days | 80% |

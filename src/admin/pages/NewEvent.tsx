@@ -4,7 +4,7 @@ import { ApiError, post } from '../../shared/ui/api.js';
 import { Field } from '../../shared/ui/components.js';
 import { go } from '../router.js';
 
-const EMPTY = { type: 'Wedding', name: '', date: '', startTime: '', venue: '' };
+const EMPTY = { type: 'Birthday', name: '', date: '', startTime: '', venue: '' };
 
 export function NewEventPage() {
   const [form, setForm] = useState(EMPTY);
