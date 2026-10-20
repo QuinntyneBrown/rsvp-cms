@@ -10,7 +10,14 @@
     "dev:api": "tsx src/api/server.ts",
     "dev:admin": "vite --config src/admin/vite.config.ts",
     "dev:rsvp": "vite --config src/rsvp/vite.config.ts",
-    "build": "vite build --config src/admin/vite.config.ts && vite build --config src/rsvp/vite.config.ts"
+    "build": "vite build --config src/admin/vite.config.ts && vite build --config src/rsvp/vite.config.ts",
+    "postinstall": "prisma generate",
+    "db:up": "docker compose -f deploy/docker-compose.yml up -d --wait",
+    "db:down": "docker compose -f deploy/docker-compose.yml down",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:seed": "tsx scripts/seed.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
