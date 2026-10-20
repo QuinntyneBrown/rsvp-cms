@@ -9,10 +9,13 @@ test.describe('L2-053 Event overview', () => {
     const event = api.addEvent({ name: 'Maya & Sam', date: '2026-12-12', startTime: '16:00', venue: 'The Barn', inviteOpen: '2026-10-19' });
     await admin.event.goto(event.id);
     await expect(admin.event.heading).toHaveText('Maya & Sam');
-    await expect(admin.event.subtitle).toHaveText('2026-12-12 · Draft');
-    await expect(admin.event.detail('Date')).toHaveText('2026-12-12 at 16:00');
+    await expect(admin.event.subtitle).toHaveText('Sat 12 Dec 2026 · 4:00 pm · The Barn');
+    await expect(admin.event.status).toHaveText('Draft');
+    await expect(admin.page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveText(/Events.*Maya & Sam/);
+    await expect(admin.event.detail('When')).toHaveText('Sat 12 Dec 2026 · 4:00 pm');
     await expect(admin.event.detail('Venue')).toHaveText('The Barn');
-    await expect(admin.event.detail('Replies accepted')).toHaveText('2026-10-19 to 2026-12-12');
+    await expect(admin.event.detail('Invites open')).toHaveText('Mon 19 Oct 2026, 9:00 am');
+    await expect(admin.event.detail('Invites close')).toHaveText('Sat 12 Dec 2026, 11:59 pm');
   });
 
   test('says "Not set" when there is no venue', async ({ admin, api }) => {
@@ -51,7 +54,7 @@ test.describe('L2-053 Event overview', () => {
     const event = api.addEvent({ name: 'Maya & Sam' });
     api.failNext('GET', `/api/events/${event.id}`);
     await admin.event.goto(event.id);
-    await expect(admin.event.error).toContainText('Something went wrong. Try again.');
+    await expect(admin.event.error).toContainText("We couldn't load this event");
     await admin.event.retry.click();
     await expect(admin.event.heading).toHaveText('Maya & Sam');
   });

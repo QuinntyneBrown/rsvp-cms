@@ -11,8 +11,10 @@ test.describe('L2-006 Create an event', () => {
   });
 
   test('offers the event types from L1-002 with the first one chosen', async ({ admin }) => {
-    await expect(admin.newEvent.type.locator('option')).toHaveText([...EVENT_TYPES]);
-    await expect(admin.newEvent.type).toHaveValue('Birthday');
+    await expect(admin.newEvent.type.getByRole('radio')).toHaveCount(EVENT_TYPES.length);
+    for (const type of EVENT_TYPES) await expect(admin.newEvent.typeOption(type)).toBeVisible();
+    await expect(admin.newEvent.type).toContainText('Milestones, dinners and parties');
+    await expect(admin.newEvent.typeOption('Birthday')).toBeChecked();
     await expect(admin.newEvent.venue).toHaveValue('');
   });
 
@@ -20,7 +22,8 @@ test.describe('L2-006 Create an event', () => {
     await admin.newEvent.createEvent({ ...VALID, venue: 'The Barn' });
     await expect(admin.event.heading).toHaveText('Maya & Sam');
     await expect(admin.event.toast).toHaveText('Event created');
-    await expect(admin.event.subtitle).toHaveText('2026-12-12 · Draft');
+    await expect(admin.event.subtitle).toHaveText('Sat 12 Dec 2026 · 4:00 pm · The Barn');
+    await expect(admin.event.status).toHaveText('Draft');
     const [created] = api.allEvents();
     expect(created).toMatchObject({ type: 'Birthday', name: 'Maya & Sam', date: '2026-12-12', startTime: '16:00', venue: 'The Barn', status: 'Draft' });
     await expect(admin.page).toHaveURL(new RegExp(`#/events/${created!.id}$`));
@@ -53,10 +56,12 @@ test.describe('L2-006 Create an event', () => {
     await expect(admin.newEvent.date).toBeFocused();
   });
 
-  test('requires a date and a start time', async ({ admin }) => {
+  test('requires a date and a start time, listing both problems', async ({ admin }) => {
     await admin.newEvent.createEvent({ name: 'Maya & Sam' });
     await expect(admin.newEvent.errorFor('date')).toHaveText('Pick a date');
     await expect(admin.newEvent.errorFor('startTime')).toHaveText('Pick a start time');
+    await expect(admin.page.getByRole('alert').filter({ hasText: '2 things to fix' }).getByRole('link')).toHaveText(['Pick a date', 'Pick a start time']);
+    await expect(admin.newEvent.date).toBeFocused();
   });
 
   test('accepts today as the event date', async ({ admin, api }) => {
@@ -68,7 +73,7 @@ test.describe('L2-006 Create an event', () => {
   test('AC4 shows a busy Create event while the request is in flight and keeps Cancel available', async ({ admin, api }) => {
     const held = api.hold('POST', '/api/events');
     await admin.newEvent.createEvent(VALID);
-    await expect(admin.newEvent.create).toHaveText('Creating…');
+    await expect(admin.newEvent.create).toHaveText('Creating event…');
     await expect(admin.newEvent.create).toBeDisabled();
     await expect(admin.newEvent.cancel).toBeVisible();
     held.release();
@@ -80,7 +85,7 @@ test.describe('L2-006 Create an event', () => {
     api.failNext('POST', '/api/events');
     await admin.newEvent.createEvent({ ...VALID, type: 'Other', venue: 'The Barn' });
     await expect(admin.newEvent.failure).toContainText('Something went wrong. Try again.');
-    await expect(admin.newEvent.type).toHaveValue('Other');
+    await expect(admin.newEvent.typeOption('Other')).toBeChecked();
     await expect(admin.newEvent.name).toHaveValue('Maya & Sam');
     await expect(admin.newEvent.date).toHaveValue('2026-12-12');
     await expect(admin.newEvent.startTime).toHaveValue('16:00');

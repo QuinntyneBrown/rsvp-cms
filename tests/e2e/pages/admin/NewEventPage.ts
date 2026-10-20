@@ -28,16 +28,21 @@ export class NewEventPage {
   constructor(readonly page: Page) {
     const form = page.getByRole('form', { name: 'New event' });
     this.heading = page.getByRole('heading', { name: 'New event' });
-    this.type = form.getByLabel('Event type');
+    this.type = form.getByRole('group', { name: 'Event type' });
     this.name = form.getByLabel('Event name');
     this.nameCounter = form.locator('.field', { has: page.locator('#ev-name') }).locator('.field__counter');
     this.date = form.getByLabel('Date', { exact: true });
     this.startTime = form.getByLabel('Start time');
     this.venue = form.getByLabel('Venue');
-    this.create = form.getByRole('button', { name: /Create event|Creating…/ });
+    this.create = form.getByRole('button', { name: /^(Create event|Creating event…)$/ });
     this.cancel = form.getByRole('link', { name: 'Cancel' });
     this.failure = failure(form);
     this.tryAgain = this.failure.getByRole('button', { name: 'Try again' });
+  }
+
+  typeOption(type: string) {
+    // The accessible name is the type followed by its description.
+    return this.type.getByRole('radio', { name: new RegExp(`^${type}( |$)`) });
   }
 
   async goto() {
@@ -50,7 +55,7 @@ export class NewEventPage {
   }
 
   async fill(form: EventForm) {
-    if (form.type !== undefined) await this.type.selectOption(form.type);
+    if (form.type !== undefined) await this.typeOption(form.type).check();
     if (form.name !== undefined) await this.name.fill(form.name);
     if (form.date !== undefined) await this.date.fill(form.date);
     if (form.startTime !== undefined) await this.startTime.fill(form.startTime);

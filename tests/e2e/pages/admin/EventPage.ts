@@ -13,6 +13,7 @@ const LABELS: Record<EventTab, string> = { overview: 'Overview', guests: 'Guests
 export class EventPage {
   readonly heading: Locator;
   readonly subtitle: Locator;
+  readonly status: Locator;
   readonly nav: Locator;
   readonly overview: Locator;
   readonly toast: Locator;
@@ -26,6 +27,7 @@ export class EventPage {
   constructor(readonly page: Page) {
     this.heading = page.locator('main h1');
     this.subtitle = page.locator('main h1 + p');
+    this.status = page.locator('main .page-header__actions .badge');
     this.nav = page.getByRole('navigation', { name: 'Event sections' });
     this.overview = page.locator('main dl');
     this.toast = page.locator('.toast');
