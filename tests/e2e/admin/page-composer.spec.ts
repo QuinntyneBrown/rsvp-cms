@@ -29,9 +29,14 @@ test.describe('L2-013 Add and reorder page blocks', () => {
     await composer.addBlock.click();
     for (const spec of Object.values(BLOCK_SPECS)) {
       await expect(composer.pickerOption(spec.label)).toBeVisible();
-      await expect(composer.picker.getByText(spec.description)).toBeVisible();
+      await expect(composer.picker.getByText(spec.description, { exact: true })).toBeVisible();
     }
+    await composer.pickerAdd.click();
+    await expect(composer.pickerNote).toHaveText('Choose a block to add');
+    await composer.pickerOption('FAQ').click();
+    await expect(composer.pickerOption('FAQ')).toHaveAttribute('aria-pressed', 'true');
     await composer.closePicker();
+    await expect(composer.blocks).toHaveCount(0);
     await expect(composer.picker).toHaveCount(0);
   });
 
@@ -75,11 +80,40 @@ test.describe('L2-013 Add and reorder page blocks', () => {
     await admin.event.goto(event.id, 'page');
     await composer.block(1).remove.click();
     await expect.poll(() => composer.blockTitles()).toEqual(['Hero', 'RSVP form']);
-    await expect(admin.page.getByText('Block removed.')).toBeVisible();
+    await expect(admin.page.locator('.toast')).toContainText('Details block removed');
     await composer.undo.click();
     await expect.poll(() => composer.blockTitles()).toEqual(['Hero', 'Details', 'RSVP form']);
     await expect(composer.block(1).field('Details')).toHaveValue('At the barn');
     await expect(composer.undo).toHaveCount(0);
+  });
+
+  test('L2-014 AC4 Undo is offered for 10 seconds after a block is removed', async ({ admin, api }) => {
+    api.setDraft(event.id, [hero('Join us'), details('At the barn')]);
+    await admin.page.clock.install();
+    const composer = admin.event.composer;
+    await admin.event.goto(event.id, 'page');
+    await composer.block(1).remove.click();
+    await admin.page.clock.fastForward(9_000);
+    await expect(composer.undo).toBeVisible();
+    await admin.page.clock.fastForward(1_500);
+    await expect(composer.undo).toHaveCount(0);
+    await expect.poll(() => composer.blockTitles()).toEqual(['Hero']);
+  });
+
+  test('AC5 dragging a block reorders it, and Move up and Move down stay available', async ({ admin, api }) => {
+    api.setDraft(event.id, [hero('Join us'), details('At the barn'), rsvp()]);
+    const composer = admin.event.composer;
+    await admin.event.goto(event.id, 'page');
+    await admin.page.setViewportSize({ width: 1280, height: 1600 }); // both ends of the drag on screen, so nothing scrolls mid-drag
+    await composer.block(0).grip.dragTo(composer.block(2).title);
+    await expect.poll(() => composer.blockTitles()).toEqual(['Details', 'RSVP form', 'Hero']);
+    for (let i = 0; i < 3; i++) {
+      await expect(composer.block(i).moveUp).toBeVisible();
+      await expect(composer.block(i).moveDown).toBeVisible();
+    }
+    await composer.block(2).moveUp.click();
+    await expect.poll(() => composer.blockTitles()).toEqual(['Details', 'Hero', 'RSVP form']);
+    await expect.poll(() => api.pageOf(event.id).draft.map((b) => b.type), { timeout: 5000 }).toEqual(['details', 'hero', 'rsvp']);
   });
 
   test('Collapse hides a block\'s fields and Expand shows them again', async ({ admin, api }) => {
@@ -103,7 +137,7 @@ test.describe('L2-014 Edit block content', () => {
     await admin.event.goto(event.id, 'page');
     await expect(block.field('Headline')).toHaveValue('Join us');
     await expect(block.counterFor('Headline')).toHaveText('7/120');
-    await expect(block.counterFor('Subheading')).toHaveText('0/200');
+    await expect(block.counterFor('Supporting line')).toHaveText('0/200');
     await expect(block.counterFor('Button label')).toHaveText('0/40');
     await block.field('Button label').fill('RSVP');
     await expect(block.counterFor('Button label')).toHaveText('4/40');
@@ -194,7 +228,8 @@ test.describe('L2-015 Draft and publish', () => {
     const composer = admin.event.composer;
     await admin.event.goto(event.id, 'page');
     await composer.publish.click();
-    await expect(composer.publishError).toContainText('Something went wrong. Try again.');
+    await expect(composer.publishError).toContainText("The page wasn't published");
+    await expect(composer.block(0).field('Headline')).toHaveValue('Join us');
     expect(api.event(event.id)!.status).toBe('Draft');
     await composer.publishError.getByRole('button', { name: 'Try again' }).click();
     await expect(composer.status).toHaveText('Published · just now');
@@ -218,7 +253,8 @@ test.describe('L2-016 Discard unpublished changes and leave guard', () => {
     const composer = admin.event.composer;
     await admin.event.goto(event.id, 'page');
     await composer.discardChanges.click();
-    await expect(composer.discardDialog).toContainText('Your page goes back to the last published version.');
+    await expect(composer.discardDialog).toContainText('Your published page stays as it is.');
+    await expect(composer.discardDialog.getByRole('button', { name: 'Keep editing' })).toBeFocused();
     await composer.keepEditing();
     await expect(composer.discardDialog).toHaveCount(0);
     await expect(composer.block(0).field('Headline')).toHaveValue('Draft headline');
@@ -236,14 +272,17 @@ test.describe('L2-016 Discard unpublished changes and leave guard', () => {
     expect(api.pageOf(event.id).draft).toEqual([hero('Published headline')]);
   });
 
-  test('a failed discard keeps the draft and shows the error', async ({ admin, api }) => {
+  test('AC4 a failed discard keeps the draft and offers Try again', async ({ admin, api }) => {
     api.failNext('POST', `/api/events/${event.id}/page/discard`);
     const composer = admin.event.composer;
     await admin.event.goto(event.id, 'page');
     await composer.discardChanges.click();
     await composer.confirmDiscard();
-    await expect(composer.publishError).toContainText('Something went wrong. Try again.');
-    await expect(composer.block(0).field('Headline')).toHaveValue('Draft headline');
+    await expect(composer.discardFailure()).toContainText('Nothing was discarded');
+    expect(api.pageOf(event.id).draft).toEqual([hero('Draft headline')]);
+    await composer.discardFailure().getByRole('button', { name: 'Try again' }).click();
+    await expect(composer.discardDialog).toHaveCount(0);
+    await expect(composer.block(0).field('Headline')).toHaveValue('Published headline');
   });
 
   test('AC3 leaving with unpublished changes asks for confirmation', async ({ admin }) => {
@@ -277,13 +316,27 @@ test.describe('L2-017 Preview the page as a guest', () => {
     await expect(composer.heading).toBeVisible();
     await expect.poll(() => composer.blockTitles()).toEqual(['Hero', 'Details', 'RSVP form']);
   });
+
+  test('AC3 on a phone the preview fills the width with no horizontal scroll', async ({ admin, api }) => {
+    api.setDraft(event.id, [
+      { id: 'b1', type: 'hero', fields: { headline: 'Grandma Ruth Abernathy’s 90th birthday celebration and three-generation family reunion weekend' } },
+      details('Riverside Community Hall, Room B, with step-free entry on Harbour Street and a lift to the second floor'),
+      rsvp(),
+    ]);
+    await admin.page.setViewportSize({ width: 360, height: 740 });
+    await admin.event.goto(event.id, 'page');
+    await admin.event.composer.preview.click();
+    await expect(admin.event.composer.previewSection('Hero')).toBeVisible();
+    const overflow = await admin.page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
 });
 
 test('a failed page load can be retried', async ({ admin, api }) => {
   api.setDraft(event.id, [hero('Join us')]);
   api.failNext('GET', `/api/events/${event.id}/page`);
   await admin.event.goto(event.id, 'page');
-  await expect(admin.event.error).toContainText('Something went wrong. Try again.');
+  await expect(admin.event.error).toContainText("Your page didn't load");
   await admin.event.retry.click();
   await expect(admin.event.composer.block(0).field('Headline')).toHaveValue('Join us');
 });

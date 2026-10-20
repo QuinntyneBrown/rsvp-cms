@@ -1,0 +1,4 @@
+/* Page-local styles for the page composer (event-page-cms mock): the drag handle and the drop target. */
+.composer-drop { outline: var(--border-width-thick) dashed var(--color-focus-ring); outline-offset: var(--space-1); border-radius: var(--radius-lg); }
+.composer-grip { display: inline-grid; place-items: center; cursor: grab; color: var(--color-fg-muted); user-select: auto; -webkit-user-drag: element; }
+.composer-grip:active { cursor: grabbing; }

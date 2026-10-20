@@ -10,25 +10,25 @@ export interface BlockSpec {
 export const BLOCK_SPECS: Record<BlockType, BlockSpec> = {
   hero: {
     label: 'Hero',
-    description: 'A large headline with an optional button.',
+    description: 'Headline, supporting line and button',
     fields: [
       { key: 'headline', label: 'Headline', max: 120 },
-      { key: 'subhead', label: 'Subheading', max: 200 },
+      { key: 'subhead', label: 'Supporting line', max: 200 },
       { key: 'buttonLabel', label: 'Button label', max: 40 },
     ],
   },
-  details: { label: 'Details', description: 'When and where, in a few lines.', fields: [{ key: 'text', label: 'Details', multiline: true }] },
-  schedule: { label: 'Schedule', description: 'A timeline of the day.', fields: [{ key: 'items', label: 'Schedule items', multiline: true }] },
-  map: { label: 'Map', description: 'An address guests can find.', fields: [{ key: 'address', label: 'Address' }] },
-  rsvp: { label: 'RSVP form', description: 'Where guests reply. Its fields are fixed.', fields: [] },
+  details: { label: 'Details', description: 'When, where and dress code', fields: [{ key: 'text', label: 'Details', multiline: true }] },
+  schedule: { label: 'Schedule', description: 'A timed list of the evening', fields: [{ key: 'items', label: 'Schedule items', multiline: true }] },
+  map: { label: 'Map', description: 'Address, transit and parking', fields: [{ key: 'address', label: 'Address' }] },
+  rsvp: { label: 'RSVP form', description: 'The reply form guests use', fields: [] },
   faq: {
     label: 'FAQ',
-    description: 'Answers to common questions.',
+    description: 'Questions and answers',
     fields: [
       { key: 'question', label: 'Question' },
       { key: 'answer', label: 'Answer', multiline: true },
     ],
   },
-  gallery: { label: 'Photo gallery', description: 'Photos of the occasion.', fields: [{ key: 'caption', label: 'Caption' }] },
-  gifts: { label: 'Gift list', description: 'Where to find the gift list.', fields: [{ key: 'link', label: 'Link' }] },
+  gallery: { label: 'Photo gallery', description: 'Up to 12 photos', fields: [{ key: 'caption', label: 'Caption' }] },
+  gifts: { label: 'Gift list', description: 'Links to wishlists', fields: [{ key: 'link', label: 'Link' }] },
 };

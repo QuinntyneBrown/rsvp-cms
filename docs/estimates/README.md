@@ -7,7 +7,7 @@
 |---|---|---|
 | [accounts](accounts.md) | 15 days | 45% |
 | [events](events.md) | 17 days | 15% |
-| [event-page](event-page.md) | 13 days | 72% |
+| [event-page](event-page.md) | 13 days | 77% |
 | [guests](guests.md) | 16 days | 55% |
 | [invitations](invitations.md) | 19 days | 52% |
 | [rsvp](rsvp.md) | 13 days | 99% |
@@ -23,7 +23,7 @@ Access control, security, reliability and time zones are out of scope and are no
 
 ## Roadmap
 
-1. Finish the journey J1-J9 designs: drag-and-drop block reordering and the phone-width preview check in the page composer; then the four criteria that wait on later journeys (Import CSV in the empty guest list, the dashboard after sign-in, sender identity in Event settings, the organiser's name on a regenerated link).
+1. Finish the journey J1-J9 designs: the four criteria that wait on later journeys (Import CSV in the empty guest list, the dashboard after sign-in, sender identity in Event settings, the organiser's name on a regenerated link).
 2. Accounts and events: reset-password, manage-account-settings, list-events, edit-event-details, manage-invite-window, delete-event and regenerate-invitation-links.
 3. Invitations: issue-personal-links, send-reminders and track-delivery-outcomes on the existing mail worker.
 4. Guests, responses and page extras: import-guests-csv, export-guests, export-responses and upload-gallery-photos.
