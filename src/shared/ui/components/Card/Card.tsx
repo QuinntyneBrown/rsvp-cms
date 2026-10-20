@@ -81,3 +81,16 @@ export function CardHeader({ title, level = 2, subtitle, actions }: CardHeaderPr
 export function CardFooter({ children }: { children: ReactNode }) {
   return <div className="card__footer">{children}</div>;
 }
+
+export interface WellProps extends Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'style'> {
+  children: ReactNode;
+}
+
+/** A sunken, borderless area that sets secondary content apart (previews, summaries). Design system: docs/design-system/components/well.html. */
+export function Well({ children, ...rest }: WellProps) {
+  return (
+    <div {...rest} className="well">
+      {children}
+    </div>
+  );
+}

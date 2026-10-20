@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Icon } from '../index.js';
+import { Icon } from '../../primitives/index.js';
 import './Chip.css';
 
 interface ChipBaseProps {

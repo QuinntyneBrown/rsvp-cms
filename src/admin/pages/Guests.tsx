@@ -1,9 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { ApiError, get, post, put } from '../../shared/ui/api.js';
-import {
-  Alert, Button, Card, Checkbox, Chip, Cluster, Dialog, EmptyState, FormActions, Pagination, Skeleton, Stack,
-  Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, TextField, Text,
-} from '../../shared/ui/components/index.js';
+import { Alert, Button, Card, Checkbox, Chip, Cluster, Dialog, EmptyState, FormActions, Pagination, Skeleton, Stack, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, TextField } from '../../shared/ui/components/index.js';
+import { Text } from '../../shared/ui/primitives/index.js';
 import { useDebounced, useLoad } from '../../shared/ui/hooks.js';
 
 interface Guest {

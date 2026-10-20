@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { ApiError, post } from '../shared/ui/api.js';
-import { Button, Card, Stack, TextField, Text } from '../shared/ui/components/index.js';
+import { Button, Card, Stack, TextField } from '../shared/ui/components/index.js';
+import { Text } from '../shared/ui/primitives/index.js';
 
 export function CodeEntry() {
   const [code, setCode] = useState('');

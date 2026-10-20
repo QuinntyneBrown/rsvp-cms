@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode } from 'react';
-import { Icon } from '../index.js';
+import { Icon } from '../../primitives/index.js';
 import './Alert.css';
 
 export type AlertTone = 'info' | 'success' | 'warning' | 'danger';

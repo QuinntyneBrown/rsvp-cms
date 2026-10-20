@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { Button, Icon } from '../index.js';
+import { Button } from '../index.js';
+import { Icon } from '../../primitives/index.js';
 import './Dialog.css';
 
 export type DialogSize = 'sm' | 'md' | 'lg';

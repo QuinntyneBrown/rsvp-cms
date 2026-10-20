@@ -1,0 +1,22 @@
+/* Stack: vertical rhythm between siblings. */
+.stack { display: flex; flex-direction: column; gap: var(--space-4); }
+.stack--sm { gap: var(--space-2); }
+.stack--lg { gap: var(--space-8); }
+ul.stack, ol.stack { list-style: none; padding: 0; }
+/* Cluster: a wrapping row of items such as buttons, badges or filters. */
+.cluster { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.cluster--between { justify-content: space-between; }
+.cluster--end { justify-content: flex-end; }
+/* Container: centres content at the layout max width with the page margins. */
+.container { width: 100%; max-width: var(--layout-container-max); margin-inline: auto; padding-inline: var(--layout-margin); }
+.container--narrow { max-width: 42rem; }
+/* Grid: the responsive layout grid, or an auto-filling grid of cards. */
+.grid { display: grid; gap: var(--layout-gutter); grid-template-columns: repeat(var(--layout-columns), minmax(0, 1fr)); }
+.grid--auto { grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); }
+.grid--auto-compact { grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr)); }
+ul.grid { list-style: none; padding: 0; }
+/* Auth layout: a single centred card for sign-in, password and guest code-entry pages. */
+.auth-layout { min-height: 100dvh; display: grid; place-items: center; padding: var(--space-6) var(--layout-margin); }
+.auth-card { width: 100%; max-width: 26rem; display: flex; flex-direction: column; gap: var(--space-4); background: var(--color-bg-surface); border: 1px solid var(--color-border-default); border-radius: var(--radius-lg); box-shadow: var(--shadow-1); padding: var(--space-6); }
+.auth-card__logo { display: flex; justify-content: center; margin-bottom: var(--space-2); }
+.auth-card__description { color: var(--color-fg-muted); }

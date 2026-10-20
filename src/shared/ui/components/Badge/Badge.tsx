@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { VisuallyHidden } from '../index.js';
+import { VisuallyHidden } from '../../primitives/index.js';
 import './Badge.css';
 
 export type BadgeTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger';

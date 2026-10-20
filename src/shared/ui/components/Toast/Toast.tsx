@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Icon } from '../index.js';
+import { Icon } from '../../primitives/index.js';
 import './Toast.css';
 
 export type ToastTone = 'info' | 'success' | 'warning' | 'danger';

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { EmptyState, Icon, type IconName } from '../index.js';
+import { EmptyState } from '../index.js';
+import { Icon, type IconName } from '../../primitives/index.js';
 import './ErrorPage.css';
 
 export type ErrorPageKind = 'not-found' | 'forbidden' | 'server-error' | 'offline';

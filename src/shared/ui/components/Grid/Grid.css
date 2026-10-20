@@ -1,5 +1,0 @@
-/* Grid: the responsive layout grid, or an auto-filling grid of cards. */
-.grid { display: grid; gap: var(--layout-gutter); grid-template-columns: repeat(var(--layout-columns), minmax(0, 1fr)); }
-.grid--auto { grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); }
-.grid--auto-compact { grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr)); }
-ul.grid { list-style: none; padding: 0; }

@@ -1,5 +1,6 @@
 import type { MouseEvent, ReactNode } from 'react';
-import { Button, Icon, type NavigateHandler } from '../index.js';
+import { Button, type NavigateHandler } from '../index.js';
+import { Icon } from '../../primitives/index.js';
 import './TopBar.css';
 
 export interface TopBarProps {

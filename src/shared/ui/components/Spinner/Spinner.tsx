@@ -1,4 +1,4 @@
-import { VisuallyHidden } from '../index.js';
+import { VisuallyHidden } from '../../primitives/index.js';
 import './Spinner.css';
 
 export type SpinnerSize = 'sm' | 'md' | 'lg';

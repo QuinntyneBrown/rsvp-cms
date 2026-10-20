@@ -1,5 +1,5 @@
 import { createElement, type ReactNode } from 'react';
-import { Icon } from '../index.js';
+import { Icon } from '../../primitives/index.js';
 import './EmptyState.css';
 
 export type EmptyStateTone = 'default' | 'error';

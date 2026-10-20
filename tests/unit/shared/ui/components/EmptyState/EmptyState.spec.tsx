@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { Button, EmptyState, Icon } from '../../../../../../src/shared/ui/components/index.js';
+import { Button, EmptyState } from '../../../../../../src/shared/ui/components/index.js';
+import { Icon } from '../../../../../../src/shared/ui/primitives/index.js';
 
 // Design system: docs/design-system/components/empty-state.html (default, compact, error).
 describe('EmptyState', () => {

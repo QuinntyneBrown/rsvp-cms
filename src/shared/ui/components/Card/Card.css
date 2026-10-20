@@ -10,3 +10,5 @@
 /* A card rendered as a <button> (interactive) resets the native button look and stacks its content. */
 button.card { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); width: 100%; text-align: start; color: inherit; font: inherit; }
 .card__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+/* Well. Design system: docs/design-system/components/well.html. Rules copied from docs/mocks/assets/ui.css. */
+.well { background: var(--color-bg-surface-sunken); border-radius: var(--radius-md); padding: var(--space-4); }

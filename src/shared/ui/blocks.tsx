@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import type { Block } from '../../domain/blocks.js';
 import { BLOCK_SPECS } from './blockSpecs.js';
-import { Button, Stack, Text } from './components/index.js';
+import { Button, Stack } from './components/index.js';
+import { Text } from './primitives/index.js';
 
 export { BLOCK_SPECS, type BlockSpec } from './blockSpecs.js';
 

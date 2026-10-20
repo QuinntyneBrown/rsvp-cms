@@ -2,9 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { BLOCK_TYPES, MAX_BLOCKS, type Block, type BlockType } from '../../domain/blocks.js';
 import { ApiError, get, post, put } from '../../shared/ui/api.js';
 import { BLOCK_SPECS, BlockView } from '../../shared/ui/blocks.js';
-import {
-  Alert, Button, Card, Cluster, Dialog, EmptyState, InlineStatus, List, ListItem, Skeleton, Stack, Textarea, TextField, Text,
-} from '../../shared/ui/components/index.js';
+import { Alert, Button, Card, Cluster, Dialog, EmptyState, InlineStatus, List, ListItem, Skeleton, Stack, Textarea, TextField } from '../../shared/ui/components/index.js';
+import { Text } from '../../shared/ui/primitives/index.js';
 import { useLoad } from '../../shared/ui/hooks.js';
 
 interface PageState {

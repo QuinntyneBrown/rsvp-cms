@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { Card, VisuallyHidden } from '../index.js';
+import { Card } from '../index.js';
+import { VisuallyHidden } from '../../primitives/index.js';
 import './Stat.css';
 
 export type StatTrend = 'up' | 'down';

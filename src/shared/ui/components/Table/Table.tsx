@@ -1,5 +1,5 @@
 import type { ReactNode, TdHTMLAttributes, ThHTMLAttributes } from 'react';
-import { VisuallyHidden } from '../index.js';
+import { VisuallyHidden } from '../../primitives/index.js';
 import './Table.css';
 
 export interface TableProps {

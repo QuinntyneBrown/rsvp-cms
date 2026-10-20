@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from 'react';
-import { VisuallyHidden } from '../index.js';
+import { VisuallyHidden } from '../../primitives/index.js';
 import './Checkbox.css';
 
 export interface CheckboxProps extends Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'style' | 'type' | 'children' | 'aria-invalid'> {

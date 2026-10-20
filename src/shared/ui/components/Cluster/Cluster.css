@@ -1,4 +1,0 @@
-/* Cluster: a wrapping row of items such as buttons, badges or filters. */
-.cluster { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
-.cluster--between { justify-content: space-between; }
-.cluster--end { justify-content: flex-end; }
