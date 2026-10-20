@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { get } from '../../shared/ui/api.js';
-import { ErrorState, Skeleton, Toast } from '../../shared/ui/components.js';
+import { Button, Card, DescriptionList, EmptyState, PageHeader, Skeleton, Stack, Tabs, Toast } from '../../shared/ui/components/index.js';
 import { useLoad, useToast } from '../../shared/ui/hooks.js';
 import { EmailsTab } from './Emails.js';
 import { GuestsTab } from './Guests.js';
@@ -39,30 +39,33 @@ export function EventShell({ eventId, tab }: { eventId: number; tab: string }) {
   }, [show]);
 
   if (loading) return <Skeleton />;
-  if (error || !data) return <ErrorState message={error ?? 'Event not found'} onRetry={reload} />;
+  if (error || !data) return <EmptyState tone="error" title={error ?? 'Event not found'} actions={<Button onClick={reload}>Try again</Button>} />;
   const event = data.event;
 
   return (
-    <div className="stack">
-      <h1>{event.name}</h1>
-      <p className="text-muted">{event.date} · {event.status}</p>
-      <nav className="tabs" aria-label="Event sections">
-        {TABS.map(([key, label]) => (
-          <a key={key} href={`#/events/${eventId}/${key}`} aria-current={tab === key ? 'page' : undefined}>{label}</a>
-        ))}
-      </nav>
+    <Stack>
+      <PageHeader title={event.name} subtitle={`${event.date} · ${event.status}`} />
+      <Tabs
+        variant="links"
+        label="Event sections"
+        tabs={TABS.map(([key, label]) => ({ href: `#/events/${eventId}/${key}`, label, current: tab === key }))}
+      />
       {tab === 'overview' && (
-        <dl className="card stack">
-          <div><dt>Date</dt><dd>{event.date} at {event.startTime}</dd></div>
-          <div><dt>Venue</dt><dd>{event.venue || 'Not set'}</dd></div>
-          <div><dt>Replies accepted</dt><dd>{event.inviteOpen} to {event.inviteClose}</dd></div>
-        </dl>
+        <Card>
+          <DescriptionList
+            items={[
+              { term: 'Date', description: `${event.date} at ${event.startTime}` },
+              { term: 'Venue', description: event.venue || 'Not set' },
+              { term: 'Replies accepted', description: `${event.inviteOpen} to ${event.inviteClose}` },
+            ]}
+          />
+        </Card>
       )}
       {tab === 'guests' && <GuestsTab eventId={eventId} showToast={show} />}
       {tab === 'page' && <PageTab eventId={eventId} />}
       {tab === 'emails' && <EmailsTab event={event} showToast={show} />}
       {tab === 'responses' && <ResponsesTab eventId={eventId} />}
       <Toast message={toast} />
-    </div>
+    </Stack>
   );
 }

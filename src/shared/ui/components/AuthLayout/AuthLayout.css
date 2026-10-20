@@ -1,0 +1,5 @@
+/* Auth layout: a single centred card for sign-in, password and guest code-entry pages. */
+.auth-layout { min-height: 100dvh; display: grid; place-items: center; padding: var(--space-6) var(--layout-margin); }
+.auth-card { width: 100%; max-width: 26rem; display: flex; flex-direction: column; gap: var(--space-4); background: var(--color-bg-surface); border: 1px solid var(--color-border-default); border-radius: var(--radius-lg); box-shadow: var(--shadow-1); padding: var(--space-6); }
+.auth-card__logo { display: flex; justify-content: center; margin-bottom: var(--space-2); }
+.auth-card__description { color: var(--color-fg-muted); }

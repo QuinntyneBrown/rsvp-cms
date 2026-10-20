@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { ApiError, post } from '../shared/ui/api.js';
-import { Field } from '../shared/ui/components.js';
+import { Button, Card, Stack, TextField, Text } from '../shared/ui/components/index.js';
 
 export function CodeEntry() {
   const [code, setCode] = useState('');
@@ -23,13 +23,13 @@ export function CodeEntry() {
   }
 
   return (
-    <form className="card stack" onSubmit={submit} noValidate aria-label="Find your invitation">
-      <h1>Find your invitation</h1>
-      <p className="text-muted">Type the code from your invitation email, like MAYA-7K2Q.</p>
-      <Field label="Invitation code" id="code" error={error}>
-        <input className="input" id="code" autoCapitalize="characters" autoComplete="off" value={code} onChange={(e) => setCode(e.target.value)} />
-      </Field>
-      <button className="btn btn--primary" type="submit" disabled={busy} aria-busy={busy}>{busy ? 'Looking…' : 'Find my invitation'}</button>
-    </form>
+    <Card>
+      <Stack as="form" onSubmit={submit} noValidate aria-label="Find your invitation">
+        <h1>Find your invitation</h1>
+        <Text tone="muted">Type the code from your invitation email, like MAYA-7K2Q.</Text>
+        <TextField label="Invitation code" id="code" error={error} autoCapitalize="characters" autoComplete="off" value={code} onChange={(e) => setCode(e.target.value)} />
+        <Button variant="primary" type="submit" disabled={busy} loading={busy}>{busy ? 'Looking…' : 'Find my invitation'}</Button>
+      </Stack>
+    </Card>
   );
 }

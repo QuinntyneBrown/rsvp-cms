@@ -1,5 +1,5 @@
 import type { Block } from '../../../src/domain/blocks.js';
-import { BLOCK_SPECS } from '../../../src/shared/ui/blocks.js';
+import { BLOCK_SPECS } from '../../../src/shared/ui/blockSpecs.js';
 import type { FakeEvent } from '../support/fake-backend.js';
 import { expect, test } from '../support/fixtures.js';
 

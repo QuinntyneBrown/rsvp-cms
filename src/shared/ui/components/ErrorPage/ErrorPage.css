@@ -1,0 +1,2 @@
+/* ErrorPage: docs/design-system/components/error-page.html. Centres the empty state in the viewport. */
+.error-page { min-height: 100dvh; display: grid; place-items: center; padding: var(--space-6) var(--layout-margin); }

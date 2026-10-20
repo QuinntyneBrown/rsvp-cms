@@ -1,0 +1,9 @@
+/* Text. Design system: docs/design-system/components/text.html. */
+.text { margin: 0; }
+.text--body-sm { font: var(--text-body-sm); }
+.text--caption { font: var(--text-caption); color: var(--color-fg-muted); }
+.text--overline { font: var(--text-overline); letter-spacing: var(--letter-spacing-wide); text-transform: uppercase; color: var(--color-fg-muted); }
+.text--label { font: var(--text-label); }
+.text--muted { color: var(--color-fg-muted); }
+.text--subtle { color: var(--color-fg-subtle); }
+.text--truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

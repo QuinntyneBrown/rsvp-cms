@@ -1,0 +1,3 @@
+/* Container: centres content at the layout max width with the page margins. */
+.container { width: 100%; max-width: var(--layout-container-max); margin-inline: auto; padding-inline: var(--layout-margin); }
+.container--narrow { max-width: 42rem; }

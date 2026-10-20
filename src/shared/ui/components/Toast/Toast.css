@@ -1,0 +1,19 @@
+/* Toast and ToastRegion: docs/design-system/components/toast.html. The slide-up/fade-out keyframes live in styles.css. */
+.toast-region { position: fixed; z-index: var(--z-toast); bottom: var(--space-4); left: var(--space-4); right: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); pointer-events: none; }
+@media (min-width: 40rem) { .toast-region { left: auto; width: 24rem; bottom: var(--space-6); right: var(--space-6); } }
+.toast-region--top { bottom: auto; top: var(--space-4); }
+@media (min-width: 40rem) { .toast-region--top { bottom: auto; top: var(--space-6); } }
+.toast { position: relative; overflow: hidden; pointer-events: auto; display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-4); background: var(--color-bg-inverse); color: var(--color-fg-inverse); border-radius: var(--radius-md); box-shadow: var(--shadow-3); animation: slide-up var(--duration-base) var(--ease-enter); }
+.toast > .icon { width: 1.25rem; height: 1.25rem; flex: none; margin-top: 0.1rem; }
+.toast--info > .icon { color: var(--color-info-icon); }
+.toast--success > .icon { color: var(--color-success-icon); }
+.toast--warning > .icon { color: var(--color-warning-icon); }
+.toast--danger > .icon { color: var(--color-danger-icon); }
+.toast__body { flex: 1; display: flex; flex-direction: column; gap: var(--space-0-5); }
+.toast__title { font: var(--text-label); }
+.toast__text { font: var(--text-body-sm); opacity: 0.9; }
+.toast__action { align-self: flex-start; font: var(--text-label); color: inherit; background: none; border: 0; padding: var(--space-1) 0; text-decoration: underline; cursor: pointer; }
+.toast .close { background: none; border: 0; color: inherit; cursor: pointer; width: var(--target-min); height: var(--target-min); display: grid; place-items: center; border-radius: var(--radius-sm); opacity: 0.8; }
+.toast .close:hover { opacity: 1; background: color-mix(in srgb, currentColor 12%, transparent); }
+.toast[data-state="leaving"] { animation: fade-out var(--duration-base) var(--ease-exit) forwards; }
+@media print { .toast-region { display: none !important; } }

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { LIMITS, MEALS } from '../domain/rsvp.js';
 import { ApiError, post } from '../shared/ui/api.js';
-import { Dialog, Field } from '../shared/ui/components.js';
+import { Alert, Button, Card, DescriptionList, Dialog, FormActions, RadioGroup, Select, Stack, TextField, Textarea } from '../shared/ui/components/index.js';
 
 export interface Reply {
   attending: boolean;
@@ -32,11 +32,13 @@ export function RsvpForm(props: { token: string; places: number; reply: Reply | 
 
   if (props.reply && !editing) {
     return (
-      <div className="card stack" aria-label="Your reply">
-        <h2>Thank you for replying</h2>
-        <ReplySummary reply={props.reply} />
-        <div><button className="btn" type="button" onClick={() => setEditing(true)}>Change reply</button></div>
-      </div>
+      <Card as="section" aria-label="Your reply">
+        <Stack>
+          <h2>Thank you for replying</h2>
+          <ReplySummary reply={props.reply} />
+          <div><Button onClick={() => setEditing(true)}>Change reply</Button></div>
+        </Stack>
+      </Card>
     );
   }
 
@@ -81,80 +83,81 @@ export function RsvpForm(props: { token: string; places: number; reply: Reply | 
   const extra = Math.max(partySize - 1, 0);
 
   return (
-    <form className="card stack" onSubmit={submit} noValidate aria-label="RSVP">
-      <h2>Will you join us?</h2>
-      {failure && <p role="alert" className="field__error">{failure} <button className="btn" type="submit">Try again</button></p>}
-      <fieldset className="stack">
-        <legend>Your reply</legend>
-        <label className="choice"><input id="rsvp-attending" type="radio" name="attending" checked={choice === 'yes'} onChange={() => setChoice('yes')} /><span className="choice__text">Joyfully accepting</span></label>
-        <label className="choice"><input type="radio" name="attending" checked={choice === 'no'} onChange={() => setChoice('no')} /><span className="choice__text">Regretfully declining</span></label>
-        {errors.attending && <p className="field__error" role="alert">{errors.attending}</p>}
-      </fieldset>
+    <Card>
+      <Stack as="form" onSubmit={submit} noValidate aria-label="RSVP">
+        <h2>Will you join us?</h2>
+        {failure && <Alert tone="danger" live actions={<Button type="submit">Try again</Button>}>{failure}</Alert>}
+        <RadioGroup
+          legend="Your reply"
+          name="attending"
+          id="rsvp-reply"
+          options={[
+            { value: 'yes', label: 'Joyfully accepting', id: 'rsvp-attending' },
+            { value: 'no', label: 'Regretfully declining' },
+          ]}
+          value={choice}
+          onChange={(v) => setChoice(v as Choice)}
+          error={errors.attending}
+        />
 
-      {choice === 'yes' && (
-        <>
-          {props.places > 1 && (
-            <Field label="Party size" id="rsvp-partySize" error={errors.partySize}>
-              <select className="select" id="rsvp-partySize" value={partySize} onChange={(e) => setPartySize(Number(e.target.value))}>
+        {choice === 'yes' && (
+          <>
+            {props.places > 1 && (
+              <Select label="Party size" id="rsvp-partySize" error={errors.partySize} value={partySize} onChange={(e) => setPartySize(Number(e.target.value))}>
                 {Array.from({ length: props.places }, (_, i) => i + 1).map((n) => (
                   <option key={n} value={n}>{n === 1 ? 'Just me' : n === 2 ? 'Me and one guest' : `Me and ${n - 1} guests`}</option>
                 ))}
-              </select>
-            </Field>
-          )}
-          {Array.from({ length: extra }, (_, i) => (
-            <Field key={i} label={`Guest's name${extra > 1 ? ` ${i + 1}` : ''}`} id={`rsvp-guestNames-${i}`} error={errors[`guestNames.${i}`]}>
-              <input className="input" id={`rsvp-guestNames-${i}`} value={names[i] ?? ''} onChange={(e) => { const n = [...names]; n[i] = e.target.value; setNames(n); }} />
-            </Field>
-          ))}
-          <Field label="Meal" id="rsvp-meal" error={errors.meal}>
-            <select className="select" id="rsvp-meal" value={meal} onChange={(e) => setMeal(e.target.value)}>
+              </Select>
+            )}
+            {Array.from({ length: extra }, (_, i) => (
+              <TextField key={i} label={`Guest's name${extra > 1 ? ` ${i + 1}` : ''}`} id={`rsvp-guestNames-${i}`} error={errors[`guestNames.${i}`]} value={names[i] ?? ''} onChange={(e) => { const n = [...names]; n[i] = e.target.value; setNames(n); }} />
+            ))}
+            <Select label="Meal" id="rsvp-meal" error={errors.meal} value={meal} onChange={(e) => setMeal(e.target.value)}>
               <option value="">Choose a meal</option>
               {MEALS.map((m) => <option key={m}>{m}</option>)}
-            </select>
-          </Field>
-          <Field label="Dietary needs" id="rsvp-dietary" optional error={errors.dietary} counter={`${LIMITS.dietary - dietary.length} characters left`}>
-            <textarea className="textarea" id="rsvp-dietary" value={dietary} onChange={(e) => setDietary(e.target.value)} />
-          </Field>
-          <Field label="Song request" id="rsvp-song" optional error={errors.song} counter={`${LIMITS.song - song.length} characters left`}>
-            <input className="input" id="rsvp-song" value={song} onChange={(e) => setSong(e.target.value)} />
-          </Field>
-        </>
-      )}
-      {choice === 'no' && (
-        <Field label="Message" id="rsvp-message" optional error={errors.message} counter={`${LIMITS.message - message.length} characters left`}>
-          <textarea className="textarea" id="rsvp-message" value={message} onChange={(e) => setMessage(e.target.value)} />
-        </Field>
-      )}
+            </Select>
+            <Textarea label="Dietary needs" id="rsvp-dietary" optional error={errors.dietary} counter={`${LIMITS.dietary - dietary.length} characters left`} value={dietary} onChange={(e) => setDietary(e.target.value)} />
+            <TextField label="Song request" id="rsvp-song" optional error={errors.song} counter={`${LIMITS.song - song.length} characters left`} value={song} onChange={(e) => setSong(e.target.value)} />
+          </>
+        )}
+        {choice === 'no' && (
+          <Textarea label="Message" id="rsvp-message" optional error={errors.message} counter={`${LIMITS.message - message.length} characters left`} value={message} onChange={(e) => setMessage(e.target.value)} />
+        )}
 
-      <div className="form-actions">
-        <button className="btn btn--primary" type="submit" disabled={busy} aria-busy={busy}>{busy ? 'Sending…' : 'Send my RSVP'}</button>
-        {props.reply && <button className="btn btn--ghost" type="button" onClick={() => setEditing(false)}>Cancel</button>}
-      </div>
+        <FormActions>
+          <Button variant="primary" type="submit" disabled={busy} loading={busy}>{busy ? 'Sending…' : 'Send my RSVP'}</Button>
+          {props.reply && <Button variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>}
+        </FormActions>
 
-      {regrets && (
-        <Dialog title="Send your regrets?" onClose={() => setRegrets(false)}>
-          <p>We'll let your hosts know you can't make it. Add a message if you like.</p>
-          <Field label="Message" id="rsvp-regrets-message" optional counter={`${LIMITS.message - message.length} characters left`}>
-            <textarea className="textarea" id="rsvp-regrets-message" value={message} onChange={(e) => setMessage(e.target.value)} />
-          </Field>
-          <div className="form-actions">
-            <button className="btn" type="button" onClick={() => setRegrets(false)}>Keep my reply</button>
-            <button className="btn btn--primary" type="button" disabled={busy} aria-busy={busy} onClick={() => send('Your regrets are sent')}>{busy ? 'Sending…' : 'Send my regrets'}</button>
-          </div>
-        </Dialog>
-      )}
-    </form>
+        {regrets && (
+          <Dialog
+            title="Send your regrets?"
+            busy={busy}
+            onClose={() => setRegrets(false)}
+            footer={
+              <>
+                <Button onClick={() => setRegrets(false)}>Keep my reply</Button>
+                <Button variant="primary" disabled={busy} loading={busy} onClick={() => send('Your regrets are sent')}>{busy ? 'Sending…' : 'Send my regrets'}</Button>
+              </>
+            }
+          >
+            <p>We'll let your hosts know you can't make it. Add a message if you like.</p>
+            <Textarea label="Message" id="rsvp-regrets-message" optional counter={`${LIMITS.message - message.length} characters left`} value={message} onChange={(e) => setMessage(e.target.value)} />
+          </Dialog>
+        )}
+      </Stack>
+    </Card>
   );
 }
 
 export function ReplySummary({ reply }: { reply: Reply }) {
   return (
-    <dl className="stack" aria-label="Your reply">
-      <div><dt>Your reply</dt><dd>{reply.attending ? 'Joyfully accepting' : 'Regretfully declining'}</dd></div>
-      {reply.attending && <div><dt>Party size</dt><dd>{reply.partySize}</dd></div>}
-      {reply.attending && <div><dt>Meal</dt><dd>{reply.meal}</dd></div>}
-      {reply.message && <div><dt>Message</dt><dd>{reply.message}</dd></div>}
-    </dl>
+    <DescriptionList
+      items={[
+        { term: 'Your reply', description: reply.attending ? 'Joyfully accepting' : 'Regretfully declining' },
+        ...(reply.attending ? [{ term: 'Party size', description: reply.partySize }, { term: 'Meal', description: reply.meal }] : []),
+        ...(reply.message ? [{ term: 'Message', description: reply.message }] : []),
+      ]}
+    />
   );
 }

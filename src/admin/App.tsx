@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ApiError, get, post } from '../shared/ui/api.js';
-import { Skeleton } from '../shared/ui/components.js';
+import { Button, Container, SkipLink, Skeleton, TopBar, TopBarBrand } from '../shared/ui/components/index.js';
 import { EventShell } from './pages/EventShell.js';
 import { EventsPage } from './pages/Events.js';
 import { NewEventPage } from './pages/NewEvent.js';
@@ -20,7 +20,7 @@ export function App() {
     );
   }, []);
 
-  if (auth.state === 'checking') return <main className="container"><Skeleton /></main>;
+  if (auth.state === 'checking') return <Container as="main"><Skeleton /></Container>;
 
   if (auth.state === 'out') {
     return <SignInPage notice={auth.notice} onSignedIn={(name) => { setAuth({ state: 'in', name }); go('events'); }} />;
@@ -34,14 +34,12 @@ export function App() {
 
   return (
     <>
-      <a className="skip-link" href="#main">Skip to content</a>
-      <header className="topbar">
-        <a className="topbar__brand" href="#/events">Invitely</a>
-        <span className="topbar__spacer" />
-        <span>{auth.name}</span>
-        <button className="btn btn--ghost" type="button" onClick={signOut}>Sign out</button>
-      </header>
-      <main id="main" className="container">
+      <SkipLink />
+      <TopBar
+        brand={<TopBarBrand href="#/events">Invitely</TopBarBrand>}
+        actions={<><span>{auth.name}</span><Button variant="ghost" onClick={signOut}>Sign out</Button></>}
+      />
+      <Container as="main" id="main">
         {section === 'events' && id === 'new' ? (
           <NewEventPage />
         ) : section === 'events' && id ? (
@@ -49,7 +47,7 @@ export function App() {
         ) : (
           <EventsPage />
         )}
-      </main>
+      </Container>
     </>
   );
 }

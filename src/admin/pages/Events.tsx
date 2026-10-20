@@ -1,5 +1,5 @@
 import { get } from '../../shared/ui/api.js';
-import { ErrorState, Skeleton } from '../../shared/ui/components.js';
+import { Button, Card, EmptyState, List, ListItem, PageHeader, Skeleton, Stack } from '../../shared/ui/components/index.js';
 import { useLoad } from '../../shared/ui/hooks.js';
 
 interface EventSummary {
@@ -13,28 +13,24 @@ export function EventsPage() {
   const { data, error, loading, reload } = useLoad(() => get<{ events: EventSummary[] }>('/api/events'), []);
 
   return (
-    <div className="stack">
-      <div className="cluster cluster--between">
-        <h1>Events</h1>
-        <a className="btn btn--primary" href="#/events/new">New event</a>
-      </div>
+    <Stack>
+      <PageHeader title="Events" actions={<Button variant="primary" href="#/events/new">New event</Button>} />
       {loading && <Skeleton />}
-      {error && <ErrorState message={error} onRetry={reload} />}
+      {error && <EmptyState tone="error" title={error} actions={<Button onClick={reload}>Try again</Button>} />}
       {data && data.events.length === 0 && (
-        <div className="card stack">
-          <h2>No events yet</h2>
-          <p className="text-muted">Create your first event to start inviting guests.</p>
-        </div>
+        <Card>
+          <EmptyState compact title="No events yet" text="Create your first event to start inviting guests." />
+        </Card>
       )}
       {data && data.events.length > 0 && (
-        <ul className="stack" aria-label="Events">
-          {data.events.map((e) => (
-            <li key={e.id} className="card">
-              <a href={`#/events/${e.id}`}>{e.name}</a> · {e.date} · {e.status}
-            </li>
-          ))}
-        </ul>
+        <Card variant="flush">
+          <List aria-label="Events">
+            {data.events.map((e) => (
+              <ListItem key={e.id} href={`#/events/${e.id}`} title={e.name} meta={`${e.date} · ${e.status}`} />
+            ))}
+          </List>
+        </Card>
       )}
-    </div>
+    </Stack>
   );
 }
