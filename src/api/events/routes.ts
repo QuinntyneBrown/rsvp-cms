@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { EventRecord, PageRecord } from '../../data/store.js';
 import { MAX_BLOCKS, parseBlocks, validateBlocks } from '../../domain/blocks.js';
 import { validateNewEvent } from '../../domain/events.js';
+import { validateSender } from '../../domain/invitations/schedule.js';
 import { body, eventOf, isoDate, organiserId, ownEvent, type Ctx } from '../context.js';
 
 const eventJson = (e: EventRecord) => ({
@@ -14,6 +15,8 @@ const eventJson = (e: EventRecord) => ({
   status: e.status,
   inviteOpen: e.inviteOpen,
   inviteClose: e.inviteClose,
+  senderName: e.senderName,
+  replyTo: e.replyTo,
 });
 
 const pageJson = (p: PageRecord) => ({
@@ -41,6 +44,17 @@ export function eventRoutes(ctx: Ctx): Router {
 
   r.get('/:id', own, (_req, res) => {
     res.json({ event: eventJson(eventOf(res)) });
+  });
+
+  /** Sender name and reply-to from Event settings (L2-036). */
+  r.put('/:id/sender', own, async (req, res) => {
+    const v = validateSender(body(req));
+    if (!v.ok) {
+      res.status(422).json({ errors: v.errors });
+      return;
+    }
+    await ctx.store.updateSender(eventOf(res).id, v.value, ctx.now());
+    res.json({ event: eventJson((await ctx.store.getEvent(eventOf(res).id))!) });
   });
 
   // ---- page composer (draft / publish / discard / preview) -----------------

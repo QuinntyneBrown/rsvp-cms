@@ -4,7 +4,7 @@ import { normaliseCode } from '../../../src/domain/code.js';
 import { validateNewEvent } from '../../../src/domain/events.js';
 import { confirmedPlusOnes, PLUS_ONES_BELOW_CONFIRMED, validateGuest } from '../../../src/domain/guests.js';
 import { invitationText, personalLink, SAMPLE_GUEST } from '../../../src/domain/invitations/message.js';
-import { sendTime, validateSchedule, type Audience } from '../../../src/domain/invitations/schedule.js';
+import { sendTime, validateSchedule, validateSender, type Audience } from '../../../src/domain/invitations/schedule.js';
 import { EMAIL_RE } from '../../../src/domain/result.js';
 import { repliesClosedMessage, validateReply, type Reply } from '../../../src/domain/rsvp.js';
 
@@ -32,6 +32,8 @@ export interface FakeEvent {
   status: 'Draft' | 'Published';
   inviteOpen: string;
   inviteClose: string;
+  senderName: string;
+  replyTo: string;
 }
 
 export interface FakeGuest {
@@ -128,6 +130,8 @@ export class FakeBackend {
       status: 'Draft',
       inviteOpen: this.today,
       inviteClose: date,
+      senderName: '',
+      replyTo: '',
       ...over,
     };
     this.events.push(event);
@@ -304,6 +308,12 @@ export class FakeBackend {
     switch (key) {
       case 'GET ':
         return ok({ event });
+      case 'PUT /sender': {
+        const v = validateSender(r.body);
+        if (!v.ok) return { status: 422, body: { errors: v.errors } };
+        Object.assign(event, v.value);
+        return ok({ event });
+      }
       case 'GET /page':
         return ok(this.pageJson(event.id));
       case 'PUT /page/draft':
@@ -334,6 +344,7 @@ export class FakeBackend {
         return ok({
           emails: this.emailsOf(event.id).sort((a, b) => a.sendAt.localeCompare(b.sendAt) || a.id - b.id).map(emailJson),
           counts: { all: this.guestsOf(event.id).length, nonResponders: this.nonResponders(event.id) },
+          sender: { from: event.senderName || ORGANISER.name, replyTo: event.replyTo || null },
         });
       case 'POST /emails':
         return this.scheduleEmail(event, r.body);
@@ -506,8 +517,8 @@ export class FakeBackend {
     const email = this.emailsOf(event.id).find((e) => e.id === emailId);
     if (!email) return { status: 404, body: { error: 'Email not found' } };
     return ok({
-      from: email.senderName || ORGANISER.name,
-      replyTo: email.replyTo || null,
+      from: email.senderName || event.senderName || ORGANISER.name,
+      replyTo: email.replyTo || event.replyTo || null,
       subject: email.subject,
       body: invitationText({
         guestName: SAMPLE_GUEST.name,

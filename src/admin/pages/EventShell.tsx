@@ -7,6 +7,7 @@ import { EmailsTab } from './Emails.js';
 import { GuestsTab } from './Guests.js';
 import { PageTab } from './PageComposer.js';
 import { ResponsesTab } from './Responses.js';
+import { SettingsTab } from './Settings.js';
 
 export interface EventDetail {
   id: number;
@@ -17,6 +18,8 @@ export interface EventDetail {
   status: string;
   inviteOpen: string;
   inviteClose: string;
+  senderName: string;
+  replyTo: string;
 }
 
 const TABS = [
@@ -25,6 +28,7 @@ const TABS = [
   ['guests', 'Guests'],
   ['emails', 'Emails'],
   ['responses', 'Responses'],
+  ['settings', 'Settings'],
 ] as const;
 
 /** 'Sat 14 Nov 2026 · 7:00 pm · The Lantern Room', the event line under every event page title. */
@@ -88,6 +92,7 @@ export function EventShell({ eventId, tab }: { eventId: number; tab: string }) {
       {tab === 'page' && <PageTab eventId={eventId} />}
       {tab === 'emails' && <EmailsTab event={event} showToast={show} />}
       {tab === 'responses' && <ResponsesTab eventId={eventId} />}
+      {tab === 'settings' && <SettingsTab event={event} onSaved={reload} showToast={show} />}
       <Toast message={toast} />
     </Stack>
   );

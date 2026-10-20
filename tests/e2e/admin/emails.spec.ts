@@ -67,8 +67,6 @@ test.describe('L2-029 Schedule invitations', () => {
     await expect(dialog.subjectCounter).toHaveText('28/150');
     await expect(dialog.sendOn).toHaveValue(TODAY);
     await expect(dialog.sendOnHint).toBeVisible();
-    await expect(dialog.senderName).toHaveValue('');
-    await expect(dialog.replyTo).toHaveValue('');
   });
 
   test('AC4 schedules the invitation for 9:00 am, shows the send time and lists it', async ({ admin, api }) => {
@@ -86,7 +84,7 @@ test.describe('L2-029 Schedule invitations', () => {
     await dialog.doneButton.click();
     await expect(dialog.done).toHaveCount(0);
     expect(api.calls('POST', `/api/events/${event.id}/emails`)[0]!.body).toEqual({
-      audience: 'all', subject: "You're invited to Maya & Sam", sendOn: '2026-11-01', senderName: '', replyTo: '',
+      audience: 'all', subject: "You're invited to Maya & Sam", sendOn: '2026-11-01',
     });
   });
 
@@ -120,14 +118,6 @@ test.describe('L2-029 Schedule invitations', () => {
     await dialog.schedule({ sendOn: '2026-12-13' });
     await expect(dialog.errorFor('sendOn')).toHaveText('Invitations must go out before invites close');
     await expect(dialog.sendOnHint).toBeVisible(); // help stays above the error (design system: form field)
-  });
-
-  test('L2-036 refuses a malformed reply-to address', async ({ admin }) => {
-    const dialog = admin.event.emails.dialog;
-    await admin.event.goto(event.id, 'emails');
-    await admin.event.emails.scheduleInvitations.click();
-    await dialog.schedule({ replyTo: 'not-an-email' });
-    await expect(dialog.errorFor('replyTo')).toHaveText('Enter a valid email address');
   });
 
   test('locks the form and shows Scheduling… while the request is in flight', async ({ admin, api }) => {
@@ -192,12 +182,12 @@ test.describe('L2-031 Preview an invitation email and L2-036 sender identity', (
     await expect(preview.root).toHaveCount(0);
   });
 
-  test('uses the sender name and reply-to chosen when scheduling', async ({ admin }) => {
+  test('L2-036 AC1 uses the sender name and reply-to from Event settings', async ({ admin, api }) => {
+    api.addEmail(event.id, { subject: 'Hello' });
+    Object.assign(api.event(event.id)!, { senderName: 'Maya and Sam', replyTo: 'hosts@example.com' });
     const preview = admin.event.emails.preview;
     await admin.event.goto(event.id, 'emails');
-    await admin.event.emails.scheduleInvitations.click();
-    await admin.event.emails.dialog.schedule({ senderName: 'Maya and Sam', replyTo: 'hosts@example.com' });
-    await admin.event.emails.dialog.doneButton.click();
+    await expect(admin.event.emails.sender).toHaveText('From Maya and Sam · replies go to hosts@example.com. Change in Settings');
     await admin.event.emails.openPreview(0);
     await expect(preview.value('From')).toHaveText('Maya and Sam');
     await expect(preview.value('Reply-to')).toHaveText('hosts@example.com');

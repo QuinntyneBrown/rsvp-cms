@@ -54,6 +54,9 @@ model Event {
   status      String    @default("Draft")
   inviteOpen  DateTime  @map("invite_open") @db.Date
   inviteClose DateTime  @map("invite_close") @db.Date
+  /// Sender identity from Event settings; empty means the organiser's name and no reply-to.
+  senderName  String    @default("") @map("sender_name")
+  replyTo     String    @default("") @map("reply_to")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   organiser   Organiser @relation(fields: [organiserId], references: [id], onDelete: Cascade)

@@ -1,6 +1,7 @@
 import type { Block } from '../domain/blocks.js';
 import type { NewEvent } from '../domain/events.js';
 import type { GuestInput } from '../domain/guests.js';
+import type { SenderInput } from '../domain/invitations/schedule.js';
 import type { Reply } from '../domain/rsvp.js';
 
 /**
@@ -27,6 +28,7 @@ export interface Store {
   getEvent(id: number): Promise<EventRecord | null>;
   /** Removes the event with its page, guests, emails, deliveries and replies. */
   deleteEvent(id: number): Promise<void>;
+  updateSender(eventId: number, sender: SenderInput, now: number): Promise<void>;
   getPage(eventId: number): Promise<PageRecord>;
   saveDraft(eventId: number, blocks: Block[], now: number): Promise<void>;
   /** Copies `blocks` to both draft and published and marks the event Published, all or nothing. */
@@ -120,6 +122,9 @@ export interface EventRecord {
   status: string;
   inviteOpen: string;
   inviteClose: string;
+  /** Sender identity from Event settings; empty means the organiser's name and no reply-to (L2-036). */
+  senderName: string;
+  replyTo: string;
 }
 
 export interface PageRecord {
@@ -198,7 +203,7 @@ export interface EmailRecord extends NewEmail {
 
 export interface SendContext {
   email: EmailRecord;
-  event: { name: string; date: string };
+  event: { name: string; date: string; senderName: string; replyTo: string };
   organiserName: string;
 }
 

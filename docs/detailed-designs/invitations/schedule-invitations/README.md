@@ -40,6 +40,7 @@ The code places each design component as follows.
 | `ScheduleInvitationsCommand` | JSON body with `audience` (`all` or `non-responders`), `subject`, `sendOn`, `senderName` and `replyTo` |
 | `ScheduleInvitationsCommandHandler` | Merged into the route: it validates, counts the planned recipients and saves one `emails` row |
 | `InvitationSchedulePolicy`, `SenderIdentity` | `validateSchedule` in `src/domain/invitations/schedule.ts`: subject of 1 to 150 characters, send date on or before invites close, line breaks removed from subject and sender name, reply-to like name@example.com |
+| Event settings sender | `validateSender` in the same file, saved by `PUT /api/events/:id/sender` into the event's `sender_name` and `reply_to` and edited on the Settings tab (`src/admin/pages/Settings.tsx`). The mail worker and the preview use an email's own sender first, then the event's, then the organiser's name |
 | `InvitationSchedule` | `sendTime` in the same module sets `send_at` to 9:00 am on the send date |
 | `ScheduledEmail` | One `emails` row per schedule with status `Scheduled`, and one `deliveries` row per guest created when the email is sent. Recipients are resolved at send time, not when scheduling |
 | `ScheduledEmailRepository` | `Store.insertEmail` |

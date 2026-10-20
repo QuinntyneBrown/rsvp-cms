@@ -3,6 +3,7 @@ import { generateCode, generateToken } from '../domain/code.js';
 import type { Block } from '../domain/blocks.js';
 import type { NewEvent } from '../domain/events.js';
 import type { GuestInput } from '../domain/guests.js';
+import type { SenderInput } from '../domain/invitations/schedule.js';
 import type { Reply } from '../domain/rsvp.js';
 import type { Db } from './db.js';
 import { Prisma } from './generated/client.js';
@@ -44,6 +45,8 @@ const eventRecord = (e: EventRow): EventRecord => ({
   status: e.status,
   inviteOpen: toDay(e.inviteOpen),
   inviteClose: toDay(e.inviteClose),
+  senderName: e.senderName,
+  replyTo: e.replyTo,
 });
 
 const guestRecord = (g: GuestRow): GuestRecord => ({
@@ -170,6 +173,10 @@ export class PrismaStore implements Store {
     if (!Number.isSafeInteger(id)) return null;
     const row = await this.db.event.findUnique({ where: { id } });
     return row && eventRecord(row);
+  }
+
+  async updateSender(eventId: number, sender: SenderInput, now: number) {
+    await this.db.event.update({ where: { id: eventId }, data: { ...sender, updatedAt: new Date(now) } });
   }
 
   async deleteEvent(id: number) {
@@ -400,7 +407,7 @@ export class PrismaStore implements Store {
   async sendContext(emailId: number): Promise<SendContext | null> {
     const e = await this.db.email.findUnique({ where: { id: emailId }, include: { event: { include: { organiser: true } } } });
     if (!e) return null;
-    return { email: emailRecord(e), event: { name: e.event.name, date: toDay(e.event.date) }, organiserName: e.event.organiser.name };
+    return { email: emailRecord(e), event: { name: e.event.name, date: toDay(e.event.date), senderName: e.event.senderName, replyTo: e.event.replyTo }, organiserName: e.event.organiser.name };
   }
 
   /** ON CONFLICT DO NOTHING keeps this safe to repeat after a crash. */

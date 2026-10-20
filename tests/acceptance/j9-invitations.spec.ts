@@ -188,3 +188,53 @@ describe('L2-031 Preview matches what is sent', () => {
     expect(preview.body.from).toBe('Olivia');
   });
 });
+
+describe('L2-036 Sender identity set in Event settings', () => {
+  const saveSender = (s: Setup, b: Record<string, unknown>) => s.api.put(`/api/events/${s.eventId}/sender`).set('Cookie', s.cookie).send(b);
+
+  it('AC1 emails use the sender name and reply-to saved in Event settings', async () => {
+    const s = await setup();
+    await addGuest(s);
+    const saved = await saveSender(s, { senderName: 'Maya & Sam', replyTo: 'hello@example.com' });
+    expect(saved.body.event).toMatchObject({ senderName: 'Maya & Sam', replyTo: 'hello@example.com' });
+    await schedule(s);
+    const transport = new MemoryTransport();
+    s.clock.now = Date.parse('2026-11-01T09:00:00Z');
+    await sendDueEmails({ store: s.store, transport, now: () => s.clock.now, rsvpUrl: RSVP_URL });
+    expect(transport.sent[0]).toMatchObject({ fromName: 'Maya & Sam', replyTo: 'hello@example.com' });
+    const { cookie } = await s.signIn(); // two weeks later the organiser signs in again
+    const list = await s.api.get(`/api/events/${s.eventId}/emails`).set('Cookie', cookie);
+    expect(list.body.sender).toEqual({ from: 'Maya & Sam', replyTo: 'hello@example.com' });
+  });
+
+  it('AC1 the preview shows the settings sender, and an email of its own overrides them', async () => {
+    const s = await setup();
+    await saveSender(s, { senderName: 'Maya & Sam', replyTo: 'hello@example.com' });
+    const plain = await schedule(s);
+    const own = await schedule(s, { senderName: 'Sam', replyTo: 'sam@example.com' });
+    const preview = (id: number) => s.api.get(`/api/events/${s.eventId}/emails/${id}/preview`).set('Cookie', s.cookie);
+    expect((await preview(plain.body.email.id)).body).toMatchObject({ from: 'Maya & Sam', replyTo: 'hello@example.com' });
+    expect((await preview(own.body.email.id)).body).toMatchObject({ from: 'Sam', replyTo: 'sam@example.com' });
+  });
+
+  it('AC2 an invalid reply-to is refused and the setting is unchanged', async () => {
+    const s = await setup();
+    await saveSender(s, { senderName: 'Maya', replyTo: 'hello@example.com' });
+    const res = await saveSender(s, { senderName: 'Other', replyTo: 'nope' });
+    expect(res.status).toBe(422);
+    expect(res.body.errors.replyTo).toBe('Enter a valid email address');
+    const event = await s.api.get(`/api/events/${s.eventId}`).set('Cookie', s.cookie);
+    expect(event.body.event).toMatchObject({ senderName: 'Maya', replyTo: 'hello@example.com' });
+  });
+
+  it('AC3 line breaks are removed from the sender name before it is saved', async () => {
+    const s = await setup();
+    const res = await saveSender(s, { senderName: 'Maya\r\n& Sam', replyTo: '' });
+    expect(res.body.event.senderName).toBe('Maya & Sam');
+  });
+
+  it('needs the organiser who owns the event', async () => {
+    const s = await setup();
+    expect((await s.api.put(`/api/events/${s.eventId}/sender`).send({ senderName: 'X' })).status).toBe(401);
+  });
+});

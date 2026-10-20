@@ -3,6 +3,7 @@ import type { Block } from '../domain/blocks.js';
 import { generateCode, generateToken } from '../domain/code.js';
 import type { NewEvent } from '../domain/events.js';
 import type { GuestInput } from '../domain/guests.js';
+import type { SenderInput } from '../domain/invitations/schedule.js';
 import type { Reply } from '../domain/rsvp.js';
 import {
   DuplicateError, fromWallClock, idempotencyKey, LEASE_MS, statusOf, toWallClock,
@@ -99,7 +100,7 @@ export class MemoryStore implements Store {
 
   async createEvent(organiserId: number, e: NewEvent, today: string, _now?: number) {
     const id = this.next();
-    this.events.set(id, { id, organiserId, type: e.type, name: e.name, date: e.date, startTime: e.startTime, venue: e.venue, status: 'Draft', inviteOpen: today, inviteClose: e.date });
+    this.events.set(id, { id, organiserId, type: e.type, name: e.name, date: e.date, startTime: e.startTime, venue: e.venue, status: 'Draft', inviteOpen: today, inviteClose: e.date, senderName: '', replyTo: '' });
     this.pages.set(id, { draft: [], published: null, draftSavedAt: null, publishedAt: null });
     return id;
   }
@@ -114,6 +115,11 @@ export class MemoryStore implements Store {
   async getEvent(id: number) {
     const e = this.events.get(id);
     return e ? copy(e) : null;
+  }
+
+  async updateSender(eventId: number, sender: SenderInput, _now?: number) {
+    const e = this.events.get(eventId);
+    if (e) Object.assign(e, sender);
   }
 
   async deleteEvent(id: number) {
@@ -368,7 +374,7 @@ export class MemoryStore implements Store {
     const event = e && this.events.get(e.eventId);
     const organiser = event && this.organisers.get(event.organiserId);
     if (!e || !event || !organiser) return null;
-    return { email: this.emailRecord(e), event: { name: event.name, date: event.date }, organiserName: organiser.name };
+    return { email: this.emailRecord(e), event: { name: event.name, date: event.date, senderName: event.senderName, replyTo: event.replyTo }, organiserName: organiser.name };
   }
 
   async materialiseDeliveries(email: EmailRecord) {

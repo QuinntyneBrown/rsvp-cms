@@ -33,8 +33,9 @@ export async function sendDueEmails(deps: MailWorkerDeps): Promise<{ sent: numbe
       try {
         await transport.send({
           to: d.guest.email,
-          fromName: ctx.email.senderName || ctx.organiserName,
-          replyTo: ctx.email.replyTo || undefined,
+          // The email's own sender wins, then Event settings, then the organiser (L2-036 AC1).
+          fromName: ctx.email.senderName || ctx.event.senderName || ctx.organiserName,
+          replyTo: ctx.email.replyTo || ctx.event.replyTo || undefined,
           subject: ctx.email.subject,
           text: invitationText({
             guestName: d.guest.name,

@@ -140,7 +140,8 @@ export function guestRoutes(ctx: Ctx): Router {
       ctx.store.countGuests(event.id),
       ctx.store.countNonResponders(event.id),
     ]);
-    res.json({ emails: emails.map(emailJson), counts: { all: invitees, nonResponders } });
+    const sender = { from: event.senderName || res.locals.organiserName, replyTo: event.replyTo || null };
+    res.json({ emails: emails.map(emailJson), counts: { all: invitees, nonResponders }, sender });
   });
 
   /** The exact text a guest receives, with a sample guest's name, link and code (L2-031 AC1). */
@@ -152,8 +153,8 @@ export function guestRoutes(ctx: Ctx): Router {
       return;
     }
     res.json({
-      from: email.senderName || res.locals.organiserName,
-      replyTo: email.replyTo || null,
+      from: email.senderName || event.senderName || res.locals.organiserName,
+      replyTo: email.replyTo || event.replyTo || null,
       subject: email.subject,
       body: invitationText({
         guestName: SAMPLE_GUEST.name,

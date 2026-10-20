@@ -5,11 +5,9 @@ export interface ScheduleForm {
   audience?: 'all' | 'non-responders';
   subject?: string;
   sendOn?: string;
-  senderName?: string;
-  replyTo?: string;
 }
 
-/** Schedule invitations dialog (L2-029, L2-036). */
+/** Schedule invitations dialog (L2-029). */
 export class ScheduleDialog {
   readonly root: Locator;
   readonly audience: Locator;
@@ -17,8 +15,6 @@ export class ScheduleDialog {
   readonly subjectCounter: Locator;
   readonly sendOn: Locator;
   readonly sendOnHint: Locator;
-  readonly senderName: Locator;
-  readonly replyTo: Locator;
   readonly submit: Locator;
   readonly cancel: Locator;
   readonly failure: Locator;
@@ -36,15 +32,13 @@ export class ScheduleDialog {
     this.subjectCounter = this.root.locator('.field', { has: page.locator('#em-subject') }).locator('.field__counter');
     this.sendOn = this.root.getByLabel('Send on');
     this.sendOnHint = this.root.getByText('Emails go out at 9:00 am.');
-    this.senderName = this.root.getByLabel('Sender name');
-    this.replyTo = this.root.getByLabel('Reply-to email');
     this.submit = this.root.getByRole('button', { name: /^(Schedule invitation|Scheduling…)$/ });
     this.cancel = this.root.getByRole('button', { name: 'Cancel' });
     this.failure = failure(this.root);
     this.tryAgain = this.failure.getByRole('button', { name: 'Try again' });
   }
 
-  errorFor(field: 'subject' | 'sendOn' | 'replyTo') {
+  errorFor(field: 'subject' | 'sendOn') {
     return this.root.locator(`#em-${field}-error`);
   }
 
@@ -57,8 +51,6 @@ export class ScheduleDialog {
     if (form.audience !== undefined) await this.audienceOption(form.audience).check();
     if (form.subject !== undefined) await this.subject.fill(form.subject);
     if (form.sendOn !== undefined) await this.sendOn.fill(form.sendOn);
-    if (form.senderName !== undefined) await this.senderName.fill(form.senderName);
-    if (form.replyTo !== undefined) await this.replyTo.fill(form.replyTo);
   }
 
   async schedule(form: ScheduleForm = {}) {
@@ -88,6 +80,8 @@ export class EmailPreviewDialog {
 /** Scheduled and sent emails (L2-030). */
 export class EmailsTab {
   readonly heading: Locator;
+  /** 'From … · replies go to …' under the heading (L2-036). */
+  readonly sender: Locator;
   readonly scheduleInvitations: Locator;
   readonly empty: Locator;
   readonly table: Locator;
@@ -97,6 +91,7 @@ export class EmailsTab {
 
   constructor(readonly page: Page) {
     this.heading = page.getByRole('heading', { name: 'Scheduled and sent emails' });
+    this.sender = page.getByText(/^From .* · replies go to /);
     this.scheduleInvitations = page.getByRole('button', { name: 'Schedule invitations' }).first();
     this.empty = page.getByRole('heading', { name: 'No emails scheduled' });
     this.table = page.getByRole('table');

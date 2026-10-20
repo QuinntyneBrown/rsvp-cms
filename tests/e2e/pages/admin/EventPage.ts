@@ -5,9 +5,10 @@ import { EmailsTab } from './EmailsTab.js';
 import { GuestsTab } from './GuestsTab.js';
 import { PageComposerTab } from './PageComposerTab.js';
 import { ResponsesTab } from './ResponsesTab.js';
+import { SettingsTab } from './SettingsTab.js';
 
-export type EventTab = 'overview' | 'guests' | 'page' | 'emails' | 'responses';
-const LABELS: Record<EventTab, string> = { overview: 'Overview', guests: 'Guests', page: 'Page', emails: 'Emails', responses: 'Responses' };
+export type EventTab = 'overview' | 'guests' | 'page' | 'emails' | 'responses' | 'settings';
+const LABELS: Record<EventTab, string> = { overview: 'Overview', guests: 'Guests', page: 'Page', emails: 'Emails', responses: 'Responses', settings: 'Settings' };
 
 /** The event shell: title, section tabs, overview and the shared toast. */
 export class EventPage {
@@ -23,6 +24,7 @@ export class EventPage {
   readonly composer: PageComposerTab;
   readonly emails: EmailsTab;
   readonly responses: ResponsesTab;
+  readonly settings: SettingsTab;
 
   constructor(readonly page: Page) {
     this.heading = page.locator('main h1');
@@ -37,6 +39,7 @@ export class EventPage {
     this.composer = new PageComposerTab(page);
     this.emails = new EmailsTab(page);
     this.responses = new ResponsesTab(page);
+    this.settings = new SettingsTab(page);
   }
 
   async goto(eventId: number, tab: EventTab = 'overview') {

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { ApiError, get, post } from '../../shared/ui/api.js';
 import {
-  Alert, Badge, Button, Card, Cluster, DescriptionList, Dialog, EmptyState, ErrorSummary, FormActions, RadioGroup, Skeleton, Stack,
+  Alert, Badge, Button, Card, Cluster, DescriptionList, Link, Dialog, EmptyState, ErrorSummary, FormActions, RadioGroup, Skeleton, Stack,
   Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, TextField, Well,
 } from '../../shared/ui/components/index.js';
 import { formatDay, formatTime } from '../../shared/ui/format.js';
@@ -22,6 +22,8 @@ interface EmailRow {
 interface EmailList {
   emails: EmailRow[];
   counts: { all: number; nonResponders: number };
+  /** Who the emails come from: Event settings, else the organiser (L2-036). */
+  sender: { from: string; replyTo: string | null };
 }
 
 const STATUS_TONE: Record<string, 'info' | 'success' | 'danger' | 'neutral'> = { Scheduled: 'info', Sent: 'success', Failed: 'danger' };
@@ -40,7 +42,14 @@ export function EmailsTab({ event }: { event: EventDetail; showToast: (m: string
   return (
     <Stack>
       <Cluster justify="between">
-        <h2>Scheduled and sent emails</h2>
+        <div>
+          <h2>Scheduled and sent emails</h2>
+          {list.data && (
+            <Text variant="caption" tone="muted">
+              From {list.data.sender.from} · replies go to {list.data.sender.replyTo ?? 'you'}. <Link href={`#/events/${event.id}/settings`}>Change in Settings</Link>
+            </Text>
+          )}
+        </div>
         <Button variant="primary" onClick={() => setScheduling(true)}>Schedule invitations</Button>
       </Cluster>
       {list.loading && <Skeleton rows={4} label="Loading emails" />}
@@ -103,7 +112,7 @@ export function EmailsTab({ event }: { event: EventDetail; showToast: (m: string
 
 /** Schedule invitations (L2-029, L2-036), in the states of the invite-send mocks. */
 function ScheduleDialog(props: { event: EventDetail; counts?: EmailList['counts']; onScheduled: () => void; onClose: () => void }) {
-  const [form, setForm] = useState({ audience: 'all', subject: `You're invited to ${props.event.name}`, sendOn: props.event.inviteOpen, senderName: '', replyTo: '' });
+  const [form, setForm] = useState({ audience: 'all', subject: `You're invited to ${props.event.name}`, sendOn: props.event.inviteOpen });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [failure, setFailure] = useState<string>();
   const [busy, setBusy] = useState(false);
@@ -168,8 +177,6 @@ function ScheduleDialog(props: { event: EventDetail; counts?: EmailList['counts'
         />
         <TextField label="Subject" id="em-subject" error={errors.subject} counter={`${form.subject.length}/150`} value={form.subject} onChange={set('subject')} readOnly={busy} />
         <TextField label="Send on" id="em-sendOn" type="date" error={errors.sendOn} hint="Emails go out at 9:00 am." value={form.sendOn} onChange={set('sendOn')} readOnly={busy} />
-        <TextField label="Sender name" id="em-senderName" optional hint="Defaults to your name." value={form.senderName} onChange={set('senderName')} readOnly={busy} />
-        <TextField label="Reply-to email" id="em-replyTo" type="email" optional hint="Replies go to you unless you set an address." error={errors.replyTo} value={form.replyTo} onChange={set('replyTo')} readOnly={busy} />
         <FormActions>
           <Button onClick={props.onClose} disabled={busy}>Cancel</Button>
           <Button variant="primary" type="submit" disabled={busy} loading={busy}>{busy ? 'Scheduling…' : 'Schedule invitation'}</Button>
