@@ -3,4 +3,4 @@
 | Design | Effort | Complete |
 |---|---|---|
 | export-responses | 2 days | 0% |
-| view-responses | 4 days | 80% |
+| view-responses | 4 days | 100% |

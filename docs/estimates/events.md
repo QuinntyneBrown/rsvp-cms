@@ -2,7 +2,7 @@
 
 | Design | Effort | Complete |
 |---|---|---|
-| create-event | 2 days | 70% |
+| create-event | 2 days | 100% |
 | delete-event | 3 days | 0% |
 | edit-event-details | 3 days | 0% |
 | list-events | 3 days | 0% |
