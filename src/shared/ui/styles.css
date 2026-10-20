@@ -1,0 +1,9 @@
+@import '../../../docs/mocks/assets/tokens.css';
+@import '../../../docs/mocks/assets/ui.css';
+
+.tabs { display: flex; gap: var(--space-4, 16px); border-bottom: 1px solid var(--color-border, #dfe3e8); margin-bottom: var(--space-5, 24px); flex-wrap: wrap; }
+.tabs a { padding: 8px 0; text-decoration: none; }
+.tabs a[aria-current='page'] { border-bottom: 2px solid currentColor; font-weight: 600; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { text-align: left; padding: 8px; border-bottom: 1px solid var(--color-border, #dfe3e8); vertical-align: top; }
+.table-wrap { overflow-x: auto; }
