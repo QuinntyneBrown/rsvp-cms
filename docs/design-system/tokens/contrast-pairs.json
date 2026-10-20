@@ -1,5 +1,5 @@
 {
-  "$comment": "Invitely: every foreground/background token pair a component relies on, checked in both themes by check_contrast.py. 4.5:1 is WCAG 2.2 AA for normal text (1.4.3); 3:1 for large text, UI component edges, icons and focus indicators (1.4.11).",
+  "$comment": "Invitely foreground/background token pairs checked by scripts/check_contrast.py. 4.5:1 is WCAG 2.2 AA for normal text (1.4.3); 3:1 for large text, UI component edges, icons and focus indicators (1.4.11). L2-085 requires the same in both themes.",
   "pairs": [
     {
       "fg": "--color-fg-default",
@@ -362,52 +362,94 @@
       ]
     },
     {
-      "fg": "--color-info-icon-on-inverse",
-      "bg": "--color-bg-inverse",
-      "min": 3,
-      "note": "toast: info icon on inverse surface"
-    },
-    {
-      "fg": "--color-success-icon-on-inverse",
-      "bg": "--color-bg-inverse",
-      "min": 3,
-      "note": "toast: success icon on inverse surface"
-    },
-    {
-      "fg": "--color-warning-icon-on-inverse",
-      "bg": "--color-bg-inverse",
-      "min": 3,
-      "note": "toast: warning icon on inverse surface"
-    },
-    {
-      "fg": "--color-danger-icon-on-inverse",
-      "bg": "--color-bg-inverse",
-      "min": 3,
-      "note": "toast: danger icon on inverse surface"
-    },
-    {
-      "fg": "--color-fg-on-accent",
-      "bg": "--color-info-solid",
+      "fg": "--color-fg-default",
+      "bg": "--color-bg-surface-raised",
       "min": 4.5,
-      "note": "solid badge label"
+      "note": "dialog title and body"
     },
     {
-      "fg": "--color-fg-inverse",
-      "bg": "--color-success-fg",
-      "min": 4.5,
-      "note": "stepper: completed step tick"
-    },
-    {
-      "fg": "--color-bg-surface",
-      "bg": "--color-accent",
+      "fg": "--color-focus-ring",
+      "bg": "--color-bg-surface-raised",
       "min": 3,
-      "note": "switch: thumb on checked track"
+      "note": "focus ring inside dialogs"
+    },
+    {
+      "fg": "--color-focus-ring",
+      "bg": "--color-bg-surface-sunken",
+      "min": 3,
+      "note": "focus ring on table header / well"
     },
     {
       "fg": "--color-border-strong",
       "bg": "--color-bg-surface-raised",
       "min": 3,
-      "note": "input and switch-track edges inside dialogs"
+      "note": "input borders inside dialogs"
+    },
+    {
+      "fg": "--color-fg-muted",
+      "bg": "--color-bg-subtle-hover",
+      "min": 4.5,
+      "note": "secondary text on hovered selected chips/rows"
+    },
+    {
+      "fg": "--color-fg-muted",
+      "bg": "--color-accent-subtle",
+      "min": 4.5,
+      "note": "list meta on selected table row"
+    },
+    {
+      "fg": "--color-fg-accent",
+      "bg": "--color-bg-canvas",
+      "min": 4.5,
+      "note": "current tab label on page"
+    },
+    {
+      "fg": "--color-fg-link",
+      "bg": "--color-bg-surface-raised",
+      "min": 4.5,
+      "note": "links in dialogs"
+    },
+    {
+      "fg": "--color-fg-on-accent",
+      "bg": "--color-info-solid",
+      "min": 4.5,
+      "note": "solid badge label (both themes)"
+    },
+    {
+      "fg": "--color-fg-on-danger",
+      "bg": "--color-danger-solid",
+      "min": 4.5,
+      "note": "count badge label"
+    },
+    {
+      "fg": "--color-fg-inverse",
+      "bg": "--color-success-fg",
+      "min": 4.5,
+      "note": "stepper complete check mark"
+    },
+    {
+      "fg": "--color-info-icon-on-inverse",
+      "bg": "--color-bg-inverse",
+      "min": 3,
+      "note": "toast info icon"
+    },
+    {
+      "fg": "--color-success-icon-on-inverse",
+      "bg": "--color-bg-inverse",
+      "min": 3,
+      "note": "toast success icon"
+    },
+    {
+      "fg": "--color-warning-icon-on-inverse",
+      "bg": "--color-bg-inverse",
+      "min": 3,
+      "note": "toast warning icon"
+    },
+    {
+      "fg": "--color-danger-icon-on-inverse",
+      "bg": "--color-bg-inverse",
+      "min": 3,
+      "note": "toast danger icon"
     },
     {
       "fg": "--color-accent",
@@ -416,58 +458,40 @@
       "note": "progress bar fill vs track"
     },
     {
-      "fg": "--color-accent",
-      "bg": "--color-bg-surface-raised",
+      "fg": "--color-bg-surface",
+      "bg": "--color-accent",
       "min": 3,
-      "note": "primary button and focus ring inside dialogs"
+      "note": "switch thumb on checked track"
     },
     {
-      "fg": "--color-focus-ring",
-      "bg": "--color-bg-surface-raised",
+      "fg": "--color-bg-surface",
+      "bg": "--color-border-strong",
       "min": 3,
-      "note": "focus ring inside dialogs and menus"
+      "note": "switch thumb on unchecked track"
     },
     {
-      "fg": "--color-fg-accent",
-      "bg": "--color-accent-subtle-hover",
+      "fg": "--color-fg-default",
+      "bg": "--color-info-bg",
       "min": 4.5,
-      "note": "selected chip / nav link on hover"
+      "note": "bulk-action bar text"
     },
     {
-      "fg": "--color-fg-link",
-      "bg": "--color-bg-surface-raised",
+      "fg": "--color-info-fg",
+      "bg": "--color-bg-canvas",
       "min": 4.5,
-      "note": "links inside dialogs"
-    },
-    {
-      "fg": "--color-danger-fg",
-      "bg": "--color-bg-surface-raised",
-      "min": 4.5,
-      "note": "field errors inside dialogs"
+      "note": "banner text (info) on page edge"
     },
     {
       "fg": "--color-danger-icon",
-      "bg": "--color-bg-surface",
+      "bg": "--color-danger-bg",
       "min": 3,
-      "note": "error empty-state icon vs card"
+      "note": "error-state icon"
     },
     {
-      "fg": "--color-accent",
-      "bg": "--color-accent-subtle",
-      "min": 3,
-      "note": "current pagination page border and unread dot on selected rows"
-    },
-    {
-      "fg": "--color-warning-fg",
-      "bg": "--color-bg-canvas",
+      "fg": "--color-fg-accent",
+      "bg": "--color-bg-surface-raised",
       "min": 4.5,
-      "note": "warning text on page"
-    },
-    {
-      "fg": "--color-success-fg",
-      "bg": "--color-bg-canvas",
-      "min": 4.5,
-      "note": "inline success status on page"
+      "note": "selected block card in picker"
     }
   ]
 }

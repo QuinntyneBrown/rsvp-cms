@@ -176,3 +176,175 @@ pre code { background: none; padding: 0; }
 .ds-frame { position: relative; overflow: hidden; border: 1px dashed var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-bg-canvas); min-height: 12rem; }
 .ds-frame--sheet { min-height: 18rem; }
 .ds-callout-note { font: var(--text-caption); color: var(--color-fg-muted); }
+
+/* Data-display docs: let tables inside flex/grid example frames shrink and scroll in their own wrap. */
+.ds-example__canvas > .table-wrap, .ds-example__canvas > section, .ds-anatomy__figure > .table-wrap { flex: 1 1 100%; min-width: 0; max-width: 100%; width: 100%; }
+.ds-anatomy__figure:has(> .table-wrap) { padding: var(--space-8) var(--space-4); }
+.ds-matrix .table { width: auto; }
+.ds-anatomy__figure:has(> .table-wrap) .ds-callout { z-index: var(--z-sticky); }
+
+/* Containers pages: static dialog frames and roomy canvases for tooltips. */
+.ds-frame--dialog { display: grid; place-items: center; padding: var(--space-6) var(--space-4); background: var(--color-bg-backdrop); }
+.ds-frame--dialog .dialog__panel { max-height: none; }
+.ds-frame--phone { max-width: 22.5rem; margin-inline: auto; display: grid; align-items: end; padding: var(--space-12) 0 0; background: var(--color-bg-backdrop); min-height: 24rem; }
+.ds-frame--phone .dialog__panel { border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
+.ds-example__canvas--roomy { padding-top: var(--space-12); }
+.ds-example__canvas--roomy-below { padding-bottom: var(--space-12); }
+.ds-grid-demo--live { margin-block: var(--space-4); }
+.ds-demo-box { padding: var(--space-3); background: var(--color-accent-subtle); border: var(--border-width-hairline) dashed var(--color-accent); border-radius: var(--radius-sm); color: var(--color-fg-accent); font: var(--text-caption); }
+.ds-shell-demo { border: var(--border-width-hairline) dashed var(--color-border-strong); border-radius: var(--radius-md); overflow: hidden; background: var(--color-bg-canvas); }
+.ds-shell-demo .sidebar-layout, .ds-shell-demo .auth-layout { min-height: 14rem; }
+.ds-shell-demo .sidebar { position: static; height: auto; }
+
+/* Feedback pages (docs only): freeze the leaving toast mid-exit and give matrix cells room. */
+.ds-matrix .toast-region--static { min-width: 17rem; }
+.ds-matrix .toast[data-state="leaving"] { animation: none; opacity: 0.45; translate: 0 var(--space-1); }
+.ds-matrix .skeleton, .ds-matrix .progress { min-width: 10rem; }
+.ds-example .empty, .ds-themes .empty { padding-block: var(--space-6); }
+
+/* ---------- Foundations A (color, typography, spacing, layout, elevation, shape) ---------- */
+.fa-pair { display: inline-flex; align-items: center; gap: var(--space-2); white-space: nowrap; }
+.fa-sample { display: inline-grid; place-items: center; min-width: 2.25rem; height: 1.75rem; padding-inline: var(--space-1); border-radius: var(--radius-sm); border: 1px solid var(--color-border-default); font: var(--text-label); }
+.fa-sample--chip { min-width: 1.25rem; height: 1.25rem; vertical-align: middle; margin-left: var(--space-2); }
+
+/* Type specimens */
+.fa-specimen-sample { overflow-wrap: anywhere; }
+
+/* Spacing: inside vs between demo */
+.fa-spacing-demo { display: grid; gap: var(--space-6); grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+.fa-measure { position: relative; outline: 1px dashed var(--color-accent); outline-offset: -1px; }
+.fa-gap-label { font: var(--text-caption); color: var(--color-fg-accent); }
+
+/* Layout: breakpoint ruler and page-template thumbnails */
+.fa-ruler { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border: 1px solid var(--color-border-default); border-radius: var(--radius-md); overflow: hidden; font: var(--text-caption); }
+.fa-ruler span { padding: var(--space-2); background: var(--color-bg-surface); border-right: 1px solid var(--color-border-default); }
+.fa-ruler span:last-child { border-right: 0; }
+.fa-ruler b { display: block; font: var(--text-label); }
+.fa-ruler .is-current { background: var(--color-accent-subtle); color: var(--color-fg-accent); }
+.fa-templates { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); }
+.fa-template { border: 1px solid var(--color-border-default); border-radius: var(--radius-lg); overflow: hidden; background: var(--color-bg-surface); }
+.fa-template figcaption { padding: var(--space-3) var(--space-4); font: var(--text-body-sm); border-top: 1px solid var(--color-border-default); }
+.fa-template figcaption b { display: block; font: var(--text-label); }
+.fa-wire { aspect-ratio: 4 / 3; background: var(--color-bg-canvas); display: grid; gap: var(--space-1); padding: var(--space-2); }
+.fa-wire i { display: block; border-radius: var(--radius-xs); background: var(--color-bg-surface); border: 1px solid var(--color-border-default); }
+.fa-wire .a { background: var(--color-accent-subtle); border-color: var(--color-accent); }
+.fa-wire--shell { grid-template-columns: 22% 1fr; grid-template-rows: 12% 1fr 1fr; }
+.fa-wire--shell .side { grid-row: 1 / -1; }
+.fa-wire--auth { place-items: center; grid-template-columns: 1fr; }
+.fa-wire--auth i { width: 45%; height: 60%; }
+.fa-wire--narrow { grid-template-columns: 1fr; padding-inline: 22%; grid-template-rows: 30% 1fr 1fr; }
+.fa-wire--split { grid-template-columns: 1fr 34%; grid-template-rows: 12% 1fr; }
+.fa-wire--split .top { grid-column: 1 / -1; }
+
+/* Elevation: nested surfaces and z-order */
+.fa-surfaces { padding: var(--space-4); background: var(--color-bg-canvas); border-radius: var(--radius-md); }
+.fa-surfaces > div { padding: var(--space-4); background: var(--color-bg-surface); border: 1px solid var(--color-border-default); border-radius: var(--radius-lg); box-shadow: var(--shadow-1); }
+.fa-surfaces > div > div { margin-top: var(--space-3); padding: var(--space-4); background: var(--color-bg-surface-raised); border-radius: var(--radius-lg); box-shadow: var(--shadow-4); }
+.fa-surfaces .well { margin-top: var(--space-3); }
+.fa-surfaces small { display: block; font: var(--text-caption); color: var(--color-fg-muted); }
+.fa-zstack { display: flex; flex-direction: column-reverse; gap: var(--space-1); }
+.fa-zstack div { display: flex; justify-content: space-between; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); background: var(--color-bg-subtle); font: var(--text-body-sm); }
+.fa-zstack div:nth-child(odd) { background: var(--color-bg-surface); border: 1px solid var(--color-border-default); }
+
+/* Shape */
+.fa-radius-row { display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: flex-end; }
+.fa-radius-row figure { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); font: var(--text-caption); color: var(--color-fg-muted); }
+.fa-border-sample { width: 6rem; height: 3rem; border-radius: var(--radius-md); background: var(--color-bg-surface); }
+/* Breakpoint ruler: highlight the band that matches the window (min-width only). */
+.fa-bp--base { background: var(--color-accent-subtle); color: var(--color-fg-accent); }
+@media (min-width: 40rem) { .fa-bp--base { background: var(--color-bg-surface); color: inherit; } .fa-bp--sm { background: var(--color-accent-subtle); color: var(--color-fg-accent); } }
+@media (min-width: 48rem) { .fa-bp--sm { background: var(--color-bg-surface); color: inherit; } .fa-bp--md { background: var(--color-accent-subtle); color: var(--color-fg-accent); } }
+@media (min-width: 64rem) { .fa-bp--md { background: var(--color-bg-surface); color: inherit; } .fa-bp--lg { background: var(--color-accent-subtle); color: var(--color-fg-accent); } }
+@media (min-width: 80rem) { .fa-bp--lg { background: var(--color-bg-surface); color: inherit; } .fa-bp--xl { background: var(--color-accent-subtle); color: var(--color-fg-accent); } }
+@media (min-width: 96rem) { .fa-bp--xl { background: var(--color-bg-surface); color: inherit; } .fa-bp--2xl { background: var(--color-accent-subtle); color: var(--color-fg-accent); } }
+.fa-ruler { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (min-width: 40rem) { .fa-ruler { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+
+/* ---------- Foundations B: motion, iconography, theming, responsive, accessibility, content ---------- */
+/* Motion demos: ds.js sets data-run on .ds-motion-demo itself; snap back instantly before replaying. */
+.ds-motion-demo { align-items: center; padding-block: var(--space-2); }
+.ds-motion-demo[data-run="true"] .dot { translate: 6rem 0; }
+.ds-motion-demo[data-run="false"] .dot { transition: none; }
+.ds-motion-demo .dot { display: block; }
+.ds-motion-track { display: block; flex: 1; min-width: 9rem; max-width: 12rem; padding: var(--space-2); background: var(--color-bg-surface-sunken); border-radius: var(--radius-full); }
+.ds-motion-list { display: flex; flex-direction: column; gap: var(--space-2); }
+.ds-motion-list .ds-motion-demo { gap: var(--space-3); }
+.ds-motion-label { font: var(--text-label); min-width: 9rem; }
+.ds-motion-label small { display: block; font: var(--text-caption); color: var(--color-fg-muted); font-family: var(--font-family-mono); }
+.ds-loops { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr)); }
+.ds-loops > div { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4); border: var(--border-width-hairline) solid var(--color-border-default); border-radius: var(--radius-md); background: var(--color-bg-surface); }
+
+/* Icon sheet */
+.ds-icon-sheet { display: grid; gap: var(--space-2); grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); list-style: none; padding: 0; margin-block: var(--space-4); }
+.ds-icon-sheet li { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding: var(--space-4) var(--space-2); border: var(--border-width-hairline) solid var(--color-border-default); border-radius: var(--radius-md); background: var(--color-bg-surface); text-align: center; }
+.ds-icon-sheet li + li { margin-top: 0; }
+.ds-icon-sheet code { font-size: var(--font-size-xs); background: none; padding: 0; }
+.ds-icon-sheet small { font: var(--text-caption); color: var(--color-fg-muted); }
+.ds-icon-sheet li[data-added] { border-style: dashed; border-color: var(--color-accent); }
+.ds-icon-sizes { display: flex; align-items: flex-end; gap: var(--space-6); flex-wrap: wrap; }
+.ds-icon-sizes figure { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); font: var(--text-caption); color: var(--color-fg-muted); }
+.ds-icon-grid { width: 6rem; height: 6rem; padding: 0; background-image: linear-gradient(var(--color-border-default) 1px, transparent 1px), linear-gradient(90deg, var(--color-border-default) 1px, transparent 1px); background-size: 0.25rem 0.25rem; border: var(--border-width-hairline) solid var(--color-border-strong); }
+.ds-icon-grid .icon { width: 100%; height: 100%; stroke-width: 1; color: var(--color-fg-accent); }
+
+/* Target sizes and focus specimens */
+.ds-targets { display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: flex-end; }
+.ds-targets figure { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); font: var(--text-caption); color: var(--color-fg-muted); text-align: center; }
+.ds-target-box { display: grid; place-items: center; border: var(--border-width-hairline) dashed var(--color-accent); background: var(--color-accent-subtle); color: var(--color-fg-accent); border-radius: var(--radius-sm); }
+.ds-target-box--min { width: var(--target-min); height: var(--target-min); }
+.ds-target-box--comfortable { width: var(--target-comfortable); height: var(--target-comfortable); }
+.ds-heights { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: flex-end; }
+.ds-heights .input { width: 12rem; }
+
+/* Responsive: live breakpoint readout (doc-only media queries mirror the breakpoint tokens). */
+.ds-bp { display: inline-flex; gap: var(--space-2); align-items: center; padding: var(--space-2) var(--space-4); border-radius: var(--radius-full); background: var(--color-accent-subtle); color: var(--color-fg-accent); font: var(--text-label); }
+.ds-bp span { display: none; }
+.ds-bp .ds-bp--base { display: inline; }
+@media (min-width: 40rem) { .ds-bp .ds-bp--base { display: none; } .ds-bp .ds-bp--sm { display: inline; } }
+@media (min-width: 48rem) { .ds-bp .ds-bp--sm { display: none; } .ds-bp .ds-bp--md { display: inline; } }
+@media (min-width: 64rem) { .ds-bp .ds-bp--md { display: none; } .ds-bp .ds-bp--lg { display: inline; } }
+@media (min-width: 80rem) { .ds-bp .ds-bp--lg { display: none; } .ds-bp .ds-bp--xl { display: inline; } }
+@media (min-width: 96rem) { .ds-bp .ds-bp--xl { display: none; } .ds-bp .ds-bp--2xl { display: inline; } }
+
+/* Theming: tier diagram */
+.ds-tiers { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); margin-block: var(--space-4); }
+.ds-tiers > div { padding: var(--space-4); border: var(--border-width-hairline) solid var(--color-border-default); border-radius: var(--radius-md); background: var(--color-bg-surface); display: flex; flex-direction: column; gap: var(--space-2); }
+.ds-tiers b { font: var(--text-label); }
+.ds-tiers code { font-size: var(--font-size-xs); }
+
+/* Content: formula cards */
+.ds-formula { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin-block: var(--space-3); }
+.ds-formula span { padding: var(--space-1) var(--space-3); border-radius: var(--radius-full); background: var(--color-accent-subtle); color: var(--color-fg-accent); font: var(--text-label); }
+.ds-formula i { color: var(--color-fg-subtle); font-style: normal; }
+
+/* Usage tables scroll sideways on phones instead of crushing the prose column. */
+.ds-table--usage td:last-child { min-width: 16rem; }
+.ds-section > .ds-icon-sheet { max-width: none; padding-left: 0; }
+
+/* Index page previews. */
+.ds-index-col { width: 2.5rem; height: 2.5rem; }
+.ds-index-input { display: inline-flex; align-items: center; width: 10rem; color: var(--color-fg-default); }
+.ds-card__preview .cluster { flex-wrap: nowrap; }
+
+/* Pattern pages: composed, static examples (doc-only). */
+.ds-pattern-frame { position: relative; overflow: hidden; border: 1px dashed var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-bg-canvas); }
+.ds-pattern-frame--pad { padding: var(--space-6) var(--space-4); }
+.ds-pattern-frame--center { display: grid; place-items: center; padding: var(--space-6) var(--space-4); }
+.ds-pattern-frame--sheet { display: flex; flex-direction: column; justify-content: flex-end; min-height: 22rem; padding-top: var(--space-12); background: var(--color-bg-backdrop); }
+.ds-pattern-frame--dim { background: var(--color-bg-backdrop); }
+.ds-pattern-frame .dialog__panel--static { margin-inline: auto; }
+.ds-pattern-frame--sheet .dialog__panel--static { border-radius: var(--radius-xl) var(--radius-xl) 0 0; max-width: none; }
+.ds-pattern-frame .sidebar-layout { min-height: 0; }
+.ds-pattern-frame .sidebar { position: static; height: auto; }
+.ds-pattern-frame .container { padding-block: var(--space-2) var(--space-6); }
+.ds-pattern-frame .empty { padding-block: var(--space-8); }
+.ds-pattern-frame .auth-layout { min-height: 0; padding-block: var(--space-8); }
+.ds-pattern-frame .toast { animation: none; }
+.ds-pattern-frame .backdrop, .ds-pattern-frame .dialog { position: static; }
+.ds-flow { list-style: none; padding: 0; margin: var(--space-4) 0; display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); counter-reset: flow; }
+.ds-flow li { counter-increment: flow; padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border-default); border-radius: var(--radius-md); background: var(--color-bg-surface); font: var(--text-body-sm); }
+.ds-flow li::before { content: counter(flow); display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; margin-right: var(--space-2); border-radius: 50%; background: var(--color-accent-subtle); color: var(--color-fg-accent); font: var(--text-overline); }
+.ds-flow li b { font: var(--text-label); }
+.ds-state-grid { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); margin-block: var(--space-4); }
+.ds-state-grid > figure { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.ds-state-grid > figure > figcaption { font: var(--text-overline); letter-spacing: var(--letter-spacing-wide); text-transform: uppercase; color: var(--color-fg-subtle); }
+.ds-state-grid > figure > .ds-pattern-frame { flex: 1; }

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grid — Invitely design system</title>
+<meta name="description" content="Places cards in responsive columns: auto-fill stat and event cards, a 12-column layout grid, the two-column guest page and the editor-with-preview split.">
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/ds.css">
+</head>
+<body id="top">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="ds-shell">
+<nav class="ds-nav" aria-label="Design system">
+<div class="ds-nav__brand"><a href="../index.html">Invitely DS</a><button class="ds-theme-toggle" type="button" aria-pressed="false">☾ Dark</button></div>
+<details open><summary>Foundations</summary><ul><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/typography.html">Typography</a></li><li><a href="../foundations/spacing.html">Spacing</a></li><li><a href="../foundations/layout.html">Layout</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/iconography.html">Iconography</a></li><li><a href="../foundations/theming.html">Theming</a></li><li><a href="../foundations/responsive.html">Responsive</a></li><li><a href="../foundations/accessibility.html">Accessibility</a></li><li><a href="../foundations/content.html">Content</a></li></ul></details>
+<details open><summary>Components</summary><ul><li><a href="../components/button.html">Button</a></li><li><a href="../components/icon-button.html">IconButton</a></li><li><a href="../components/link.html">Link</a></li><li><a href="../components/field.html">Field</a></li><li><a href="../components/text-field.html">TextField</a></li><li><a href="../components/search-field.html">SearchField</a></li><li><a href="../components/select.html">Select</a></li><li><a href="../components/textarea.html">Textarea</a></li><li><a href="../components/checkbox.html">Checkbox</a></li><li><a href="../components/radio-group.html">RadioGroup</a></li><li><a href="../components/switch.html">Switch</a></li><li><a href="../components/file-upload.html">FileUpload</a></li><li><a href="../components/error-summary.html">ErrorSummary</a></li><li><a href="../components/app-shell.html">AppShell</a></li><li><a href="../components/topbar.html">Topbar</a></li><li><a href="../components/side-nav.html">SideNav</a></li><li><a href="../components/page-header.html">PageHeader</a></li><li><a href="../components/tabs.html">Tabs</a></li><li><a href="../components/breadcrumb.html">Breadcrumb</a></li><li><a href="../components/pagination.html">Pagination</a></li><li><a href="../components/stepper.html">Stepper</a></li><li><a href="../components/skip-link.html">SkipLink</a></li><li><a href="../components/footer.html">Footer</a></li><li><a href="../components/container.html">Container</a></li><li><a href="../components/stack.html">Stack</a></li><li><a href="../components/grid.html">Grid</a></li><li><a href="../components/card.html">Card</a></li><li><a href="../components/dialog.html">Dialog</a></li><li><a href="../components/tooltip.html">Tooltip</a></li><li><a href="../components/accordion.html">Accordion</a></li><li><a href="../components/table.html">Table</a></li><li><a href="../components/list.html">List</a></li><li><a href="../components/description-list.html">DescriptionList</a></li><li><a href="../components/badge.html">Badge</a></li><li><a href="../components/chip.html">Chip</a></li><li><a href="../components/avatar.html">Avatar</a></li><li><a href="../components/stat.html">Stat</a></li><li><a href="../components/icon.html">Icon</a></li><li><a href="../components/text.html">Text</a></li><li><a href="../components/visually-hidden.html">VisuallyHidden</a></li><li><a href="../components/toast.html">Toast</a></li><li><a href="../components/alert.html">Alert</a></li><li><a href="../components/inline-status.html">InlineStatus</a></li><li><a href="../components/progress-bar.html">ProgressBar</a></li><li><a href="../components/skeleton.html">Skeleton</a></li><li><a href="../components/empty-state.html">EmptyState</a></li><li><a href="../components/error-state.html">ErrorState</a></li></ul></details>
+<details open><summary>Patterns</summary><ul><li><a href="../patterns/forms.html">Forms</a></li><li><a href="../patterns/feedback-and-loading.html">Feedback and loading</a></li><li><a href="../patterns/empty-and-error-states.html">Empty and error states</a></li><li><a href="../patterns/navigation.html">Navigation and page structure</a></li><li><a href="../patterns/dialogs-and-overlays.html">Dialogs and overlays</a></li><li><a href="../patterns/tables-and-lists.html">Data tables and lists</a></li><li><a href="../patterns/notifications.html">Notifications</a></li><li><a href="../patterns/content-and-tone.html">Content and tone</a></li></ul></details>
+</nav>
+<main id="main" class="ds-main">
+<header class="ds-header">
+<p class="ds-kicker">Component · Layout</p>
+<h1>Grid</h1>
+<p class="ds-lead">Places cards in responsive columns: auto-fill stat and event cards, a 12-column layout grid, the two-column guest page and the editor-with-preview split.</p>
+<div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span><span class="ds-pill">Status: stable</span><span class="ds-pill">React: <code>Grid</code></span><span class="ds-pill">Layout</span></div>
+<ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#anatomy">Anatomy</a></li><li><a href="#variants">Variants</a></li><li><a href="#sizes">Sizes</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive behaviour</a></li><li><a href="#theming">Theming</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don't</a></li><li><a href="#tokens">Tokens</a></li><li><a href="#code">Code</a></li><li><a href="#sources">Sources</a></li></ul>
+</header>
+<section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
+<p>Variants: <b>auto</b> (cards min 18rem, fill the row), <b>auto-sm</b> (min 10rem; block picker), <b>columns</b> (the layout grid: 4/8/12 columns with token gutters), <b>split</b> (1 column, 2 equal from LG: guest Details + Schedule), <b>aside</b> (1 column, main + 22rem aside from LG: page editor + preview).</p>
+</section>
+
+<section class="ds-section" id="anatomy"><h2><a href="#anatomy">Anatomy</a></h2>
+<div class="ds-anatomy"><figure class="ds-anatomy__figure ds-static"><div class="grid grid--auto"><div class="ds-box">card</div><div class="ds-box">card</div><div class="ds-box">card</div></div><span class="ds-callout" style="left: 20%; top: 50%;" aria-hidden="true">1</span><span class="ds-callout" style="left: 50%; top: 50%;" aria-hidden="true">2</span></figure><ol class="ds-anatomy__list"><li><div><b>Track</b><small><code>minmax(min(100%, 18rem), 1fr)</code>.</small></div></li><li><div><b>Gutter</b><small><code>--layout-gutter</code>.</small></div></li></ol></div>
+</section>
+
+<section class="ds-section" id="variants"><h2><a href="#variants">Variants</a></h2>
+<div class="ds-example"><div class="ds-example__canvas "><div class="grid grid--auto" style="flex: 1 1 100%;"><div class="ds-box">Invitees 84</div><div class="ds-box">Attending 52</div><div class="ds-box">Declined 9</div><div class="ds-box">Waiting 23</div></div></div><div class="ds-example__caption"><span>auto: stat cards.</span></div></div><div class="ds-example"><div class="ds-example__canvas "><div class="grid grid--split" style="flex: 1 1 100%;"><div class="ds-box">Details</div><div class="ds-box">Schedule</div></div></div><div class="ds-example__caption"><span>split: side by side from 992px (L2-082).</span></div></div><div class="ds-example"><div class="ds-example__canvas "><div class="grid grid--aside" style="flex: 1 1 100%;"><div class="ds-box">Blocks</div><div class="ds-box">Preview</div></div></div><div class="ds-example__caption"><span>aside: page editor.</span></div></div><div class="ds-example"><div class="ds-example__canvas "><div class="ds-grid-demo" style="flex: 1 1 100%;"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span></div></div><div class="ds-example__caption"><span>columns: the live layout grid at this width.</span></div></div>
+</section>
+
+<section class="ds-section" id="sizes" data-na="Columns and gutters come from layout tokens per breakpoint."><h2><a href="#sizes">Sizes</a></h2><p class="ds-na">Columns and gutters come from layout tokens per breakpoint.</p></section>
+
+<section class="ds-section" id="states"><h2><a href="#states">States</a></h2>
+<div class="ds-matrix"><table><thead><tr><th scope="col">State</th><th scope="col">Example</th></tr></thead><tbody><tr><th scope="row">Default</th><td><</td><td>d</td><td>i</td><td>v</td><td> </td><td>c</td><td>l</td><td>a</td><td>s</td><td>s</td><td>=</td><td>"</td><td>g</td><td>r</td><td>i</td><td>d</td><td> </td><td>g</td><td>r</td><td>i</td><td>d</td><td>-</td><td>-</td><td>a</td><td>u</td><td>t</td><td>o</td><td>"</td><td> </td><td>s</td><td>t</td><td>y</td><td>l</td><td>e</td><td>=</td><td>"</td><td>f</td><td>l</td><td>e</td><td>x</td><td>:</td><td> </td><td>1</td><td>;</td><td>"</td><td>></td><td><</td><td>d</td><td>i</td><td>v</td><td> </td><td>c</td><td>l</td><td>a</td><td>s</td><td>s</td><td>=</td><td>"</td><td>d</td><td>s</td><td>-</td><td>b</td><td>o</td><td>x</td><td>"</td><td>></td><td>A</td><td><</td><td>/</td><td>d</td><td>i</td><td>v</td><td>></td><td><</td><td>d</td><td>i</td><td>v</td><td> </td><td>c</td><td>l</td><td>a</td><td>s</td><td>s</td><td>=</td><td>"</td><td>d</td><td>s</td><td>-</td><td>b</td><td>o</td><td>x</td><td>"</td><td>></td><td>B</td><td><</td><td>/</td><td>d</td><td>i</td><td>v</td><td>></td><td><</td><td>/</td><td>d</td><td>i</td><td>v</td><td>></td></tr></tbody></table></div><div class="ds-themes"><div data-theme="light"><div class="ds-example__canvas " style="padding: 0;"><div class="grid grid--auto" style="flex: 1;"><div class="ds-box">A</div><div class="ds-box">B</div></div></div></div><div data-theme="dark"><div class="ds-example__canvas " style="padding: 0;"><div class="grid grid--auto" style="flex: 1;"><div class="ds-box">A</div><div class="ds-box">B</div></div></div></div></div>
+</section>
+
+<section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive behaviour</a></h2>
+<ul><li>auto: 1 column at 360px, 2 at MD, 4 at LG+ for stat cards.</li><li>split / aside: one column below 992px; two from 992px.</li><li>columns: 4 / 8 / 12 at XS / MD / LG.</li></ul>
+</section>
+
+<section class="ds-section" id="theming"><h2><a href="#theming">Theming</a></h2>
+<p>No colour.</p>
+</section>
+
+<section class="ds-section" id="accessibility"><h2><a href="#accessibility">Accessibility</a></h2>
+<h3>Role and pattern</h3><p>Plain container; DOM order is reading order.</p>
+<h3>Keyboard</h3><div class="ds-table-wrap"><table class="ds-table ds-keys"><thead><tr><th scope="col">Key</th><th scope="col">Action</th></tr></thead><tbody><tr><td>—</td><td>None.</td></tr></tbody></table></div>
+<h3>Focus</h3><p>Never use <code>order</code> to move focusable items.</p>
+<h3>Labelling</h3><p>—</p>
+<h3>Contrast</h3><p>Live ratios for the token pairs this component relies on, in both themes. Every pair is also listed in <code>tokens/contrast-pairs.json</code> and checked by <code>check_contrast.py</code>.</p><div class="ds-themes"><div data-theme="light"><div class="ds-example__canvas ds-example__canvas--stack" style="padding: 0; gap: var(--space-2);"><div class="ds-pair"><span>Text</span><span class="ds-pair__ratio" data-contrast="--color-fg-default|--color-bg-canvas" data-min="4.5"></span></div></div></div><div data-theme="dark"><div class="ds-example__canvas ds-example__canvas--stack" style="padding: 0; gap: var(--space-2);"><div class="ds-pair"><span>Text</span><span class="ds-pair__ratio" data-contrast="--color-fg-default|--color-bg-canvas" data-min="4.5"></span></div></div></div></div>
+<h3>Motion</h3><p>None.</p>
+<h3>Touch</h3><p>—</p>
+</section>
+
+<section class="ds-section" id="content"><h2><a href="#content">Content</a></h2>
+<ul><li>—</li></ul>
+</section>
+
+<section class="ds-section" id="do-dont"><h2><a href="#do-dont">Do and don't</a></h2>
+<div class="ds-dodont"><figure class="ds-do"><div class="ds-example__canvas ds-static"><div class="grid grid--auto" style="flex: 1;"><div class="ds-box">A</div><div class="ds-box">B</div></div></div><figcaption>Auto-fill cards.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas ds-static"><div style="display: grid; grid-template-columns: 300px 300px 300px;"><div class="ds-box">A</div></div></div><figcaption>Fixed columns overflow at 360px.</figcaption></figure><figure class="ds-do"><div class="ds-example__canvas ds-static"><span class="text-muted">split for Details + Schedule</span></div><figcaption></figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas ds-static"><span class="text-muted">Page-specific grids in &lt;style&gt; (cms-grid)</span></div><figcaption>Use the aside variant.</figcaption></figure></div>
+</section>
+
+<section class="ds-section" id="tokens"><h2><a href="#tokens">Tokens</a></h2>
+<div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Part</th><th scope="col">Token</th><th scope="col">Light</th><th scope="col">Dark</th></tr></thead><tbody><tr><td>Columns</td><td><code>--layout-columns</code></td><td colspan="2"><span data-token="--layout-columns"></span></td></tr><tr><td>Gutter</td><td><code>--layout-gutter</code></td><td colspan="2"><span data-token="--layout-gutter"></span></td></tr><tr><td>Margin</td><td><code>--layout-margin</code></td><td colspan="2"><span data-token="--layout-margin"></span></td></tr></tbody></table></div>
+</section>
+
+<section class="ds-section" id="code"><h2><a href="#code">Code</a></h2>
+<h3>HTML</h3><pre><code>&lt;div class=&quot;grid grid--auto&quot;&gt;…&lt;/div&gt;
+&lt;div class=&quot;grid grid--split&quot;&gt;…&lt;/div&gt;</code></pre><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead><tbody><tr><td><code>.grid</code></td><td>12/8/4 columns.</td></tr><tr><td><code>.grid--auto / --auto-sm</code></td><td>Auto-fill.</td></tr><tr><td><code>.grid--split / --aside</code></td><td>Two-column from LG.</td></tr><tr><td><code>.span-full</code></td><td>Full row.</td></tr></tbody></table></div><h3>React</h3><p>Implemented as <code>src/shared/ui/components/Grid/Grid.tsx</code> and exported from the <code>components/index.ts</code> barrel. Presentational only: data in through props, actions out through callbacks; variants, sizes and states are props, never caller class names.</p><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Prop</th><th scope="col">Type</th><th scope="col">Default</th><th scope="col">Notes</th></tr></thead><tbody><tr><td><code>variant</code></td><td><code>&#x27;auto&#x27; | &#x27;auto-sm&#x27; | &#x27;columns&#x27; | &#x27;split&#x27; | &#x27;aside&#x27;</code></td><td><code>&#x27;auto&#x27;</code></td><td></td></tr><tr><td><code>as</code></td><td><code>ElementType</code></td><td><code>&#x27;div&#x27;</code></td><td></td></tr><tr><td><code>children</code></td><td><code>ReactNode</code></td><td>—</td><td></td></tr></tbody></table></div><pre><code>&lt;Grid variant=&quot;split&quot;&gt;&lt;DetailsBlock … /&gt;&lt;ScheduleBlock … /&gt;&lt;/Grid&gt;</code></pre>
+</section>
+
+<section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
+<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/event-overview/default.html">pages/event-overview/default</a> (auto)</li><li><a href="../../mocks/pages/event-page-cms/default.html">pages/event-page-cms/default</a> (aside (was inline cms-grid))</li><li><a href="../../mocks/dialogs/block-picker/default.html">dialogs/block-picker/default</a> (auto-sm (was inline style))</li></ul><p>Drift fixed during extraction: the editor’s <code>&lt;style&gt;.cms-grid</code> and the block picker’s inline grid template became <code>grid--aside</code> and <code>grid--auto-sm</code>.</p>
+</section>
+
+<footer class="ds-footer"><span>Invitely design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 20 October 2026</span><a href="#top">Back to top</a></footer>
+</main>
+</div>
+<script src="../assets/ds.js"></script>
+</body>
+</html>

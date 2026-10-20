@@ -16,15 +16,19 @@
    page has not forced [data-theme="light"]. High-contrast tweaks apply
    under prefers-contrast: more and forced-colors.
 
-   Invitely (rsvp-cms). Values were harvested from docs/mocks/assets/tokens.css
-   and the 166 mocks on 2026-10-20, then normalised: raw dark-theme values
-   were promoted to primitives (gray-150/350/425/450/750/925) and toast icon
-   tokens for the inverse surface were added. Every change is in the drift
-   log in docs/design-system/README.md. Verify with check_contrast.py.
+   Invitely (rsvp-cms) values. Harvested from docs/mocks (which shipped the
+   starter palette unchanged) and adjusted to docs/specs L2-080..L2-088:
+   breakpoints follow the L2 viewport bands (576 / 768 / 992 / 1200 px),
+   toast icons gain on-inverse status colours, dark literals became
+   primitives. Verify with scripts/check_contrast.py after any change.
+
+   Theme resolution (decided in foundations/theming.html):
+     1. a saved choice (data-theme on <html>) wins;
+     2. otherwise prefers-color-scheme: dark applies the dark theme;
+     3. otherwise, including when the OS reports no preference, light.
    ========================================================================== */
 
-:root,
-[data-theme="light"] {
+:root {
   /* ---------- Primitives: colour --------------------------------------- */
   --palette-white: #ffffff;
   --palette-black: #000000;
@@ -32,21 +36,22 @@
   --palette-gray-25: #fbfbfc;
   --palette-gray-50: #f6f7f9;
   --palette-gray-100: #eef0f3;
-  --palette-gray-150: #e9ecf1;   /* dark-theme body text */
   --palette-gray-200: #dfe3e8;
   --palette-gray-300: #c9cfd8;
-  --palette-gray-350: #b3bac5;   /* dark-theme secondary text */
   --palette-gray-400: #a3abb8;
-  --palette-gray-425: #959eab;   /* dark-theme placeholder text */
-  --palette-gray-450: #8d97a5;   /* dark-theme control borders */
-  --palette-gray-500: #677080;   /* lightest gray at 4.5:1 on the light canvas */
-  --palette-gray-600: #5e6675;
+  --palette-gray-500: #677080;
+  --palette-gray-600: #586070;  /* was #5e6675; darkened so muted text passes 4.5:1 on subtle-hover */
   --palette-gray-700: #444b58;
-  --palette-gray-750: #2f3640;   /* dark-theme dividers */
   --palette-gray-800: #2c323c;
   --palette-gray-900: #1a1e26;
-  --palette-gray-925: #14181e;   /* dark-theme sunken surfaces */
   --palette-gray-950: #0f1216;
+  /* Dark-theme greys (in-between steps used only by the dark theme) */
+  --palette-gray-125: #e9ecf1;  /* dark fg-default */
+  --palette-gray-350: #bac1cc;  /* dark fg-muted; was #b3bac5, lightened for 4.5:1 on subtle-hover */
+  --palette-gray-425: #8d97a5;  /* dark border-strong */
+  --palette-gray-450: #959eab;  /* dark fg-subtle */
+  --palette-gray-775: #2f3640;  /* dark border-default */
+  --palette-gray-925: #14181e;  /* dark surface-sunken */
 
   --palette-blue-50: #ebf2ff;
   --palette-blue-100: #d6e3ff;
@@ -172,7 +177,7 @@
   --color-danger-solid-hover: var(--palette-red-700);
   --color-fg-on-danger: var(--palette-white);
 
-  /* Status icons on the inverse surface (toasts). Light: pale tints on near-black. */
+  /* Status icons on --color-bg-inverse (toasts). >= 3:1 against the inverse surface. */
   --color-info-icon-on-inverse: var(--palette-blue-300);
   --color-success-icon-on-inverse: var(--palette-green-300);
   --color-warning-icon-on-inverse: var(--palette-amber-300);
@@ -209,16 +214,22 @@
   --space-24: 6rem;      /* 96px */
 
   /* ---------- Semantic: layout ----------------------------------------- */
-  --layout-breakpoint-sm: 40rem;   /* 640px  large phones */
-  --layout-breakpoint-md: 48rem;   /* 768px  tablets */
-  --layout-breakpoint-lg: 64rem;   /* 1024px small laptops */
-  --layout-breakpoint-xl: 80rem;   /* 1280px desktops */
-  --layout-breakpoint-2xl: 96rem;  /* 1536px wide screens */
+  /* L2 viewport bands: XS < 576, SM >= 576, MD >= 768, LG >= 992, XL >= 1200 */
+  --layout-breakpoint-sm: 36rem;   /* 576px  SM: large phones, landscape */
+  --layout-breakpoint-md: 48rem;   /* 768px  MD: tablets; persistent side navigation */
+  --layout-breakpoint-lg: 62rem;   /* 992px  LG: laptops; 12 columns, two-column guest page */
+  --layout-breakpoint-xl: 75rem;   /* 1200px XL: desktops */
+  --layout-breakpoint-2xl: 96rem;  /* 1536px wide screens; content stays at container max */
 
   --layout-columns: 4;              /* grid columns at the current breakpoint */
   --layout-gutter: var(--space-4);  /* gap between columns */
   --layout-margin: var(--space-4);  /* page edge to content */
-  --layout-container-max: 80rem;    /* 1280px */
+  --layout-container-max: 80rem;    /* 1280px organiser pages */
+  --layout-container-narrow: 42rem; /* 672px  auth, RSVP form, guest page below LG */
+  --layout-container-guest: 60rem;  /* 960px  guest page at LG and wider */
+  --layout-form-max: 45rem;         /* 720px  RSVP form maximum width (L2-082) */
+  --layout-dialog-max: 35rem;       /* 560px  centred dialog maximum width (L2-083) */
+  --layout-drawer-width: 20rem;     /* 320px  navigation drawer between SM and MD */
   --layout-measure: 65ch;           /* max line length for prose */
   --layout-sidebar-width: 16rem;    /* 256px */
   --layout-topbar-height: 3.5rem;   /* 56px */
@@ -245,19 +256,13 @@
   /* ---------- Semantic: motion ----------------------------------------- */
   --duration-instant: 0ms;
   --duration-fast: 120ms;     /* hover, colour changes */
-  --duration-base: 200ms;     /* reveal, menus, tooltips */
-  --duration-slow: 320ms;     /* dialogs, sheets, page transitions */
+  --duration-base: 200ms;     /* overlay entrance: dialogs, sheets, drawers, toasts, banners; menus, tooltips */
+  --duration-slow: 320ms;     /* progress bar fill, page-level transitions */
   --duration-deliberate: 500ms;/* progress, skeleton shimmer cycles */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-enter: cubic-bezier(0, 0, 0, 1);
   --ease-exit: cubic-bezier(0.3, 0, 1, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  /* Loops and delays. Loops are status indicators, so reduced motion slows
-     rather than stops the spinner (components.css), and stops the rest. */
-  --duration-spin: 800ms;       /* spinner and busy-button rotation */
-  --duration-shimmer: 1400ms;   /* skeleton shimmer, indeterminate progress */
-  --duration-pulse: 1600ms;     /* live "dot" pulse */
-  --delay-tooltip: 300ms;       /* hover/focus before a tooltip shows */
 
   /* ---------- Semantic: z-order ---------------------------------------- */
   --z-base: 0;
@@ -272,7 +277,7 @@
 
   /* ---------- Semantic: interaction ------------------------------------ */
   --target-min: 1.5rem;      /* 24px  WCAG 2.2 AA minimum target size */
-  --target-comfortable: 2.75rem; /* 44px recommended touch target */
+  --target-comfortable: 2.75rem; /* 44px touch target: every control under (pointer: coarse) (L2-084) */
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
   --control-height-sm: 2rem;    /* 32px */
@@ -291,7 +296,7 @@
   }
 }
 
-@media (min-width: 64rem) {
+@media (min-width: 62rem) {
   :root {
     --layout-columns: 12;
     --layout-gutter: var(--space-8);
@@ -310,16 +315,16 @@
   --color-bg-inverse: var(--palette-gray-100);
   --color-bg-backdrop: rgba(0, 0, 0, 0.65);
 
-  --color-fg-default: var(--palette-gray-150);
+  --color-fg-default: var(--palette-gray-125);
   --color-fg-muted: var(--palette-gray-350);
-  --color-fg-subtle: var(--palette-gray-425);
+  --color-fg-subtle: var(--palette-gray-450);
   --color-fg-disabled: var(--palette-gray-600);
   --color-fg-inverse: var(--palette-gray-900);
   --color-fg-link: var(--palette-blue-300);
   --color-fg-link-hover: var(--palette-blue-200);
 
-  --color-border-default: var(--palette-gray-750);
-  --color-border-strong: var(--palette-gray-450);
+  --color-border-default: var(--palette-gray-775);
+  --color-border-strong: var(--palette-gray-425);
   --color-border-inverse: var(--palette-gray-300);
 
   --color-accent: var(--palette-blue-300);
@@ -360,7 +365,7 @@
   --color-info-icon-on-inverse: var(--palette-blue-700);
   --color-success-icon-on-inverse: var(--palette-green-700);
   --color-warning-icon-on-inverse: var(--palette-amber-700);
-  --color-danger-icon-on-inverse: var(--palette-red-600);
+  --color-danger-icon-on-inverse: var(--palette-red-700);
 
   --shadow-color: 0 0 0;
   --shadow-1: 0 1px 2px rgb(var(--shadow-color) / 0.4);
@@ -382,15 +387,15 @@
     --color-bg-subtle-hover: var(--palette-gray-700);
     --color-bg-inverse: var(--palette-gray-100);
     --color-bg-backdrop: rgba(0, 0, 0, 0.65);
-    --color-fg-default: var(--palette-gray-150);
+    --color-fg-default: var(--palette-gray-125);
     --color-fg-muted: var(--palette-gray-350);
-    --color-fg-subtle: var(--palette-gray-425);
+    --color-fg-subtle: var(--palette-gray-450);
     --color-fg-disabled: var(--palette-gray-600);
     --color-fg-inverse: var(--palette-gray-900);
     --color-fg-link: var(--palette-blue-300);
     --color-fg-link-hover: var(--palette-blue-200);
-    --color-border-default: var(--palette-gray-750);
-    --color-border-strong: var(--palette-gray-450);
+    --color-border-default: var(--palette-gray-775);
+    --color-border-strong: var(--palette-gray-425);
     --color-border-inverse: var(--palette-gray-300);
     --color-accent: var(--palette-blue-300);
     --color-accent-hover: var(--palette-blue-200);
@@ -425,7 +430,7 @@
     --color-info-icon-on-inverse: var(--palette-blue-700);
     --color-success-icon-on-inverse: var(--palette-green-700);
     --color-warning-icon-on-inverse: var(--palette-amber-700);
-    --color-danger-icon-on-inverse: var(--palette-red-600);
+    --color-danger-icon-on-inverse: var(--palette-red-700);
     --shadow-color: 0 0 0;
     --shadow-1: 0 1px 2px rgb(var(--shadow-color) / 0.4);
     --shadow-2: 0 2px 6px rgb(var(--shadow-color) / 0.45), 0 1px 2px rgb(var(--shadow-color) / 0.3);
