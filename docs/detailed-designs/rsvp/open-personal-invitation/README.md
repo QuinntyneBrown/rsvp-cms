@@ -35,7 +35,7 @@ The code places each design component as follows.
 | `InvitationViewAssembler`, `PersonalLinkResolver` | Merged into that route. Every failure answers 404 "This invitation link doesn't work" |
 | `InvitationWindow` | `windowState` in the same file: a Draft event is not open, and the window runs from `invite_open` to the end of `invite_close` |
 | `EventSnapshot`, `InvitationPageView` | `EventRecord` and the route's JSON: the state, the guest's name and places, the event, the guest's own reply and, unless not yet open, the published blocks |
-| `InvitationLink` | The `token` column of `guests`; no link regeneration exists, and the token is deleted with the guest |
+| `InvitationLink` | The `token` and `link_epoch` columns of `guests`. A token issued under an older `events.link_epoch` than the event's current one is invalid; that 404 also names the organiser (L2-038 AC2). The token is deleted with the guest |
 | `InvitationLinkRepository`, `EventRepository` | `Store.guestByToken` and `Store.getEvent` |
 
 Persistence goes through the `Store` interface in `src/data/store.ts`. The running app uses `PrismaStore` (`src/data/prismaStore.ts`), which reaches PostgreSQL 17 through Prisma ORM 7 with the `@prisma/adapter-pg` driver adapter. Every automated test and the Playwright e2e server use the in-memory `MemoryStore` (`src/data/memoryStore.ts`) instead. The schema and migrations are `src/data/prisma/schema.prisma` and `src/data/prisma/migrations/`.

@@ -47,3 +47,44 @@ test.describe('L2-036 Sender identity in Event settings', () => {
     expect(api.event(event.id)!.senderName).toBe('Maya and Sam');
   });
 });
+
+test.describe('L2-011 Regenerate invitation links', () => {
+  const dialog = (admin: { page: import('@playwright/test').Page }) => admin.page.getByRole('dialog', { name: 'Reset invitation links?' });
+
+  test('AC1/AC3 confirming resets every link and says new ones go with the next email, without showing any', async ({ admin, api }) => {
+    const maya = api.addGuest(event.id, { name: 'Maya Chen' });
+    await admin.event.goto(event.id, 'settings');
+    await admin.page.getByRole('button', { name: 'Regenerate' }).click();
+    await expect(dialog(admin)).toContainText('Every invitation link and code stops working.');
+    await expect(dialog(admin).getByRole('button', { name: 'Cancel' })).toBeFocused();
+    await dialog(admin).getByRole('button', { name: 'Reset links' }).click();
+    await expect(dialog(admin)).toHaveCount(0);
+    const done = admin.page.getByRole('alert').filter({ hasText: 'Invitation links reset' });
+    await expect(done).toContainText('New links are sent with the next invitation email.');
+    await expect(admin.page.getByText(maya.token)).toHaveCount(0);
+    await expect(admin.page.getByText(maya.code)).toHaveCount(0);
+    expect(api.event(event.id)!.linkEpoch).toBe(1);
+  });
+
+  test('Cancel keeps the links', async ({ admin, api }) => {
+    await admin.event.goto(event.id, 'settings');
+    await admin.page.getByRole('button', { name: 'Regenerate' }).click();
+    await dialog(admin).getByRole('button', { name: 'Cancel' }).click();
+    await expect(dialog(admin)).toHaveCount(0);
+    expect(api.event(event.id)!.linkEpoch).toBe(0);
+    expect(api.calls('POST', `/api/events/${event.id}/invitation-links/regenerate`)).toHaveLength(0);
+  });
+
+  test('AC4 a failed reset says nothing changed and Try again resets', async ({ admin, api }) => {
+    api.failNext('POST', `/api/events/${event.id}/invitation-links/regenerate`);
+    await admin.event.goto(event.id, 'settings');
+    await admin.page.getByRole('button', { name: 'Regenerate' }).click();
+    await dialog(admin).getByRole('button', { name: 'Reset links' }).click();
+    const failed = dialog(admin).getByRole('alert').filter({ hasText: "Links weren't reset" });
+    await expect(failed).toContainText('the current links still work');
+    expect(api.event(event.id)!.linkEpoch).toBe(0);
+    await failed.getByRole('button', { name: 'Try again' }).click();
+    await expect(dialog(admin)).toHaveCount(0);
+    expect(api.event(event.id)!.linkEpoch).toBe(1);
+  });
+});

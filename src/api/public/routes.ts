@@ -39,7 +39,8 @@ export function publicRoutes(ctx: Ctx): Router {
       return;
     }
     const guest = await ctx.store.guestByCode(normaliseCode(raw));
-    if (!guest) {
+    const event = guest ? await ctx.store.getEvent(guest.eventId) : null;
+    if (!guest || !event || guest.linkEpoch !== event.linkEpoch) {
       res.status(404).json({ error: INVALID });
       return;
     }
@@ -51,6 +52,12 @@ export function publicRoutes(ctx: Ctx): Router {
     const event = guest ? await ctx.store.getEvent(guest.eventId) : null;
     if (!guest || !event) {
       res.status(404).json({ error: INVALID });
+      return;
+    }
+    // A link replaced by regeneration names the organiser to ask for a new one (L2-038 AC2).
+    if (guest.linkEpoch !== event.linkEpoch) {
+      const organiser = await ctx.store.findOrganiserById(event.organiserId);
+      res.status(404).json({ error: INVALID, host: organiser?.name ?? '' });
       return;
     }
     const state = windowState(event, isoDate(ctx.now()));
@@ -72,7 +79,7 @@ export function publicRoutes(ctx: Ctx): Router {
   r.post('/invite/:token/rsvp', async (req, res) => {
     const guest = await ctx.store.guestByToken(req.params.token);
     const event = guest ? await ctx.store.getEvent(guest.eventId) : null;
-    if (!guest || !event) {
+    if (!guest || !event || guest.linkEpoch !== event.linkEpoch) {
       res.status(404).json({ error: INVALID });
       return;
     }

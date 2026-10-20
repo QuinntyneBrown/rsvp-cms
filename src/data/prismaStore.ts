@@ -47,6 +47,7 @@ const eventRecord = (e: EventRow): EventRecord => ({
   inviteClose: toDay(e.inviteClose),
   senderName: e.senderName,
   replyTo: e.replyTo,
+  linkEpoch: e.linkEpoch,
 });
 
 const guestRecord = (g: GuestRow): GuestRecord => ({
@@ -58,6 +59,7 @@ const guestRecord = (g: GuestRow): GuestRecord => ({
   plusOnes: g.plusOnes,
   token: g.token,
   code: g.code,
+  linkEpoch: g.linkEpoch,
 });
 
 const emailRecord = (e: EmailRow): EmailRecord => ({
@@ -179,6 +181,10 @@ export class PrismaStore implements Store {
     await this.db.event.update({ where: { id: eventId }, data: { ...sender, updatedAt: new Date(now) } });
   }
 
+  async regenerateLinks(eventId: number, now: number) {
+    await this.db.event.update({ where: { id: eventId }, data: { linkEpoch: { increment: 1 }, updatedAt: new Date(now) } });
+  }
+
   async deleteEvent(id: number) {
     await this.db.event.deleteMany({ where: { id } });
   }
@@ -270,12 +276,21 @@ export class PrismaStore implements Store {
 
   async insertGuest(eventId: number, g: GuestInput, now: number) {
     const at = new Date(now);
+    const event = await this.db.event.findUnique({ where: { id: eventId }, select: { linkEpoch: true } });
     const row = await unique('email', () =>
       this.db.guest.create({
-        data: { eventId, name: g.name, email: g.email, groupName: g.group, plusOnes: g.plusOnes, token: generateToken(), code: generateCode(), createdAt: at, updatedAt: at },
+        data: {
+          eventId, name: g.name, email: g.email, groupName: g.group, plusOnes: g.plusOnes, token: generateToken(), code: generateCode(),
+          linkEpoch: event?.linkEpoch ?? 0, createdAt: at, updatedAt: at,
+        },
       }),
     );
     return row.id;
+  }
+
+  async reissueLink(guestId: number, epoch: number) {
+    const row = await this.db.guest.update({ where: { id: guestId }, data: { token: generateToken(), code: generateCode(), linkEpoch: epoch } });
+    return { token: row.token, code: row.code };
   }
 
   async updateGuest(id: number, g: GuestInput, now: number) {
@@ -407,7 +422,7 @@ export class PrismaStore implements Store {
   async sendContext(emailId: number): Promise<SendContext | null> {
     const e = await this.db.email.findUnique({ where: { id: emailId }, include: { event: { include: { organiser: true } } } });
     if (!e) return null;
-    return { email: emailRecord(e), event: { name: e.event.name, date: toDay(e.event.date), senderName: e.event.senderName, replyTo: e.event.replyTo }, organiserName: e.event.organiser.name };
+    return { email: emailRecord(e), event: { name: e.event.name, date: toDay(e.event.date), senderName: e.event.senderName, replyTo: e.event.replyTo, linkEpoch: e.event.linkEpoch }, organiserName: e.event.organiser.name };
   }
 
   /** ON CONFLICT DO NOTHING keeps this safe to repeat after a crash. */
@@ -430,7 +445,7 @@ export class PrismaStore implements Store {
     });
     return rows.map((d) => ({
       id: d.id, emailId: d.emailId, status: d.status, idempotencyKey: d.idempotencyKey, attempts: d.attempts,
-      guest: { id: d.guest.id, name: d.guest.name, email: d.guest.email, token: d.guest.token, code: d.guest.code, hasReplied: Boolean(d.guest.response) },
+      guest: { id: d.guest.id, name: d.guest.name, email: d.guest.email, token: d.guest.token, code: d.guest.code, linkEpoch: d.guest.linkEpoch, hasReplied: Boolean(d.guest.response) },
     }));
   }
 

@@ -21,6 +21,15 @@ The feature spans the organiser UI, the API, the domain and the data layer.
 - **`InvitationEpoch`** — value object in `src/domain/events` holding the non-negative integer counter that every issued link and code records.
 - **`EventRepository`** — persistence class in `src/data/events` that advances the epoch in a single conditional write.
 
+The code places each design component as follows.
+
+| Design component | Where it lives |
+|------------------|----------------|
+| `RegenerateLinksDialog`, `InvitationLinksClient` | `DangerZone` and `RegenerateDialog` in `src/admin/pages/Settings.tsx`, on the event's Settings tab, using the shared `post` helper |
+| `InvitationLinksController`, `InvitationLinkService` | `POST /api/events/:id/invitation-links/regenerate` in `src/api/events/routes.ts`; it answers with the message only, never a link value |
+| `Event`, `InvitationEpoch` | `EventRecord.linkEpoch`, the `link_epoch` column of `events`; each guest's `link_epoch` records the epoch its token and code were issued under |
+| `EventRepository` | `Store.regenerateLinks`, one increment of `link_epoch`. The mail worker gives a guest with an older epoch a new token and code (`Store.reissueLink`) just before it sends them the next email |
+
 ## Requirements
 
 The feature realizes the following level-2 (L2) requirement. It refines the level-1 (L1) requirement cited in its row.

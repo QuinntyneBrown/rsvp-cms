@@ -4,6 +4,8 @@ export class ApiError extends Error {
     message: string,
     public errors: Record<string, string> = {},
     public firstInvalid?: string,
+    /** The whole JSON body of the failed response, for fields beyond the message and errors. */
+    public body: Record<string, unknown> = {},
   ) {
     super(message);
   }
@@ -33,7 +35,7 @@ export async function api<T = unknown>(method: string, url: string, body?: unkno
   if (res.status === 204) return undefined as T;
   const data = (await res.json().catch(() => ({}))) as { error?: string; errors?: Record<string, string>; firstInvalid?: string };
   if (!res.ok) {
-    const error = new ApiError(res.status, data.error ?? 'Something went wrong. Try again.', data.errors, data.firstInvalid);
+    const error = new ApiError(res.status, data.error ?? 'Something went wrong. Try again.', data.errors, data.firstInvalid, data);
     if (res.status === 401 && onUnauthorized && !url.startsWith('/api/auth/sign-in')) onUnauthorized(error.message);
     throw error;
   }

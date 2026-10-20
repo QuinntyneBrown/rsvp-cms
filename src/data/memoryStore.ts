@@ -100,7 +100,7 @@ export class MemoryStore implements Store {
 
   async createEvent(organiserId: number, e: NewEvent, today: string, _now?: number) {
     const id = this.next();
-    this.events.set(id, { id, organiserId, type: e.type, name: e.name, date: e.date, startTime: e.startTime, venue: e.venue, status: 'Draft', inviteOpen: today, inviteClose: e.date, senderName: '', replyTo: '' });
+    this.events.set(id, { id, organiserId, type: e.type, name: e.name, date: e.date, startTime: e.startTime, venue: e.venue, status: 'Draft', inviteOpen: today, inviteClose: e.date, senderName: '', replyTo: '', linkEpoch: 0 });
     this.pages.set(id, { draft: [], published: null, draftSavedAt: null, publishedAt: null });
     return id;
   }
@@ -120,6 +120,11 @@ export class MemoryStore implements Store {
   async updateSender(eventId: number, sender: SenderInput, _now?: number) {
     const e = this.events.get(eventId);
     if (e) Object.assign(e, sender);
+  }
+
+  async regenerateLinks(eventId: number, _now?: number) {
+    const e = this.events.get(eventId);
+    if (e) e.linkEpoch++;
   }
 
   async deleteEvent(id: number) {
@@ -204,7 +209,7 @@ export class MemoryStore implements Store {
   }
 
   private guestRecord(g: GuestRow): GuestRecord {
-    return { id: g.id, eventId: g.eventId, name: g.name, email: g.email, group: g.group, plusOnes: g.plusOnes, token: g.token, code: g.code };
+    return { id: g.id, eventId: g.eventId, name: g.name, email: g.email, group: g.group, plusOnes: g.plusOnes, token: g.token, code: g.code, linkEpoch: g.linkEpoch };
   }
 
   private findGuest(pred: (g: GuestRow) => boolean) {
@@ -236,8 +241,15 @@ export class MemoryStore implements Store {
   async insertGuest(eventId: number, g: GuestInput, now: number) {
     this.assertEmailFree(eventId, g.email);
     const id = this.next();
-    this.guests.set(id, { id, eventId, name: g.name, email: g.email, group: g.group, plusOnes: g.plusOnes, token: generateToken(), code: generateCode(), createdAt: now, updatedAt: now });
+    this.guests.set(id, { id, eventId, name: g.name, email: g.email, group: g.group, plusOnes: g.plusOnes, token: generateToken(), code: generateCode(), linkEpoch: this.events.get(eventId)?.linkEpoch ?? 0, createdAt: now, updatedAt: now });
     return id;
+  }
+
+  async reissueLink(guestId: number, epoch: number) {
+    const row = this.guests.get(guestId);
+    if (!row) throw new Error(`No guest ${guestId}`);
+    Object.assign(row, { token: generateToken(), code: generateCode(), linkEpoch: epoch });
+    return { token: row.token, code: row.code };
   }
 
   async updateGuest(id: number, g: GuestInput, now: number) {
@@ -374,7 +386,7 @@ export class MemoryStore implements Store {
     const event = e && this.events.get(e.eventId);
     const organiser = event && this.organisers.get(event.organiserId);
     if (!e || !event || !organiser) return null;
-    return { email: this.emailRecord(e), event: { name: event.name, date: event.date, senderName: event.senderName, replyTo: event.replyTo }, organiserName: organiser.name };
+    return { email: this.emailRecord(e), event: { name: event.name, date: event.date, senderName: event.senderName, replyTo: event.replyTo, linkEpoch: event.linkEpoch }, organiserName: organiser.name };
   }
 
   async materialiseDeliveries(email: EmailRecord) {
@@ -394,7 +406,7 @@ export class MemoryStore implements Store {
         const g = this.guests.get(d.guestId)!;
         return {
           id: d.id, emailId: d.emailId, status: d.status, idempotencyKey: d.idempotencyKey, attempts: d.attempts,
-          guest: { id: g.id, name: g.name, email: g.email, token: g.token, code: g.code, hasReplied: this.responses.has(g.id) },
+          guest: { id: g.id, name: g.name, email: g.email, token: g.token, code: g.code, linkEpoch: g.linkEpoch, hasReplied: this.responses.has(g.id) },
         };
       });
   }

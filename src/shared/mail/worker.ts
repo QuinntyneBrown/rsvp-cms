@@ -30,6 +30,8 @@ export async function sendDueEmails(deps: MailWorkerDeps): Promise<{ sent: numbe
         continue;
       }
       const attempts = d.attempts + 1;
+      // A link from before the last regeneration no longer works: the email carries a new one (L2-011 AC3).
+      const link = d.guest.linkEpoch === ctx.event.linkEpoch ? d.guest : await store.reissueLink(d.guest.id, ctx.event.linkEpoch);
       try {
         await transport.send({
           to: d.guest.email,
@@ -41,8 +43,8 @@ export async function sendDueEmails(deps: MailWorkerDeps): Promise<{ sent: numbe
             guestName: d.guest.name,
             eventName: ctx.event.name,
             eventDate: ctx.event.date,
-            link: personalLink(deps.rsvpUrl, d.guest.token),
-            code: d.guest.code,
+            link: personalLink(deps.rsvpUrl, link.token),
+            code: link.code,
           }),
           idempotencyKey: d.idempotencyKey,
         });

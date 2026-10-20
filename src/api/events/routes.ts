@@ -57,6 +57,12 @@ export function eventRoutes(ctx: Ctx): Router {
     res.json({ event: eventJson((await ctx.store.getEvent(eventOf(res).id))!) });
   });
 
+  /** Invalidates every link and code of the event; the next email carries new ones (L2-011). No link values are returned. */
+  r.post('/:id/invitation-links/regenerate', own, async (_req, res) => {
+    await ctx.store.regenerateLinks(eventOf(res).id, ctx.now());
+    res.json({ message: 'New links are sent with the next invitation email.' });
+  });
+
   // ---- page composer (draft / publish / discard / preview) -----------------
 
   r.get('/:id/page', own, async (_req, res) => {

@@ -34,6 +34,7 @@ export interface FakeEvent {
   inviteClose: string;
   senderName: string;
   replyTo: string;
+  linkEpoch: number;
 }
 
 export interface FakeGuest {
@@ -45,6 +46,7 @@ export interface FakeGuest {
   plusOnes: number;
   code: string;
   token: string;
+  linkEpoch: number;
   updatedAt: string;
 }
 
@@ -132,6 +134,7 @@ export class FakeBackend {
       inviteClose: date,
       senderName: '',
       replyTo: '',
+      linkEpoch: 0,
       ...over,
     };
     this.events.push(event);
@@ -150,6 +153,7 @@ export class FakeBackend {
       plusOnes: 0,
       code: codeFor(id),
       token: `token-${id}`,
+      linkEpoch: this.event(eventId)?.linkEpoch ?? 0,
       updatedAt: this.tick(),
       ...over,
     };
@@ -314,6 +318,9 @@ export class FakeBackend {
         Object.assign(event, v.value);
         return ok({ event });
       }
+      case 'POST /invitation-links/regenerate':
+        event.linkEpoch++;
+        return ok({ message: 'New links are sent with the next invitation email.' });
       case 'GET /page':
         return ok(this.pageJson(event.id));
       case 'PUT /page/draft':
@@ -383,13 +390,17 @@ export class FakeBackend {
       const raw = String(body.code ?? '').trim();
       if (!raw) return { status: 422, body: { errors: { code: 'Enter your invitation code' } } };
       const guest = this.guests.find((g) => g.code === normaliseCode(raw));
-      return guest ? ok({ token: guest.token }) : { status: 404, body: { error: INVALID_LINK } };
+      const current = guest && guest.linkEpoch === this.event(guest.eventId)?.linkEpoch;
+      return current ? ok({ token: guest.token }) : { status: 404, body: { error: INVALID_LINK } };
     }
     const m = path.match(/^\/api\/public\/invite\/([^/]+)(\/rsvp)?$/);
     if (!m) return null;
     const guest = this.guests.find((g) => g.token === decodeURIComponent(m[1]!));
     const event = guest && this.event(guest.eventId);
     if (!guest || !event) return { status: 404, body: { error: INVALID_LINK } };
+    if (guest.linkEpoch !== event.linkEpoch) {
+      return { status: 404, body: m[2] ? { error: INVALID_LINK } : { error: INVALID_LINK, host: ORGANISER.name } };
+    }
     const state = this.windowState(event);
 
     if (method === 'GET' && !m[2]) {

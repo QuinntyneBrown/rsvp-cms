@@ -119,3 +119,26 @@ test.describe('L2-039 Public invitation page states', () => {
     await expect(guest.page.getByRole('link', { name: 'Skip to content' })).toHaveAttribute('href', '#main');
   });
 });
+
+test.describe('L2-038 AC2 / L2-011 AC2 A link replaced by regeneration', () => {
+  test('shows the invalid state and names the organiser to ask for a new one', async ({ guest, api }) => {
+    const event = api.addEvent();
+    api.publish(event.id, page);
+    const maya = api.addGuest(event.id, { name: 'Maya Chen' });
+    event.linkEpoch++;
+    await guest.invite.goto(maya.token);
+    await expect(guest.invite.invalid).toBeVisible();
+    await expect(guest.page.getByText('Check the link in your invitation email, or ask Olivia for a new one.')).toBeVisible();
+    await expect(guest.page.getByText('Maya & Sam')).toHaveCount(0); // no event details are disclosed
+  });
+
+  test('the old invitation code no longer works either', async ({ guest, api }) => {
+    const event = api.addEvent();
+    api.publish(event.id, page);
+    const maya = api.addGuest(event.id, { name: 'Maya Chen' });
+    event.linkEpoch++;
+    await guest.codeEntry.goto();
+    await guest.codeEntry.find(maya.code);
+    await expect(guest.codeEntry.error).toHaveText("This invitation link doesn't work");
+  });
+});

@@ -29,6 +29,8 @@ export interface Store {
   /** Removes the event with its page, guests, emails, deliveries and replies. */
   deleteEvent(id: number): Promise<void>;
   updateSender(eventId: number, sender: SenderInput, now: number): Promise<void>;
+  /** Advances the event's invitation epoch in one write, so every link and code issued before stops working (L2-011). */
+  regenerateLinks(eventId: number, now: number): Promise<void>;
   getPage(eventId: number): Promise<PageRecord>;
   saveDraft(eventId: number, blocks: Block[], now: number): Promise<void>;
   /** Copies `blocks` to both draft and published and marks the event Published, all or nothing. */
@@ -48,6 +50,8 @@ export interface Store {
   insertGuest(eventId: number, g: GuestInput, now: number): Promise<number>;
   /** Throws DuplicateError for an email already used by another guest of the event. */
   updateGuest(id: number, g: GuestInput, now: number): Promise<void>;
+  /** Gives the guest a new token and code under `epoch`, for the next email after a regeneration. */
+  reissueLink(guestId: number, epoch: number): Promise<{ token: string; code: string }>;
   /** Removes guests of this event only, with their replies and their unsent deliveries. Returns how many were removed. */
   deleteGuests(eventId: number, ids: number[]): Promise<number>;
 
@@ -125,6 +129,8 @@ export interface EventRecord {
   /** Sender identity from Event settings; empty means the organiser's name and no reply-to (L2-036). */
   senderName: string;
   replyTo: string;
+  /** Invitation epoch: advanced by regeneration; links and codes issued under an older epoch no longer work (L2-011). */
+  linkEpoch: number;
 }
 
 export interface PageRecord {
@@ -143,6 +149,8 @@ export interface GuestRecord {
   plusOnes: number;
   token: string;
   code: string;
+  /** The event's invitation epoch when this guest's link and code were issued. */
+  linkEpoch: number;
 }
 
 export interface GuestListRow extends GuestRecord {
@@ -203,7 +211,7 @@ export interface EmailRecord extends NewEmail {
 
 export interface SendContext {
   email: EmailRecord;
-  event: { name: string; date: string; senderName: string; replyTo: string };
+  event: { name: string; date: string; senderName: string; replyTo: string; linkEpoch: number };
   organiserName: string;
 }
 
@@ -213,7 +221,7 @@ export interface DeliveryRecord {
   status: DeliveryStatus;
   idempotencyKey: string;
   attempts: number;
-  guest: { id: number; name: string; email: string; token: string; code: string; hasReplied: boolean };
+  guest: { id: number; name: string; email: string; token: string; code: string; linkEpoch: number; hasReplied: boolean };
 }
 
 export interface DeliveryChange {

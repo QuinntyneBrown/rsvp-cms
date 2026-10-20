@@ -57,6 +57,8 @@ model Event {
   /// Sender identity from Event settings; empty means the organiser's name and no reply-to.
   senderName  String    @default("") @map("sender_name")
   replyTo     String    @default("") @map("reply_to")
+  /// Invitation epoch: regeneration advances it, and links issued under an older epoch stop working (L2-011).
+  linkEpoch   Int       @default(0) @map("link_epoch")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   organiser   Organiser @relation(fields: [organiserId], references: [id], onDelete: Cascade)
@@ -78,6 +80,8 @@ model Guest {
   /// Personal link token: 256 random bits, base64url (L2-033 AC1).
   token      String     @unique
   code       String     @unique
+  /// The event's invitation epoch when this token and code were issued.
+  linkEpoch  Int        @default(0) @map("link_epoch")
   createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt  DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   event      Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
