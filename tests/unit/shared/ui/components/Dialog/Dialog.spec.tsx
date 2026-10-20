@@ -60,6 +60,11 @@ describe('Dialog', () => {
     expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Name' }));
   });
 
+  it('initialFocus="footer" focuses the safe action of a confirmation', () => {
+    renderDialog({ initialFocus: 'footer', footer: <><button type="button">Cancel</button><button type="button">Remove</button></> });
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Cancel' }));
+  });
+
   it('focuses the panel when the body has nothing focusable', () => {
     renderDialog();
     expect(document.activeElement).toBe(screen.getByRole('dialog').firstElementChild);

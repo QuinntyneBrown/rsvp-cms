@@ -26,7 +26,7 @@ export class GuestDialog {
     this.email = this.root.getByLabel('Email');
     this.group = this.root.getByLabel('Group');
     this.plusOnes = this.root.getByLabel('Plus-ones');
-    this.submit = this.root.getByRole('button', { name: title === 'Add guest' ? 'Add guest' : 'Save' });
+    this.submit = this.root.getByRole('button', { name: title === 'Add guest' ? /^(Add guest|Saving guest…)$/ : /^(Save|Saving guest…)$/ });
     this.cancel = this.root.getByRole('button', { name: 'Cancel' });
     this.failure = failure(this.root);
     this.tryAgain = this.failure.getByRole('button', { name: 'Try again' });
@@ -39,7 +39,7 @@ export class GuestDialog {
   async fill(form: GuestForm) {
     if (form.name !== undefined) await this.name.fill(form.name);
     if (form.email !== undefined) await this.email.fill(form.email);
-    if (form.group !== undefined) await this.group.fill(form.group);
+    if (form.group !== undefined) await this.group.selectOption(form.group);
     if (form.plusOnes !== undefined) await this.plusOnes.fill(String(form.plusOnes));
   }
 
@@ -57,7 +57,9 @@ export class GuestsTab {
   readonly table: Locator;
   readonly rows: Locator;
   readonly selectAll: Locator;
+  readonly selection: Locator;
   readonly removeSelected: Locator;
+  readonly clearSelection: Locator;
   readonly empty: Locator;
   readonly noMatch: Locator;
   readonly clearSearch: Locator;
@@ -75,9 +77,11 @@ export class GuestsTab {
     this.table = page.getByRole('table');
     this.rows = this.table.locator('tbody tr');
     this.selectAll = page.getByRole('checkbox', { name: 'Select all on this page' });
-    this.removeSelected = page.getByRole('button', { name: /^Remove \d+$/ });
-    this.empty = page.getByRole('heading', { name: 'No guests yet' });
-    this.noMatch = page.getByRole('heading', { name: 'No guests match' });
+    this.selection = page.getByRole('region', { name: 'Selection' });
+    this.removeSelected = this.selection.getByRole('button', { name: 'Remove', exact: true });
+    this.clearSelection = this.selection.getByRole('button', { name: 'Clear' });
+    this.empty = page.getByRole('heading', { name: 'No invitees yet' });
+    this.noMatch = page.getByRole('heading', { name: /^No guests match/ });
     this.clearSearch = page.getByRole('button', { name: 'Clear search' });
     this.previous = page.getByRole('button', { name: 'Previous page' });
     this.next = page.getByRole('button', { name: 'Next page' });
@@ -88,18 +92,28 @@ export class GuestsTab {
   }
 
   filter(label: 'All' | 'Attending' | 'Declined' | 'Waiting') {
-    return this.page.getByRole('button', { name: label, exact: true });
+    return this.page.getByRole('group', { name: 'Filter by reply' }).getByRole('button', { name: label, exact: true });
   }
 
   row(name: string) {
-    return this.rows.filter({ has: this.page.getByRole('cell', { name, exact: true }) });
+    return this.rows.filter({ has: this.page.getByText(name, { exact: true }) });
   }
 
-  /** The text of each column of a guest's row: name, email, group, places, code, status. */
+  /** Each row's guest name, in order. */
+  names() {
+    return this.rows.locator('td:nth-child(2) > :first-child');
+  }
+
+  /** The text of each column of a guest's row: name and email, group, reply, party and updated. */
   async cells(name: string) {
-    const texts = await this.row(name).getByRole('cell').allTextContents();
-    const [, guest, email, group, places, code, status] = texts;
-    return { name: guest, email, group, places, code, status };
+    const row = this.row(name);
+    const [guest, email] = await row.locator('td:nth-child(2) > *').allTextContents();
+    const [, , group, reply, party, updated] = await row.getByRole('cell').allTextContents();
+    return { name: guest, email, group, reply, party, updated };
+  }
+
+  remove(name: string) {
+    return this.page.getByRole('button', { name: `Remove ${name}`, exact: true });
   }
 
   select(name: string) {
@@ -117,6 +131,11 @@ export class GuestsTab {
 
   confirmRemove() {
     return this.removeDialog.getByRole('button', { name: 'Remove', exact: true }).click();
+  }
+
+  /** The failure in the remove dialog, with its Try again button. */
+  removeFailure() {
+    return failure(this.removeDialog);
   }
 
   cancelRemove() {

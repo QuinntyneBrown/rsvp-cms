@@ -14,24 +14,47 @@ const addMany = (api: FakeBackend, n: number) => {
 };
 
 test.describe('L2-019 Guest list table', () => {
-  test('shows an empty state with Add guest when there are no guests', async ({ admin }) => {
+  test('AC5 shows an empty state with Add guest when there are no guests', async ({ admin }) => {
     await admin.event.goto(event.id, 'guests');
     await expect(admin.event.guests.empty).toBeVisible();
+    await expect(admin.event.guests.empty.locator('..').getByRole('button', { name: 'Add guest' })).toBeVisible();
     await expect(admin.event.guests.heading).toHaveText('Guests · 0 invitees');
     await expect(admin.event.guests.table).toHaveCount(0);
   });
 
-  test('AC1 each row shows name, email, group, places, code and reply status, sorted by name', async ({ admin, api }) => {
+  test('AC1 each row shows name, email, group, reply, party size, last updated and Edit and Remove, sorted by name', async ({ admin, api }) => {
     const sam = api.addGuest(event.id, { name: 'Sam Okafor', email: 'sam@example.com', group: 'Family', plusOnes: 2 });
-    const maya = api.addGuest(event.id, { name: 'Maya Chen', email: 'maya@example.com' });
+    api.addGuest(event.id, { name: 'Maya Chen', email: 'maya@example.com', plusOnes: 1 });
+    const tom = api.addGuest(event.id, { name: 'Tom Lee', email: 'tom@example.com', group: 'Work' });
     api.addReply(sam.id, { attending: true, partySize: 3 });
+    api.addReply(tom.id, { attending: false });
+    const guests = admin.event.guests;
     await admin.event.goto(event.id, 'guests');
-    await expect(admin.event.guests.rows.locator('td:nth-child(2)')).toHaveText(['Maya Chen', 'Sam Okafor']);
-    await expect.poll(() => admin.event.guests.cells('Sam Okafor')).toEqual({
-      name: 'Sam Okafor', email: 'sam@example.com', group: 'Family', places: '3', code: sam.code, status: 'attending',
-    });
-    await expect.poll(() => admin.event.guests.cells('Maya Chen')).toMatchObject({ places: '1', code: maya.code, status: 'waiting' });
-    await expect(admin.event.guests.heading).toHaveText('Guests · 2 invitees');
+    await expect(guests.names()).toHaveText(['Maya Chen', 'Sam Okafor', 'Tom Lee']);
+    await expect.poll(() => guests.cells('Sam Okafor')).toMatchObject({ name: 'Sam Okafor', email: 'sam@example.com', group: 'Family', reply: 'Attending', party: '3' });
+    await expect.poll(() => guests.cells('Maya Chen')).toMatchObject({ group: '—', reply: 'Waiting', party: '2' });
+    await expect.poll(() => guests.cells('Tom Lee')).toMatchObject({ reply: 'Declined', party: '0' });
+    await expect(guests.row('Sam Okafor').locator('time')).toHaveText(/^(just now|\d+ min ago|\d+ hr ago|Yesterday|\d+ days ago|\w{3} \d+ \w{3})$/);
+    await expect(guests.edit('Sam Okafor')).toBeVisible();
+    await expect(guests.remove('Sam Okafor')).toBeVisible();
+    await expect(guests.heading).toHaveText('Guests · 3 invitees');
+  });
+
+  test('AC2 shows the total number of invitees with thousands separated', async ({ admin, api }) => {
+    addMany(api, 2000);
+    await admin.event.goto(event.id, 'guests');
+    await expect(admin.event.guests.heading).toHaveText('Guests · 2,000 invitees');
+    await expect(admin.event.guests.rows).toHaveCount(50);
+    await expect(admin.event.guests.pageLabel).toHaveText('Showing 1–50 of 2,000');
+  });
+
+  test('AC3 shows placeholder rows while the list loads', async ({ admin, api }) => {
+    addMany(api, 3);
+    const held = api.hold('GET', `/api/events/${event.id}/guests`);
+    await admin.event.goto(event.id, 'guests');
+    await expect(admin.page.getByText('Loading guests')).toBeAttached();
+    held.release();
+    await expect(admin.event.guests.rows).toHaveCount(3);
   });
 
   test('pages at 50 rows with Previous and Next', async ({ admin, api }) => {
@@ -49,11 +72,12 @@ test.describe('L2-019 Guest list table', () => {
     await expect(guests.rows).toHaveCount(50);
   });
 
-  test('a failed load can be retried', async ({ admin, api }) => {
+  test('AC4 a failed load says nothing was changed and can be retried', async ({ admin, api }) => {
     api.addGuest(event.id, { name: 'Maya Chen' });
     api.failNext('GET', `/api/events/${event.id}/guests`);
     await admin.event.goto(event.id, 'guests');
-    await expect(admin.event.error).toContainText('Something went wrong. Try again.');
+    await expect(admin.event.error).toContainText("We couldn't load your guests");
+    await expect(admin.event.error).toContainText('Nothing was changed.');
     await admin.event.retry.click();
     await expect(admin.event.guests.row('Maya Chen')).toBeVisible();
   });
@@ -102,7 +126,7 @@ test.describe('L2-020 Search and filter guests', () => {
     await admin.event.goto(event.id, 'guests');
     await guests.filter('Attending').click();
     await guests.search.fill('zzz');
-    await expect(guests.noMatch).toBeVisible();
+    await expect(guests.noMatch).toHaveText('No guests match “zzz”');
     await expect(guests.empty).toHaveCount(0);
     await guests.clearSearch.click();
     await expect(guests.search).toHaveValue('');
@@ -132,7 +156,7 @@ test.describe('L2-021 Add a guest', () => {
     await guests.addDialog.save({ name: 'Maya Chen', email: 'Maya@Example.com', group: 'Friends', plusOnes: 1 });
     await expect(guests.addDialog.root).toHaveCount(0);
     await expect(admin.event.toast).toHaveText('Guest added');
-    await expect.poll(() => guests.cells('Maya Chen')).toMatchObject({ email: 'maya@example.com', group: 'Friends', places: '2', status: 'waiting' });
+    await expect.poll(() => guests.cells('Maya Chen')).toMatchObject({ email: 'maya@example.com', group: 'Friends', party: '2', reply: 'Waiting' });
     expect(api.guestsOf(event.id)).toHaveLength(1);
     await expect(guests.heading).toHaveText('Guests · 1 invitees');
   });
@@ -170,7 +194,7 @@ test.describe('L2-021 Add a guest', () => {
     await admin.event.goto(event.id, 'guests');
     await admin.event.guests.addGuest.click();
     await dialog.save({ name: 'Maya Chen', email: 'maya@example.com' });
-    await expect(dialog.failure).toContainText('Something went wrong. Try again.');
+    await expect(dialog.failure).toContainText("This guest wasn't saved");
     await expect(dialog.name).toHaveValue('Maya Chen');
     await expect(dialog.email).toHaveValue('maya@example.com');
     await dialog.tryAgain.click();
@@ -218,7 +242,7 @@ test.describe('L2-022 Edit a guest', () => {
     await expect(dialog.plusOnes).toHaveValue('1');
     await dialog.save({ name: 'Maya Chen-Okafor', plusOnes: 2 });
     await expect(admin.event.toast).toHaveText('Guest updated');
-    await expect.poll(() => guests.cells('Maya Chen-Okafor')).toMatchObject({ places: '3', code: maya.code });
+    await expect.poll(() => guests.cells('Maya Chen-Okafor')).toMatchObject({ party: '3' });
     expect(api.calls('PUT', `/api/events/${event.id}/guests/${maya.id}`)[0]!.body).toEqual({
       name: 'Maya Chen-Okafor', email: 'maya@example.com', group: 'Friends', plusOnes: 2,
     });
@@ -234,6 +258,19 @@ test.describe('L2-022 Edit a guest', () => {
     expect(api.guestsOf(event.id)[0]!.plusOnes).toBe(2);
   });
 
+  test('AC3 a failed save keeps the dialog open with the entered values', async ({ admin, api }) => {
+    const maya = api.addGuest(event.id, { name: 'Maya Chen', email: 'maya@example.com' });
+    api.failNext('PUT', `/api/events/${event.id}/guests/${maya.id}`);
+    const dialog = admin.event.guests.editDialog;
+    await admin.event.goto(event.id, 'guests');
+    await admin.event.guests.edit('Maya Chen').click();
+    await dialog.save({ name: 'Maya Chen-Okafor', group: 'Family' });
+    await expect(dialog.failure).toContainText("This guest wasn't saved");
+    await expect(dialog.name).toHaveValue('Maya Chen-Okafor');
+    await expect(dialog.group).toHaveValue('Family');
+    expect(api.guestsOf(event.id)[0]!.name).toBe('Maya Chen');
+  });
+
   test('refuses an email that belongs to another guest', async ({ admin, api }) => {
     api.addGuest(event.id, { name: 'Maya Chen', email: 'maya@example.com' });
     api.addGuest(event.id, { name: 'Sam Okafor', email: 'sam@example.com' });
@@ -244,47 +281,70 @@ test.describe('L2-022 Edit a guest', () => {
   });
 });
 
-test.describe('L2-024 Select guests and L2-023 Remove guests', () => {
-  test('selecting guests offers Remove with the count', async ({ admin, api }) => {
+test.describe('L2-024 Select guests', () => {
+  test('AC1/AC2 selecting guests shows the count and the header checkbox goes indeterminate', async ({ admin, api }) => {
     api.addGuest(event.id, { name: 'Maya Chen' });
     api.addGuest(event.id, { name: 'Sam Okafor' });
     const guests = admin.event.guests;
     await admin.event.goto(event.id, 'guests');
-    await expect(guests.removeSelected).toHaveCount(0);
+    await expect(guests.selection).toHaveCount(0);
     await guests.select('Maya Chen').check();
-    await expect(guests.removeSelected).toHaveText('Remove 1');
+    await expect(guests.selection).toContainText('1 selected');
     await expect(guests.selectAll).not.toBeChecked();
     await expect.poll(() => guests.selectAll.evaluate((el: HTMLInputElement) => el.indeterminate)).toBe(true);
     await guests.select('Sam Okafor').check();
-    await expect(guests.removeSelected).toHaveText('Remove 2');
+    await expect(guests.selection).toContainText('2 selected');
     await expect(guests.selectAll).toBeChecked();
     await guests.select('Maya Chen').uncheck();
-    await expect(guests.removeSelected).toHaveText('Remove 1');
+    await expect(guests.selection).toContainText('1 selected');
   });
 
-  test('Select all toggles every guest on the page', async ({ admin, api }) => {
+  test('AC1 Select all selects every guest on the page and toggles back', async ({ admin, api }) => {
     addMany(api, 3);
     const guests = admin.event.guests;
     await admin.event.goto(event.id, 'guests');
     await guests.selectAll.check();
-    await expect(guests.removeSelected).toHaveText('Remove 3');
+    await expect(guests.selection).toContainText('3 selected');
     await guests.selectAll.uncheck();
-    await expect(guests.removeSelected).toHaveCount(0);
+    await expect(guests.selection).toHaveCount(0);
   });
 
-  test('AC selection survives moving between pages', async ({ admin, api }) => {
+  test('AC2 with some rows selected, the header checkbox selects the current page only', async ({ admin, api }) => {
+    addMany(api, 52);
+    const guests = admin.event.guests;
+    await admin.event.goto(event.id, 'guests');
+    await guests.select('Guest 00').check();
+    await guests.selectAll.check();
+    await expect(guests.selection).toContainText('50 selected');
+    await guests.next.click();
+    await expect(guests.select('Guest 50')).not.toBeChecked();
+  });
+
+  test('AC3 selection survives moving between pages', async ({ admin, api }) => {
     addMany(api, 52);
     const guests = admin.event.guests;
     await admin.event.goto(event.id, 'guests');
     await guests.select('Guest 00').check();
     await guests.next.click();
     await guests.select('Guest 51').check();
-    await expect(guests.removeSelected).toHaveText('Remove 2');
+    await expect(guests.selection).toContainText('2 selected');
     await guests.previous.click();
     await expect(guests.select('Guest 00')).toBeChecked();
   });
 
-  test('Cancel in the confirmation keeps the guests', async ({ admin, api }) => {
+  test('AC4 Clear leaves no rows selected', async ({ admin, api }) => {
+    addMany(api, 3);
+    const guests = admin.event.guests;
+    await admin.event.goto(event.id, 'guests');
+    await guests.selectAll.check();
+    await guests.clearSelection.click();
+    await expect(guests.selection).toHaveCount(0);
+    await expect(guests.rows.getByRole('checkbox', { checked: true })).toHaveCount(0);
+  });
+});
+
+test.describe('L2-023 Remove guests', () => {
+  test('AC1 Cancel in the confirmation keeps the guests', async ({ admin, api }) => {
     api.addGuest(event.id, { name: 'Maya Chen' });
     const guests = admin.event.guests;
     await admin.event.goto(event.id, 'guests');
@@ -292,13 +352,14 @@ test.describe('L2-024 Select guests and L2-023 Remove guests', () => {
     await guests.removeSelected.click();
     await expect(guests.removeDialog).toHaveAccessibleName('Remove 1 guest?');
     await expect(guests.removeDialog).toContainText('Their personal links stop working and their replies are deleted.');
+    await expect(guests.removeDialog.getByRole('button', { name: 'Cancel' })).toBeFocused(); // the safe action
     await guests.cancelRemove();
     await expect(guests.removeDialog).toHaveCount(0);
     await expect(guests.row('Maya Chen')).toBeVisible();
     expect(api.calls('POST', `/api/events/${event.id}/guests/remove`)).toHaveLength(0);
   });
 
-  test('confirming removes the selected guests and shows a toast', async ({ admin, api }) => {
+  test('AC2 confirming removes the selected guests, updates the count and shows a toast', async ({ admin, api }) => {
     const maya = api.addGuest(event.id, { name: 'Maya Chen' });
     const sam = api.addGuest(event.id, { name: 'Sam Okafor' });
     api.addGuest(event.id, { name: 'Ana Ruiz' });
@@ -308,11 +369,57 @@ test.describe('L2-024 Select guests and L2-023 Remove guests', () => {
     await guests.select('Sam Okafor').check();
     await guests.removeSelected.click();
     await expect(guests.removeDialog).toHaveAccessibleName('Remove 2 guests?');
+    await expect(guests.removeDialog).toContainText('Maya Chen and Sam Okafor will be removed.');
     await guests.confirmRemove();
     await expect(admin.event.toast).toHaveText('Removed 2 guests');
     await expect(guests.rows).toHaveCount(1);
     await expect(guests.row('Ana Ruiz')).toBeVisible();
-    await expect(guests.removeSelected).toHaveCount(0);
+    await expect(guests.heading).toHaveText('Guests · 1 invitees');
+    await expect(guests.selection).toHaveCount(0);
     expect(api.calls('POST', `/api/events/${event.id}/guests/remove`)[0]!.body.ids).toEqual(expect.arrayContaining([maya.id, sam.id]));
+  });
+
+  test("a row's Remove action removes just that guest", async ({ admin, api }) => {
+    const maya = api.addGuest(event.id, { name: 'Maya Chen' });
+    api.addGuest(event.id, { name: 'Sam Okafor' });
+    const guests = admin.event.guests;
+    await admin.event.goto(event.id, 'guests');
+    await guests.remove('Maya Chen').click();
+    await expect(guests.removeDialog).toHaveAccessibleName('Remove 1 guest?');
+    await guests.confirmRemove();
+    await expect(admin.event.toast).toHaveText('Removed 1 guest');
+    await expect(guests.names()).toHaveText(['Sam Okafor']);
+    expect(api.calls('POST', `/api/events/${event.id}/guests/remove`)[0]!.body.ids).toEqual([maya.id]);
+  });
+
+  test('AC3 a failed removal keeps the guests and Try again removes them', async ({ admin, api }) => {
+    api.addGuest(event.id, { name: 'Maya Chen' });
+    api.failNext('POST', `/api/events/${event.id}/guests/remove`);
+    const guests = admin.event.guests;
+    await admin.event.goto(event.id, 'guests');
+    await guests.remove('Maya Chen').click();
+    await guests.confirmRemove();
+    await expect(guests.removeFailure()).toContainText('Nothing was removed');
+    await expect(guests.removeDialog).toBeVisible();
+    expect(api.guestsOf(event.id)).toHaveLength(1);
+    await guests.removeFailure().getByRole('button', { name: 'Try again' }).click();
+    await expect(admin.event.toast).toHaveText('Removed 1 guest');
+    expect(api.guestsOf(event.id)).toHaveLength(0);
+  });
+
+  test('AC4 while removing, Remove is busy and Cancel is disabled', async ({ admin, api }) => {
+    api.addGuest(event.id, { name: 'Maya Chen' });
+    const held = api.hold('POST', `/api/events/${event.id}/guests/remove`);
+    const guests = admin.event.guests;
+    await admin.event.goto(event.id, 'guests');
+    await guests.remove('Maya Chen').click();
+    await guests.confirmRemove();
+    const busy = guests.removeDialog.getByRole('button', { name: 'Removing…' });
+    await expect(busy).toBeDisabled();
+    await expect(guests.removeDialog.getByRole('button', { name: 'Cancel' })).toBeDisabled();
+    await admin.page.keyboard.press('Escape');
+    await expect(guests.removeDialog).toBeVisible();
+    held.release();
+    await expect(admin.event.toast).toHaveText('Removed 1 guest');
   });
 });

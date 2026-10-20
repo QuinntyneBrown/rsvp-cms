@@ -25,6 +25,8 @@ export interface DialogProps {
   busy?: boolean;
   /** Accessible name of the close button. */
   closeLabel?: string;
+  /** 'footer' focuses the first footer action on open: the safe action of a confirmation without fields (Cancel, Keep editing). */
+  initialFocus?: 'body' | 'footer';
 }
 
 const FOCUSABLE =
@@ -38,11 +40,11 @@ function focusables(root: HTMLElement): HTMLElement[] {
 }
 
 /**
- * Modal dialog rendered into document.body. Focus moves in on open (first focusable in the body, else
- * the panel), Tab and Shift+Tab are trapped, Escape closes, and focus returns to the opener on unmount.
+ * Modal dialog rendered into document.body. Focus moves in on open (first focusable in the body, or in the
+ * footer with initialFocus="footer", else the panel), Tab and Shift+Tab are trapped, Escape closes, and focus returns to the opener on unmount.
  * Design system: docs/design-system/components/dialog.html.
  */
-export function Dialog({ title, onClose, description, children, footer, size = 'md', tone = 'default', busy, closeLabel = 'Close' }: DialogProps) {
+export function Dialog({ title, onClose, description, children, footer, size = 'md', tone = 'default', busy, closeLabel = 'Close', initialFocus = 'body' }: DialogProps) {
   const titleId = useId();
   const descriptionId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -58,7 +60,7 @@ export function Dialog({ title, onClose, description, children, footer, size = '
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const panel = panelRef.current;
     if (panel && !panel.contains(document.activeElement)) {
-      const body = panel.querySelector<HTMLElement>('.dialog__body');
+      const body = panel.querySelector<HTMLElement>(initialFocus === 'footer' ? '.dialog__footer' : '.dialog__body');
       const first = body ? focusables(body)[0] : undefined;
       (first ?? panel).focus();
     }

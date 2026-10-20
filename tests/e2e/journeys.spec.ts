@@ -6,7 +6,7 @@ import { expect, GuestApp, test } from './support/fixtures.js';
  * stateful fake backend, so what the organiser sets up is what the guest sees, and the guest's reply
  * reaches the organiser's Responses tab.
  */
-test('organiser sets up an event, a guest replies by code, the organiser sees it (J5-J9, J1-J4)', async ({ admin, context }) => {
+test('organiser sets up an event, a guest replies by code, the organiser sees it (J5-J9, J1-J4)', async ({ admin, api, context }) => {
   // J5 sign in
   await admin.signIn.goto();
   await admin.signIn.signIn(ORGANISER.email, 'wrong');
@@ -24,7 +24,8 @@ test('organiser sets up an event, a guest replies by code, the organiser sees it
   await admin.event.openTab('guests');
   await admin.event.guests.add({ name: 'Maya Chen', email: 'maya@example.com', plusOnes: 1 });
   await expect(admin.event.guests.row('Maya Chen')).toBeVisible();
-  const { code } = await admin.event.guests.cells('Maya Chen');
+  // The code reaches the guest in the invitation email; the table does not show it.
+  const { code } = api.guestsOf(api.allEvents()[0]!.id)[0]!;
 
   // J7 compose and publish the page
   const composer = admin.event.composer;
@@ -48,7 +49,7 @@ test('organiser sets up an event, a guest replies by code, the organiser sees it
   await guest.codeEntry.goto();
   await guest.codeEntry.find('nonsense');
   await expect(guest.codeEntry.error).toHaveText("This invitation link doesn't work");
-  await guest.codeEntry.find(code!.toLowerCase());
+  await guest.codeEntry.find(code.toLowerCase());
   await expect(guest.invite.greeting).toHaveText('Hi Maya, will you join us?');
   await expect(guest.invite.section('Hero')).toContainText('Join us');
   const form = guest.invite.form;
