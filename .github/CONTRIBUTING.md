@@ -58,7 +58,15 @@ A pull request that changes behaviour without the matching documentation will be
 6. Run the full test suite and the linters before you push.
 7. Open a pull request against `main`.
 
-Build and test commands will be added to the [README](../README.md#build-and-run-the-application) once the technology stack is chosen.
+Run these before you push:
+
+```sh
+npm test
+npm run typecheck
+npm run lint
+```
+
+Run `npm run test:e2e` as well when you change a user-facing flow. See the [README](../README.md#build-and-test) for details.
 
 ### Rules that apply to every change
 
@@ -101,7 +109,8 @@ Refs: L2-031
 - Prefer clear names over comments. Use comments to explain why, not what.
 - Validate every input at the API boundary. Never trust data that comes from the guest RSVP page.
 - Do not add a dependency without saying in the pull request why it is needed.
-- Formatting and lint rules will be enforced in CI once the stack is in place.
+- Code is TypeScript. Validate API input with zod, and keep Prisma inside `src/data/`.
+- `npm run lint` and `npm run typecheck` must pass with no errors.
 
 ## Working with AI coding agents
 

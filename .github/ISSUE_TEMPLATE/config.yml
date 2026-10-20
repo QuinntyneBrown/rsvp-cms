@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/QuinntyneBrown/rsvp-cms/discussions
+    about: Ask questions and discuss ideas with the community.
+  - name: Report a security vulnerability
+    url: https://github.com/QuinntyneBrown/rsvp-cms/security/advisories/new
+    about: Report vulnerabilities privately. Do not open a public issue.
