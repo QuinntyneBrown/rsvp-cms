@@ -1,0 +1,5 @@
+.input--sm { min-height: var(--control-height-sm); padding-block: var(--space-1); font-size: var(--font-size-sm); }
+.input--lg { min-height: var(--control-height-lg); font-size: var(--font-size-lg); }
+.search { position: relative; min-width: 0; }
+.search .input { padding-left: var(--space-10); }
+.search .icon { position: absolute; left: var(--space-3); top: 50%; translate: 0 -50%; width: 1.25rem; height: 1.25rem; color: var(--color-fg-subtle); pointer-events: none; }

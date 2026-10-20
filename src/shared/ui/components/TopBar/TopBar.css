@@ -1,0 +1,14 @@
+/* Top bar: sticky application header with brand, navigation, search and actions. */
+.topbar { position: sticky; top: 0; z-index: var(--z-sticky); display: flex; align-items: center; gap: var(--space-4); min-height: var(--layout-topbar-height); padding-inline: var(--layout-margin); background: var(--color-bg-surface); border-bottom: 1px solid var(--color-border-default); }
+.topbar__brand { font: var(--text-h4); color: var(--color-fg-default); text-decoration: none; display: inline-flex; align-items: center; gap: var(--space-2); }
+.topbar__brand:hover { color: var(--color-fg-default); text-decoration: none; }
+.topbar__brand-logo { display: inline-flex; flex: none; }
+.topbar__nav { display: none; gap: var(--space-1); margin-left: var(--space-4); }
+@media (min-width: 48rem) { .topbar__nav { display: flex; } }
+.topbar__spacer { flex: 1; }
+.topbar__menu { display: inline-flex; }
+@media (min-width: 64rem) { .topbar__menu { display: none; } }
+.topbar__menu-icon { width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.topbar__search { flex: 1; min-width: 0; max-width: 28rem; }
+.topbar__actions { display: flex; align-items: center; gap: var(--space-2); }
+@media print { .topbar { display: none !important; } }

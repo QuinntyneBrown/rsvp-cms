@@ -1,0 +1,12 @@
+/* Sidebar: primary navigation. Hidden on small screens until opened; always shown from the lg breakpoint. */
+.sidebar { background: var(--color-bg-surface); border-right: 1px solid var(--color-border-default); padding: var(--space-4); display: none; flex-direction: column; gap: var(--space-1); }
+.sidebar[data-open="true"] { display: flex; }
+@media (min-width: 64rem) { .sidebar { display: flex; position: sticky; top: 0; height: 100dvh; overflow: auto; } }
+.sidebar .nav-link { width: 100%; }
+.sidebar__brand { margin-bottom: var(--space-4); }
+.sidebar__section { display: flex; flex-direction: column; gap: var(--space-1); }
+.sidebar__group { font: var(--text-overline); letter-spacing: var(--letter-spacing-wide); text-transform: uppercase; color: var(--color-fg-subtle); padding: var(--space-4) var(--space-3) var(--space-1); }
+.sidebar-layout { display: grid; grid-template-columns: minmax(0, 1fr); min-height: 100dvh; }
+@media (min-width: 64rem) { .sidebar-layout { grid-template-columns: var(--layout-sidebar-width) minmax(0, 1fr); } }
+.sidebar-layout__content { min-width: 0; }
+@media print { .sidebar { display: none !important; } }

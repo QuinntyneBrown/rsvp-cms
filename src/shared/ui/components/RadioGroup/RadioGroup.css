@@ -1,0 +1,14 @@
+.radio-group__options { display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* .choice base is shared with Checkbox (duplicated here so each component stands alone). */
+.choice { display: flex; gap: var(--space-3); align-items: flex-start; cursor: pointer; font: var(--text-body); padding-block: var(--space-1); min-height: var(--target-min); }
+.choice input { appearance: none; flex: none; width: 1.25rem; height: 1.25rem; margin: 0.125rem 0 0; border: 1px solid var(--color-border-strong); background: var(--color-bg-surface); display: grid; place-content: center; cursor: pointer; transition: background-color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard); }
+.choice input:checked, .choice input[data-state="checked"] { background: var(--color-accent); border-color: var(--color-accent); }
+.choice input:disabled, .choice input[data-state="disabled"] { background: var(--color-bg-subtle); border-color: var(--color-border-default); cursor: not-allowed; }
+.choice input:disabled + * { color: var(--color-fg-disabled); }
+.choice input[aria-invalid="true"] { border-color: var(--color-danger-solid); }
+.choice__text { display: flex; flex-direction: column; gap: var(--space-0-5); }
+.choice__text small { color: var(--color-fg-muted); }
+
+.choice input[type="radio"] { border-radius: var(--radius-full); }
+.choice input[type="radio"]:checked::before, .choice input[type="radio"][data-state="checked"]::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--color-fg-on-accent); }

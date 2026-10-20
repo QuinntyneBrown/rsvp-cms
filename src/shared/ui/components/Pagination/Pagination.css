@@ -1,0 +1,9 @@
+/* Pagination: an optional range summary beside previous, page and next controls. */
+.pagination-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-4); }
+.pagination-nav__summary { font: var(--text-caption); color: var(--color-fg-muted); }
+.pagination { display: flex; align-items: center; gap: var(--space-1); list-style: none; padding: 0; }
+.pagination a, .pagination button { display: inline-grid; place-items: center; min-width: var(--control-height-sm); height: var(--control-height-sm); padding-inline: var(--space-2); border-radius: var(--radius-md); border: 1px solid transparent; background: none; color: var(--color-fg-muted); font: var(--text-label); text-decoration: none; cursor: pointer; }
+.pagination a:hover, .pagination button:hover { background: var(--color-bg-subtle); color: var(--color-fg-default); }
+.pagination [aria-current="page"] { background: var(--color-accent-subtle); color: var(--color-fg-accent); border-color: var(--color-accent); }
+.pagination [aria-disabled="true"], .pagination button:disabled { opacity: 0.5; pointer-events: none; }
+.pagination__gap { display: inline-grid; place-items: center; min-width: var(--control-height-sm); color: var(--color-fg-subtle); }

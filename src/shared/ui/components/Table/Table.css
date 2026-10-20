@@ -1,0 +1,17 @@
+/* Table. Design system: docs/design-system/components/table.html. Rules copied from docs/mocks/assets/ui.css. */
+.table-wrap { overflow-x: auto; border: 1px solid var(--color-border-default); border-radius: var(--radius-lg); background: var(--color-bg-surface); }
+.table { width: 100%; border-collapse: collapse; font: var(--text-body-sm); }
+.table th, .table td { text-align: left; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border-default); vertical-align: middle; }
+.table th { background: var(--color-bg-surface-sunken); font: var(--text-label); color: var(--color-fg-muted); white-space: nowrap; position: sticky; top: 0; }
+.table tbody tr:last-child td { border-bottom: 0; }
+.table tbody tr:hover, .table tbody tr[data-state="hover"] { background: var(--color-bg-subtle); }
+.table tbody tr[aria-selected="true"] { background: var(--color-accent-subtle); }
+.table td.num, .table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.table .row-actions { opacity: 0; transition: opacity var(--duration-fast) var(--ease-standard); }
+.table tr:hover .row-actions, .table tr:focus-within .row-actions, .table tr[data-state="hover"] .row-actions { opacity: 1; }
+.table th[aria-sort] button { all: unset; cursor: pointer; display: inline-flex; gap: var(--space-1); align-items: center; }
+.table th[aria-sort="ascending"] button::after { content: "↑"; } .table th[aria-sort="descending"] button::after { content: "↓"; }
+/* `all: unset` above also removes the global focus ring, so the sort button restores it (WCAG 2.4.7). */
+.table th[aria-sort] button:focus-visible { outline: var(--focus-ring-width) solid var(--color-focus-ring); outline-offset: var(--focus-ring-offset); border-radius: var(--radius-sm); }
+/* Row actions stay visible where there is no hover (touch screens). */
+@media (hover: none) { .table .row-actions { opacity: 1; } }

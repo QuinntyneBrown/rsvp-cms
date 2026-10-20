@@ -1,0 +1,4 @@
+/* Spinner: docs/design-system/components/spinner.html. The spin keyframes live in styles.css. */
+.spinner { display: inline-block; flex: none; width: 1.25rem; height: 1.25rem; border: 2px solid var(--color-border-default); border-top-color: var(--color-accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+.spinner--sm { width: 1rem; height: 1rem; }
+.spinner--lg { width: 2.5rem; height: 2.5rem; border-width: 3px; }
