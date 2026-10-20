@@ -127,7 +127,7 @@ The tests need the database from `npm run db:up`. Each test worker gets its own 
 | `npm test` | Runs the unit, integration and acceptance tests with Vitest |
 | `npm run typecheck` | Type-checks the project with `tsc --noEmit` |
 | `npm run lint` | Lints the project with ESLint |
-| `npm run test:e2e` | Runs the Playwright browser tests |
+| `npm run test:e2e` | Runs the Playwright browser tests (page objects in `tests/e2e/pages`); every `/api` call is answered by an in-memory fake, so no API server or database is needed. Set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to use a preinstalled Chromium |
 | `npm run db:migrate:dev` | Creates a migration after a change to `src/data/prisma/schema.prisma` |
 
 Run `npm test`, `npm run typecheck` and `npm run lint` before you open a pull request.
