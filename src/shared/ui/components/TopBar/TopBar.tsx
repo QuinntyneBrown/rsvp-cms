@@ -1,5 +1,5 @@
 import type { MouseEvent, ReactNode } from 'react';
-import { Button, type NavigateHandler } from '../index.js';
+import { Button, Icon, type NavigateHandler } from '../index.js';
 import './TopBar.css';
 
 export interface TopBarProps {
@@ -29,9 +29,7 @@ export function TopBar({ brand, nav, navLabel = 'Main', search, actions, onMenuT
       {onMenuToggle && (
         <span className="topbar__menu">
           <Button variant="ghost" iconOnly aria-label={menuLabel} aria-expanded={menuOpen} aria-controls={menuControls} onClick={onMenuToggle}>
-            <svg className="topbar__menu-icon" aria-hidden="true" viewBox="0 0 24 24">
-              <path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />
-            </svg>
+            <Icon name="menu" />
           </Button>
         </span>
       )}

@@ -1,0 +1,19 @@
+/* Dialog. Design system: docs/design-system/components/dialog.html. Rules copied from docs/mocks/assets/ui.css. */
+.backdrop { position: fixed; inset: 0; background: var(--color-bg-backdrop); z-index: var(--z-overlay); animation: fade-in var(--duration-base) var(--ease-enter); }
+.dialog { position: fixed; inset: 0; z-index: var(--z-modal); display: grid; place-items: end center; padding: 0; }
+@media (min-width: 40rem) { .dialog { place-items: center; padding: var(--space-6); } }
+.dialog__panel { width: 100%; max-width: 32rem; max-height: calc(100dvh - var(--space-12)); overflow: auto; background: var(--color-bg-surface-raised); color: var(--color-fg-default); border-radius: var(--radius-xl) var(--radius-xl) 0 0; box-shadow: var(--shadow-4); animation: slide-up var(--duration-slow) var(--ease-enter); display: flex; flex-direction: column; }
+@media (min-width: 40rem) { .dialog__panel { border-radius: var(--radius-lg); animation-name: scale-in; } }
+.dialog__panel--lg { max-width: 48rem; } .dialog__panel--sm { max-width: 24rem; }
+.dialog__header { display: flex; align-items: flex-start; gap: var(--space-4); padding: var(--space-6) var(--space-6) 0; }
+.dialog__title { font: var(--text-h3); flex: 1; }
+.dialog__body { padding: var(--space-4) var(--space-6); flex: 1; }
+.dialog__footer { display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: flex-end; padding: var(--space-4) var(--space-6) var(--space-6); border-top: 1px solid var(--color-border-default); position: sticky; bottom: 0; background: var(--color-bg-surface-raised); }
+.dialog__icon { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: var(--radius-full); flex: none; }
+.dialog__icon--danger { background: var(--color-danger-bg); color: var(--color-danger-icon); }
+.dialog__icon--info { background: var(--color-info-bg); color: var(--color-info-icon); }
+/* The mocks set these inline (style="flex: 1", "margin-top", and "stack" on the body). */
+.dialog__heading { flex: 1; }
+.dialog__description { margin-top: var(--space-1); color: var(--color-fg-muted); }
+.dialog__body { display: flex; flex-direction: column; gap: var(--space-4); }
+.dialog__panel:focus { outline: none; }

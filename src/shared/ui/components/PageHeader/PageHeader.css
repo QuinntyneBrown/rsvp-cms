@@ -1,0 +1,6 @@
+/* Page header: the page title and subtitle with page-level actions at the end. */
+.page-header-group { margin-top: var(--space-6); }
+.page-header-group > .page-header { margin-top: var(--space-4); }
+.page-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-4); margin-block: var(--space-6) var(--space-6); }
+.page-header__subtitle { color: var(--color-fg-muted); margin-top: var(--space-1); }
+.page-header__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
