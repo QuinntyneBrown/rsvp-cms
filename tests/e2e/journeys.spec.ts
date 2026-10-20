@@ -42,6 +42,7 @@ test('organiser sets up an event, a guest replies by code, the organiser sees it
   await admin.event.openTab('emails');
   await admin.event.emails.scheduleInvitations.click();
   await admin.event.emails.dialog.schedule();
+  await admin.event.emails.dialog.doneButton.click();
   await expect.poll(() => admin.event.emails.cells(0)).toMatchObject({ audience: 'All invitees', recipients: '1' });
 
   // J2 + J1 guest finds the invitation by code and replies

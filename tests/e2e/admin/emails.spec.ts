@@ -22,28 +22,47 @@ test.describe('L2-030 Scheduled and sent email list', () => {
     api.addEmail(event.id, { subject: "You're invited", audience: 'all', sendAt: '2026-11-01T09:00', recipients: 12, status: 'Sent' });
     await admin.event.goto(event.id, 'emails');
     await expect(admin.event.emails.rows).toHaveCount(2);
-    await expect.poll(() => admin.event.emails.cells(0)).toEqual({ subject: "You're invited", audience: 'All invitees', sendTime: '2026-11-01 09:00', recipients: '12', status: 'Sent' });
-    await expect.poll(() => admin.event.emails.cells(1)).toEqual({ subject: 'Reminder', audience: "People who haven't replied", sendTime: '2026-11-20 09:00', recipients: '3', status: 'Scheduled' });
+    await expect.poll(() => admin.event.emails.cells(0)).toEqual({
+      kind: 'Invitation', subject: "You're invited", audience: 'All invitees', sendTime: 'Sun 1 Nov · 9:00 am', recipients: '12', status: 'Sent',
+    });
+    await expect.poll(() => admin.event.emails.cells(1)).toEqual({
+      kind: 'Invitation', subject: 'Reminder', audience: "People who haven't replied", sendTime: 'Fri 20 Nov · 9:00 am', recipients: '3', status: 'Scheduled',
+    });
+    await expect(admin.event.emails.rows.nth(0).getByRole('button', { name: 'Preview' })).toBeVisible();
   });
 
-  test('a failed load can be retried', async ({ admin, api }) => {
+  test('AC3 shows placeholders while the emails load', async ({ admin, api }) => {
+    api.addEmail(event.id);
+    const held = api.hold('GET', `/api/events/${event.id}/emails`);
+    await admin.event.goto(event.id, 'emails');
+    await expect(admin.page.getByText('Loading emails')).toBeAttached();
+    held.release();
+    await expect(admin.event.emails.rows).toHaveCount(1);
+  });
+
+  test('AC3 a failed load can be retried', async ({ admin, api }) => {
     api.addEmail(event.id);
     api.failNext('GET', `/api/events/${event.id}/emails`);
     await admin.event.goto(event.id, 'emails');
-    await expect(admin.event.error).toContainText('Something went wrong. Try again.');
+    await expect(admin.event.error).toContainText("We couldn't load your emails");
     await admin.event.retry.click();
     await expect(admin.event.emails.rows).toHaveCount(1);
   });
 });
 
 test.describe('L2-029 Schedule invitations', () => {
-  test('AC1 opens with all invitees, a subject naming the event and the first day of the invite window', async ({ admin }) => {
+  test('AC1 opens with all invitees and their count, a subject naming the event and the first day of the invite window', async ({ admin, api }) => {
+    const maya = api.addGuest(event.id, { name: 'Maya Chen' });
+    api.addGuest(event.id, { name: 'Sam Okafor' });
+    api.addReply(maya.id, { attending: true });
     const dialog = admin.event.emails.dialog;
     await admin.event.goto(event.id, 'emails');
     await admin.event.emails.scheduleInvitations.click();
-    await expect(dialog.audience).toBeFocused(); // the first field (design system: dialog focus)
-    await expect(dialog.audience).toHaveValue('all');
-    await expect(dialog.audience.locator('option')).toHaveText(['All invitees', "Only people who haven't replied"]);
+    await expect(dialog.audienceOption('all')).toBeFocused(); // the first field (design system: dialog focus)
+    await expect(dialog.audienceOption('all')).toBeChecked();
+    await expect(dialog.audience).toContainText('All 2 invitees');
+    await expect(dialog.audience).toContainText("Only people who haven't replied");
+    await expect(dialog.audience).toContainText('1 person');
     await expect(dialog.subject).toHaveValue("You're invited to Maya & Sam");
     await expect(dialog.subjectCounter).toHaveText('28/150');
     await expect(dialog.sendOn).toHaveValue(TODAY);
@@ -52,17 +71,20 @@ test.describe('L2-029 Schedule invitations', () => {
     await expect(dialog.replyTo).toHaveValue('');
   });
 
-  test('AC4 schedules the invitation for 9:00 am, lists it and shows a toast', async ({ admin, api }) => {
+  test('AC4 schedules the invitation for 9:00 am, shows the send time and lists it', async ({ admin, api }) => {
     api.addGuest(event.id, { name: 'Maya Chen' });
     api.addGuest(event.id, { name: 'Sam Okafor' });
+    const dialog = admin.event.emails.dialog;
     await admin.event.goto(event.id, 'emails');
     await admin.event.emails.scheduleInvitations.click();
-    await admin.event.emails.dialog.schedule({ sendOn: '2026-11-01' });
-    await expect(admin.event.emails.dialog.root).toHaveCount(0);
-    await expect(admin.event.toast).toHaveText('Invitation scheduled for 2026-11-01 09:00');
+    await dialog.schedule({ sendOn: '2026-11-01' });
+    await expect(dialog.done).toContainText('Scheduled for Sun 1 Nov at 9:00 am');
+    await expect(dialog.done).toContainText('2 people will receive the invitation.');
     await expect.poll(() => admin.event.emails.cells(0)).toEqual({
-      subject: "You're invited to Maya & Sam", audience: 'All invitees', sendTime: '2026-11-01 09:00', recipients: '2', status: 'Scheduled',
+      kind: 'Invitation', subject: "You're invited to Maya & Sam", audience: 'All invitees', sendTime: 'Sun 1 Nov · 9:00 am', recipients: '2', status: 'Scheduled',
     });
+    await dialog.doneButton.click();
+    await expect(dialog.done).toHaveCount(0);
     expect(api.calls('POST', `/api/events/${event.id}/emails`)[0]!.body).toEqual({
       audience: 'all', subject: "You're invited to Maya & Sam", sendOn: '2026-11-01', senderName: '', replyTo: '',
     });
@@ -75,6 +97,7 @@ test.describe('L2-029 Schedule invitations', () => {
     await admin.event.goto(event.id, 'emails');
     await admin.event.emails.scheduleInvitations.click();
     await admin.event.emails.dialog.schedule({ audience: 'non-responders' });
+    await expect(admin.event.emails.dialog.done).toContainText('1 person will receive the invitation.');
     await expect.poll(() => admin.event.emails.cells(0)).toMatchObject({ audience: "People who haven't replied", recipients: '1' });
   });
 
@@ -115,10 +138,11 @@ test.describe('L2-029 Schedule invitations', () => {
     await dialog.schedule();
     await expect(dialog.submit).toHaveText('Scheduling…');
     await expect(dialog.submit).toBeDisabled();
-    await expect(dialog.audience).toBeDisabled();
+    await expect(dialog.audienceOption('all')).toBeDisabled();
     await expect(dialog.subject).toHaveAttribute('readonly', '');
     await expect(dialog.sendOn).toHaveAttribute('readonly', '');
     held.release();
+    await expect(dialog.done).toBeVisible();
     await expect(admin.event.emails.rows).toHaveCount(1);
     expect(api.calls('POST', `/api/events/${event.id}/emails`)).toHaveLength(1);
   });
@@ -129,11 +153,13 @@ test.describe('L2-029 Schedule invitations', () => {
     await admin.event.goto(event.id, 'emails');
     await admin.event.emails.scheduleInvitations.click();
     await dialog.schedule({ subject: 'Save the date', sendOn: '2026-11-02' });
-    await expect(dialog.failure).toContainText('Something went wrong. Try again.');
+    await expect(dialog.failure).toContainText("Couldn't schedule the invitation");
+    await expect(dialog.failure).toContainText('Nothing was scheduled.');
+    expect(api.emailsOf(event.id)).toHaveLength(0);
     await expect(dialog.subject).toHaveValue('Save the date');
     await expect(dialog.sendOn).toHaveValue('2026-11-02');
     await dialog.tryAgain.click();
-    await expect(admin.event.toast).toHaveText('Invitation scheduled for 2026-11-02 09:00');
+    await expect(dialog.done).toContainText('Scheduled for Mon 2 Nov at 9:00 am');
   });
 
   test('Cancel and Escape close the dialog without scheduling', async ({ admin, api }) => {
@@ -171,9 +197,36 @@ test.describe('L2-031 Preview an invitation email and L2-036 sender identity', (
     await admin.event.goto(event.id, 'emails');
     await admin.event.emails.scheduleInvitations.click();
     await admin.event.emails.dialog.schedule({ senderName: 'Maya and Sam', replyTo: 'hosts@example.com' });
+    await admin.event.emails.dialog.doneButton.click();
     await admin.event.emails.openPreview(0);
     await expect(preview.value('From')).toHaveText('Maya and Sam');
     await expect(preview.value('Reply-to')).toHaveText('hosts@example.com');
+  });
+
+  test('AC2 a long email scrolls inside the dialog while the title and Close stay in view', async ({ admin, api }) => {
+    api.addEmail(event.id, { subject: 'Hello' });
+    const preview = admin.event.emails.preview;
+    await admin.page.setViewportSize({ width: 800, height: 420 });
+    await admin.event.goto(event.id, 'emails');
+    await admin.event.emails.openPreview(0);
+    await expect(preview.value('Subject')).toHaveText('Hello');
+    const panel = preview.root.locator('.dialog__panel');
+    expect(await panel.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
+    await panel.evaluate((el) => el.scrollTo(0, el.scrollHeight));
+    await expect(preview.root.getByRole('heading', { name: /^Preview: / })).toBeInViewport();
+    await expect(preview.close).toBeInViewport();
+  });
+
+  test('AC3 shows a busy state in the body while the preview loads', async ({ admin, api }) => {
+    const email = api.addEmail(event.id, { subject: 'Hello' });
+    const held = api.hold('GET', `/api/events/${event.id}/emails/${email.id}/preview`);
+    const preview = admin.event.emails.preview;
+    await admin.event.goto(event.id, 'emails');
+    await admin.event.emails.openPreview(0);
+    await expect(preview.root.getByText('Loading the preview')).toBeAttached();
+    await expect(preview.root.locator('[aria-busy="true"]')).toHaveCount(1);
+    held.release();
+    await expect(preview.value('Subject')).toHaveText('Hello');
   });
 
   test('a failed preview can be retried', async ({ admin, api }) => {
@@ -182,7 +235,7 @@ test.describe('L2-031 Preview an invitation email and L2-036 sender identity', (
     const preview = admin.event.emails.preview;
     await admin.event.goto(event.id, 'emails');
     await admin.event.emails.openPreview(0);
-    await expect(preview.root.getByRole('alert')).toContainText('Something went wrong. Try again.');
+    await expect(preview.root.getByRole('alert')).toContainText("We couldn't load the preview");
     await preview.root.getByRole('button', { name: 'Try again' }).click();
     await expect(preview.value('Subject')).toHaveText('Hello');
   });
