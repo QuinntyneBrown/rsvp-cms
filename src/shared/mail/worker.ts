@@ -1,12 +1,9 @@
-import type { Db } from '../../data/db.js';
-import {
-  claimEmail, dueDeliveries, dueEmailIds, markDelivery, materialiseDeliveries, sendContext, settleEmail,
-} from '../../data/mailQueue.js';
+import type { Store } from '../../data/store.js';
 import { invitationText, MAX_ATTEMPTS, personalLink, retryDelayMs } from '../../domain/invitations/message.js';
 import type { MailTransport } from './transport.js';
 
 export interface MailWorkerDeps {
-  db: Db;
+  store: Store;
   transport: MailTransport;
   now: () => number;
   /** Base URL of the guest app, used to build personal links. */
@@ -18,18 +15,18 @@ export interface MailWorkerDeps {
  * and each delivery has a unique idempotency key, so a guest gets one message per email.
  */
 export async function sendDueEmails(deps: MailWorkerDeps): Promise<{ sent: number; failed: number }> {
-  const { db, transport } = deps;
+  const { store, transport } = deps;
   let sent = 0;
   let failed = 0;
-  for (const id of await dueEmailIds(db, deps.now())) {
-    if (!(await claimEmail(db, id, deps.now()))) continue;
-    const ctx = await sendContext(db, id);
+  for (const id of await store.dueEmailIds(deps.now())) {
+    if (!(await store.claimEmail(id, deps.now()))) continue;
+    const ctx = await store.sendContext(id);
     if (!ctx) continue;
-    await materialiseDeliveries(db, ctx.email);
-    for (const d of await dueDeliveries(db, id, deps.now())) {
+    await store.materialiseDeliveries(ctx.email);
+    for (const d of await store.dueDeliveries(id, deps.now())) {
       // A guest who replied since scheduling no longer gets a "haven't replied" email (L2-032).
-      if (ctx.email.audience === 'non-responders' && d.guest.response) {
-        await markDelivery(db, d.id, { status: 'Cancelled' });
+      if (ctx.email.audience === 'non-responders' && d.guest.hasReplied) {
+        await store.markDelivery(d.id, { status: 'Cancelled' });
         continue;
       }
       const attempts = d.attempts + 1;
@@ -48,20 +45,20 @@ export async function sendDueEmails(deps: MailWorkerDeps): Promise<{ sent: numbe
           }),
           idempotencyKey: d.idempotencyKey,
         });
-        await markDelivery(db, d.id, { status: 'Sent', attempts, sentAt: new Date(deps.now()), lastError: null });
+        await store.markDelivery(d.id, { status: 'Sent', attempts, sentAt: deps.now(), lastError: null });
         sent++;
       } catch (err) {
         const last = attempts >= MAX_ATTEMPTS;
-        await markDelivery(db, d.id, {
+        await store.markDelivery(d.id, {
           status: last ? 'Failed' : 'Pending',
           attempts,
-          nextAttemptAt: last ? null : new Date(deps.now() + retryDelayMs(attempts)),
+          nextAttemptAt: last ? null : deps.now() + retryDelayMs(attempts),
           lastError: err instanceof Error ? err.message : String(err),
         });
         if (last) failed++;
       }
     }
-    await settleEmail(db, id, deps.now());
+    await store.settleEmail(id, deps.now());
   }
   return { sent, failed };
 }

@@ -1,45 +1,18 @@
 import request from 'supertest';
-import { afterAll } from 'vitest';
 import { createApp } from '../src/api/app.js';
-import { openDb, type Db } from '../src/data/db.js';
-import { resetSchema, TABLES } from '../src/data/migrate.js';
-import { createOrganiser } from '../src/data/repos.js';
+import { MemoryStore } from '../src/data/memoryStore.js';
 import { hashPassword } from '../src/domain/password.js';
 
 export const T0 = Date.parse('2026-10-19T12:00:00Z');
 export const PASSWORD = 'correct horse';
 export const RSVP_URL = 'https://rsvp.example';
 
-/**
- * Tests run against PostgreSQL (start it with `npm run db:up`). Each Vitest worker gets its own schema,
- * rebuilt from the Prisma migrations once per test file, and every makeEnv() starts from empty tables.
- */
-const URL = process.env.TEST_DATABASE_URL ?? 'postgresql://rsvp:rsvp@localhost:5433/rsvp_test';
-const SCHEMA = `w_${process.env.VITEST_POOL_ID ?? process.env.VITEST_WORKER_ID ?? '0'}`;
-
-let shared: Promise<Db> | null = null;
-
-function testDb(): Promise<Db> {
-  shared ??= resetSchema(URL, SCHEMA).then(() => openDb({ url: URL, schema: SCHEMA }));
-  return shared;
-}
-
-afterAll(async () => {
-  if (shared) await (await shared).$disconnect();
-  shared = null;
-});
-
-export async function emptyDb(): Promise<Db> {
-  const db = await testDb();
-  await db.$executeRawUnsafe(`truncate ${TABLES.map((t) => `"${SCHEMA}"."${t}"`).join(', ')} restart identity cascade`);
-  return db;
-}
-
+/** Tests never use a real database: every environment gets its own in-memory store. */
 export async function makeEnv() {
-  const db = await emptyDb();
+  const store = new MemoryStore();
   const clock = { now: T0 };
-  const app = createApp({ db, now: () => clock.now, rsvpUrl: RSVP_URL });
-  const organiserId = await createOrganiser(db, 'olivia@example.com', 'Olivia', hashPassword(PASSWORD));
+  const app = createApp({ store, now: () => clock.now, rsvpUrl: RSVP_URL });
+  const organiserId = await store.createOrganiser('olivia@example.com', 'Olivia', hashPassword(PASSWORD));
   const api = request(app);
 
   /** Sign in and return a Cookie header; supertest is plain http so the Secure cookie is replayed by hand. */
@@ -48,7 +21,7 @@ export async function makeEnv() {
     return { res, cookie: cookieOf(res) };
   }
 
-  return { db, clock, api, organiserId, signIn };
+  return { store, clock, api, organiserId, signIn };
 }
 
 export const cookieOf = (res: { headers: Record<string, unknown> }) =>
@@ -83,12 +56,12 @@ export async function addGuest(s: Setup, over: Record<string, unknown> = {}) {
 }
 
 export async function tokenOf(s: Setup, guestId: number): Promise<string> {
-  return (await s.db.guest.findUniqueOrThrow({ where: { id: guestId } })).token;
+  return s.store.guests.get(guestId)!.token;
 }
 
 /** Stores a reply directly, for tests that need replies without going through the guest page. */
 export async function storeReply(s: Setup, guestId: number, attending: boolean, partySize = attending ? 1 : 0, meal: string | null = attending ? 'Fish' : null) {
-  await s.db.response.create({ data: { guestId, attending, partySize, meal, updatedAt: new Date(s.clock.now) } });
+  await s.store.saveResponse(guestId, { attending, partySize, meal, guestNames: [], dietary: '', song: '', message: '' }, s.clock.now);
 }
 
 /** Publish a page with a hero so the event is open to guests. */

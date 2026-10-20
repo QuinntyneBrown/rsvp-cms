@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { setPassword } from '../../src/data/repos.js';
 import { hashPassword } from '../../src/domain/password.js';
 import { cookieOf, makeEnv, PASSWORD, type Env } from '../helpers.js';
 
@@ -69,7 +68,7 @@ describe('L2-005 Session lifetime', () => {
   it('AC4 a password change ends other sessions', async () => {
     const env = await makeEnv();
     const { cookie } = await env.signIn();
-    await setPassword(env.db, env.organiserId, hashPassword('new password'), env.clock.now);
+    await env.store.setPassword(env.organiserId, hashPassword('new password'), env.clock.now);
     expect((await env.api.get('/api/auth/me').set('Cookie', cookie)).status).toBe(401);
   });
 });

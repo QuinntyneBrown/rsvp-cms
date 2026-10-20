@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { addGuest, publish, setup, tokenOf, type Setup } from '../helpers.js';
-import { fromDay } from '../../src/data/repos.js';
 
 const OPEN_DAY = Date.parse('2026-10-20T12:00:00Z');
 
@@ -28,7 +27,7 @@ describe('J1 L2-038 Personal link access', () => {
   it('AC2/3 an unknown link and a deleted event look the same and disclose nothing', async () => {
     const { s, token } = await openEvent();
     const unknown = await s.api.get('/api/public/invite/not-a-token');
-    await s.db.event.deleteMany();
+    await s.store.deleteEvent(s.eventId);
     const deleted = await s.api.get(`/api/public/invite/${token}`);
     expect(unknown.status).toBe(404);
     expect(deleted.status).toBe(404);
@@ -55,7 +54,7 @@ describe('J1 L2-039 Invitation page states', () => {
 
   it('AC2 before the window opens the state is not-open', async () => {
     const { s, token } = await openEvent();
-    await s.db.event.updateMany({ data: { inviteOpen: fromDay('2026-11-01') } });
+    s.store.events.get(s.eventId)!.inviteOpen = '2026-11-01';
     expect((await s.api.get(`/api/public/invite/${token}`)).body.state).toBe('not-open');
     expect((await rsvp(s, token, yes)).status).toBe(403);
   });
@@ -67,7 +66,7 @@ describe('J1 L2-039 Invitation page states', () => {
     const refused = await rsvp(s, token, yes);
     expect(refused.status).toBe(403);
     expect(refused.body.error).toBe('Replies closed on Sat 12 Dec, 11:59 pm'); // L2-009 AC4 wording
-    expect(await s.db.response.count()).toBe(0);
+    expect(s.store.responses.size).toBe(0);
   });
 });
 
@@ -101,7 +100,7 @@ describe('J1 L2-042/044 Submission and regrets', () => {
     const { s, token } = await openEvent();
     const [a, b] = await Promise.all([rsvp(s, token, yes), rsvp(s, token, yes)]);
     expect([a.status, b.status]).toEqual([200, 200]);
-    expect(await s.db.response.count()).toBe(1);
+    expect(s.store.responses.size).toBe(1);
     const again = await s.api.get(`/api/public/invite/${token}`);
     expect(again.body.reply).toMatchObject({ attending: true, partySize: 1, meal: 'Fish' });
   });
@@ -183,12 +182,9 @@ describe('J4 L2-046/047/048 Review responses', () => {
   it('L2-046 AC3 pages at 50 rows', async () => {
     const { s } = await openEvent();
     for (let i = 0; i < 120; i++) {
-      await s.db.guest.create({
-        data: {
-          eventId: s.eventId, name: `G${i}`, email: `g${i}@x.co`, token: `t${i}`, code: `C${i}`,
-          response: { create: { attending: true, partySize: 1, meal: 'Fish', updatedAt: new Date(`2026-10-20T00:${String(i % 60).padStart(2, '0')}:00Z`) } },
-        },
-      });
+      const id = await s.store.insertGuest(s.eventId, { name: `G${i}`, email: `g${i}@x.co`, group: '', plusOnes: 0 }, s.clock.now);
+      const reply = { attending: true, partySize: 1, meal: 'Fish', guestNames: [], dietary: '', song: '', message: '' };
+      await s.store.saveResponse(id, reply, Date.parse(`2026-10-20T00:${String(i % 60).padStart(2, '0')}:00Z`));
     }
     const p3 = await s.api.get(`/api/events/${s.eventId}/responses?page=3`).set('Cookie', s.cookie);
     expect(p3.body.total).toBe(120);
@@ -203,7 +199,7 @@ describe('J4 L2-046/047/048 Review responses', () => {
 
   it('L2-047 AC3 removing a reply removes it from totals', async () => {
     const s = await withReplies();
-    const maya = await s.db.guest.findFirstOrThrow({ where: { name: 'Maya Chen' } });
+    const maya = [...s.store.guests.values()].find((g) => g.name === 'Maya Chen')!;
     await s.api.post(`/api/events/${s.eventId}/guests/remove`).set('Cookie', s.cookie).send({ ids: [maya.id] });
     const { totals } = (await s.api.get(`/api/events/${s.eventId}/responses`).set('Cookie', s.cookie)).body;
     expect(totals).toMatchObject({ attending: 0, guestsComing: 0, meals: {} });
@@ -227,7 +223,7 @@ describe('J4 L2-046/047/048 Review responses', () => {
   it('L2-047 AC2 a change is visible on the very next read', async () => {
     const s = await withReplies();
     const before = (await s.api.get(`/api/events/${s.eventId}/responses`).set('Cookie', s.cookie)).body.totals;
-    const lee = await s.db.guest.findFirstOrThrow({ where: { name: 'Lee Waiting' } });
+    const lee = [...s.store.guests.values()].find((g) => g.name === 'Lee Waiting')!;
     await rsvp(s, await tokenOf(s, lee.id), { attending: true, partySize: 1, meal: 'Fish' });
     const after = (await s.api.get(`/api/events/${s.eventId}/responses`).set('Cookie', s.cookie)).body.totals;
     expect(after.attending).toBe(before.attending + 1);

@@ -67,7 +67,7 @@ describe('L2-031 / L2-036 Email preview and sender identity', () => {
     expect((await schedule(s, { replyTo: 'nope' })).body.errors.replyTo).toBeTruthy();
     const ok = await schedule(s, { subject: 'Hello\r\nBcc: evil@example.com', senderName: 'A\nB' });
     expect(ok.body.email.subject).toBe('Hello Bcc: evil@example.com');
-    const row = await s.db.email.findFirstOrThrow();
+    const row = [...s.store.emails.values()][0]!;
     expect(row.senderName).toBe('A B');
   });
 });
@@ -79,7 +79,7 @@ describe('L2-029 AC4 / L2-030 / L2-033 / L2-036 Sending scheduled invitations', 
     const sam = await addGuest(s, { name: 'Sam Okafor', email: 'sam@example.com' });
     const created = await schedule(s, { senderName: 'Maya & Sam', replyTo: 'hello@example.com', ...over });
     const transport = new MemoryTransport();
-    const run = () => sendDueEmails({ db: s.db, transport, now: () => s.clock.now, rsvpUrl: RSVP_URL });
+    const run = () => sendDueEmails({ store: s.store, transport, now: () => s.clock.now, rsvpUrl: RSVP_URL });
     return { s, maya, sam, transport, run, emailId: created.body.email.id as number };
   }
 
@@ -146,9 +146,9 @@ describe('L2-029 AC4 / L2-030 / L2-033 / L2-036 Sending scheduled invitations', 
       await other.run();
       other.s.clock.now += 10 * 60_000;
     }
-    const email = await other.s.db.email.findFirstOrThrow();
+    const email = [...other.s.store.emails.values()][0]!;
     expect(email.status).toBe('Failed');
-    const attempts = await other.s.db.delivery.findMany();
+    const attempts = [...other.s.store.deliveries.values()];
     expect(attempts.every((d) => d.attempts === 5 && d.status === 'Failed')).toBe(true);
     expect(other.s.clock.now - start).toBeLessThanOrEqual(100 * 60_000);
   });
@@ -172,7 +172,7 @@ describe('L2-029 AC4 / L2-030 / L2-033 / L2-036 Sending scheduled invitations', 
   it('two workers running at once still send each message once', async () => {
     const { s, transport } = await scheduled();
     s.clock.now = Date.parse('2026-11-01T09:00:00Z');
-    const deps = { db: s.db, transport, now: () => s.clock.now, rsvpUrl: RSVP_URL };
+    const deps = { store: s.store, transport, now: () => s.clock.now, rsvpUrl: RSVP_URL };
     await Promise.all([sendDueEmails(deps), sendDueEmails(deps), sendDueEmails(deps)]);
     expect(transport.sent).toHaveLength(2);
   });

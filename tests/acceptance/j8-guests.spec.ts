@@ -63,7 +63,7 @@ describe('L2-021 Add a guest', () => {
     const s = await setup();
     const results = await Promise.all([addGuest(s), addGuest(s), addGuest(s)]);
     expect(results.filter(Boolean)).toHaveLength(1);
-    expect(await s.db.guest.count()).toBe(1);
+    expect(s.store.guests.size).toBe(1);
   });
 
   it('AC4 validates the name and AC5 plus-ones 0..9', async () => {
@@ -113,7 +113,7 @@ describe('L2-023 Remove guests', () => {
     const token = await tokenOf(s, a.id);
     const res = await s.api.post(`/api/events/${s.eventId}/guests/remove`).set('Cookie', s.cookie).send({ ids: [a.id, b.id] });
     expect(res.body.removed).toBe(2);
-    expect(await s.db.response.count()).toBe(0);
+    expect(s.store.responses.size).toBe(0);
     expect((await s.api.get(`/api/public/invite/${token}`)).status).toBe(404);
   });
 

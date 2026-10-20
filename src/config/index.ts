@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 const schema = z.object({
   PORT: z.coerce.number().int().default(3000),
+  /** postgres for every real deployment; memory keeps everything in the process (e2e runs, demos without Docker). */
+  STORE: z.enum(['postgres', 'memory']).default('postgres'),
   DATABASE_URL: z.string().default('postgresql://rsvp:rsvp@localhost:5433/rsvp'),
   /** Postgres schema; leave unset for `public`. */
   DATABASE_SCHEMA: z.string().optional(),

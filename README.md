@@ -84,17 +84,43 @@ rsvp-cms is TypeScript end to end.
 
 - [Node.js](https://nodejs.org/) 24 or later, which includes npm
 - [Git](https://git-scm.com/)
-- [PostgreSQL](https://www.postgresql.org/), once the data layer is in place
+- [Docker](https://www.docker.com/) for the local PostgreSQL 17 database, or your own PostgreSQL 17 server
 
 ### Install
 
 ```sh
 git clone https://github.com/QuinntyneBrown/rsvp-cms.git
 cd rsvp-cms
-npm install
+npm install          # also generates the Prisma client
+npm run db:up        # starts PostgreSQL on localhost:5433 with the rsvp, rsvp_test and rsvp_e2e databases
+npm run db:migrate   # applies the migrations in src/data/prisma/migrations
 ```
 
+### Run
+
+Start the API and both apps in three terminals:
+
+```sh
+npm run dev:api      # http://localhost:3000, seeds olivia@example.com / "correct horse"
+npm run dev:admin    # organiser app, http://localhost:5173
+npm run dev:rsvp     # guest app, http://localhost:5174
+```
+
+The API also runs the mail worker, which sends scheduled invitations at 9:00 am on their send date. By default it prints each message (`MAIL_TRANSPORT=log`); set `MAIL_TRANSPORT=smtp` and `SMTP_URL` to send real email.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `DATABASE_URL` | `postgresql://rsvp:rsvp@localhost:5433/rsvp` | PostgreSQL connection |
+| `PORT` | `3000` | API port |
+| `SEED` | `true` | Adds the demo organiser on start |
+| `RSVP_URL` | `http://localhost:5174` | Guest app address used in personal links |
+| `MAIL_TRANSPORT` | `log` | `log`, `smtp` or `memory` |
+| `SMTP_URL`, `MAIL_FROM` | none, `invitations@invitely.example` | SMTP server and From address |
+| `MAIL_WORKER`, `MAIL_POLL_MS` | `true`, `30000` | Run the mail worker and how often it checks |
+
 ### Build and test
+
+The tests need the database from `npm run db:up`. Each test worker gets its own schema in `rsvp_test`, and the e2e run resets `rsvp_e2e`.
 
 | Command | What it does |
 |---|---|
@@ -102,6 +128,7 @@ npm install
 | `npm run typecheck` | Type-checks the project with `tsc --noEmit` |
 | `npm run lint` | Lints the project with ESLint |
 | `npm run test:e2e` | Runs the Playwright browser tests |
+| `npm run db:migrate:dev` | Creates a migration after a change to `src/data/prisma/schema.prisma` |
 
 Run `npm test`, `npm run typecheck` and `npm run lint` before you open a pull request.
 

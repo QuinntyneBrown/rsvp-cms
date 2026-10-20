@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getEvent, getPage, getResponse, guestByCode, guestByToken, saveResponse, type EventRecord, type ResponseRecord } from '../../data/repos.js';
+import type { EventRecord, ResponseRecord } from '../../data/store.js';
 import { normaliseCode } from '../../domain/code.js';
 import { repliesClosedMessage, validateReply } from '../../domain/rsvp.js';
 import { body, isoDate, type Ctx } from '../context.js';
@@ -37,7 +37,7 @@ export function publicRoutes(ctx: Ctx): Router {
       res.status(422).json({ errors: { code: 'Enter your invitation code' } });
       return;
     }
-    const guest = await guestByCode(ctx.db, normaliseCode(raw));
+    const guest = await ctx.store.guestByCode(normaliseCode(raw));
     if (!guest) {
       res.status(404).json({ error: INVALID });
       return;
@@ -46,8 +46,8 @@ export function publicRoutes(ctx: Ctx): Router {
   });
 
   r.get('/invite/:token', async (req, res) => {
-    const guest = await guestByToken(ctx.db, req.params.token);
-    const event = guest ? await getEvent(ctx.db, guest.eventId) : null;
+    const guest = await ctx.store.guestByToken(req.params.token);
+    const event = guest ? await ctx.store.getEvent(guest.eventId) : null;
     if (!guest || !event) {
       res.status(404).json({ error: INVALID });
       return;
@@ -58,15 +58,15 @@ export function publicRoutes(ctx: Ctx): Router {
       state,
       guest: { name: guest.name, places: guest.plusOnes + 1 },
       event: { name: event.name, date: event.date, inviteOpen: event.inviteOpen, inviteClose: event.inviteClose },
-      reply: replyJson(await getResponse(ctx.db, guest.id)),
+      reply: replyJson(await ctx.store.getResponse(guest.id)),
     };
-    if (state !== 'not-open') payload.blocks = (await getPage(ctx.db, event.id)).published ?? [];
+    if (state !== 'not-open') payload.blocks = (await ctx.store.getPage(event.id)).published ?? [];
     res.json(payload);
   });
 
   r.post('/invite/:token/rsvp', async (req, res) => {
-    const guest = await guestByToken(ctx.db, req.params.token);
-    const event = guest ? await getEvent(ctx.db, guest.eventId) : null;
+    const guest = await ctx.store.guestByToken(req.params.token);
+    const event = guest ? await ctx.store.getEvent(guest.eventId) : null;
     if (!guest || !event) {
       res.status(404).json({ error: INVALID });
       return;
@@ -81,7 +81,7 @@ export function publicRoutes(ctx: Ctx): Router {
       res.status(422).json({ errors: v.errors });
       return;
     }
-    res.json({ reply: replyJson(await saveResponse(ctx.db, guest.id, v.value, ctx.now())) });
+    res.json({ reply: replyJson(await ctx.store.saveResponse(guest.id, v.value, ctx.now())) });
   });
 
   return r;

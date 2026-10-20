@@ -1,9 +1,8 @@
 import type { NextFunction, Request, Response } from 'express';
-import type { Db } from '../data/db.js';
-import { getEvent, type EventRecord } from '../data/repos.js';
+import type { EventRecord, Store } from '../data/store.js';
 
 export interface Ctx {
-  db: Db;
+  store: Store;
   now: () => number;
   /** Base URL of the guest app, for personal links in previews. */
   rsvpUrl: string;
@@ -26,7 +25,7 @@ export function organiserId(res: Response): number {
 /** Loads the event for :id and rejects it unless the signed-in organiser owns it. */
 export function ownEvent(ctx: Ctx) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const event = await getEvent(ctx.db, Number(req.params.id));
+    const event = await ctx.store.getEvent(Number(req.params.id));
     if (!event || event.organiserId !== organiserId(res)) {
       res.status(404).json({ error: 'Event not found' });
       return;

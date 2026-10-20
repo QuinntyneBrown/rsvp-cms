@@ -6,3 +6,4 @@ playwright-report/
 docs/design-system/.cache/
 src/data/generated/
 *.db
+__pycache__/

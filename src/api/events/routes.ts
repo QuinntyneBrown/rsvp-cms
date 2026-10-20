@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createEvent, discardDraft, getEvent, getPage, listEvents, publishDraft, saveDraft, type EventRecord, type PageRecord } from '../../data/repos.js';
+import type { EventRecord, PageRecord } from '../../data/store.js';
 import { MAX_BLOCKS, parseBlocks, validateBlocks } from '../../domain/blocks.js';
 import { validateNewEvent } from '../../domain/events.js';
 import { body, eventOf, isoDate, organiserId, ownEvent, type Ctx } from '../context.js';
@@ -26,7 +26,7 @@ export function eventRoutes(ctx: Ctx): Router {
   const own = ownEvent(ctx);
 
   r.get('/', async (_req, res) => {
-    res.json({ events: (await listEvents(ctx.db, organiserId(res))).map(eventJson) });
+    res.json({ events: (await ctx.store.listEvents(organiserId(res))).map(eventJson) });
   });
 
   r.post('/', async (req, res) => {
@@ -35,8 +35,8 @@ export function eventRoutes(ctx: Ctx): Router {
       res.status(422).json({ errors: v.errors });
       return;
     }
-    const id = await createEvent(ctx.db, organiserId(res), v.value, isoDate(ctx.now()));
-    res.status(201).json({ event: eventJson((await getEvent(ctx.db, id))!), redirect: `/events/${id}` });
+    const id = await ctx.store.createEvent(organiserId(res), v.value, isoDate(ctx.now()), ctx.now());
+    res.status(201).json({ event: eventJson((await ctx.store.getEvent(id))!), redirect: `/events/${id}` });
   });
 
   r.get('/:id', own, (_req, res) => {
@@ -46,7 +46,7 @@ export function eventRoutes(ctx: Ctx): Router {
   // ---- page composer (draft / publish / discard / preview) -----------------
 
   r.get('/:id/page', own, async (_req, res) => {
-    res.json(pageJson(await getPage(ctx.db, eventOf(res).id)));
+    res.json(pageJson(await ctx.store.getPage(eventOf(res).id)));
   });
 
   r.put('/:id/page/draft', own, async (req, res) => {
@@ -60,29 +60,29 @@ export function eventRoutes(ctx: Ctx): Router {
       res.status(422).json({ errors: { page: 'A page can have up to 12 blocks' } });
       return;
     }
-    await saveDraft(ctx.db, eventOf(res).id, blocks, ctx.now());
-    res.json(pageJson(await getPage(ctx.db, eventOf(res).id)));
+    await ctx.store.saveDraft(eventOf(res).id, blocks, ctx.now());
+    res.json(pageJson(await ctx.store.getPage(eventOf(res).id)));
   });
 
   r.post('/:id/page/publish', own, async (_req, res) => {
-    const page = await getPage(ctx.db, eventOf(res).id);
+    const page = await ctx.store.getPage(eventOf(res).id);
     const errors = validateBlocks(page.draft);
     if (Object.keys(errors).length) {
       res.status(422).json({ errors, firstInvalid: Object.keys(errors)[0] });
       return;
     }
-    await publishDraft(ctx.db, eventOf(res).id, page.draft, ctx.now());
-    res.json(pageJson(await getPage(ctx.db, eventOf(res).id)));
+    await ctx.store.publishDraft(eventOf(res).id, page.draft, ctx.now());
+    res.json(pageJson(await ctx.store.getPage(eventOf(res).id)));
   });
 
   r.post('/:id/page/discard', own, async (_req, res) => {
-    await discardDraft(ctx.db, eventOf(res).id);
-    res.json(pageJson(await getPage(ctx.db, eventOf(res).id)));
+    await ctx.store.discardDraft(eventOf(res).id);
+    res.json(pageJson(await ctx.store.getPage(eventOf(res).id)));
   });
 
   /** Preview renders the draft; the public endpoint only ever serves the published blocks. */
   r.get('/:id/page/preview', own, async (_req, res) => {
-    const page = await getPage(ctx.db, eventOf(res).id);
+    const page = await ctx.store.getPage(eventOf(res).id);
     res.json({ event: eventJson(eventOf(res)), blocks: page.draft });
   });
 

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { listResponses, responseTotals, type ReplyStatus } from '../../data/repos.js';
+import type { ReplyStatus } from '../../data/store.js';
 import { eventOf, ownEvent, toInt, type Ctx } from '../context.js';
 
 const PAGE_SIZE = 50;
@@ -12,8 +12,8 @@ export function responseRoutes(ctx: Ctx): Router {
     const page = toInt(req.query.page, 1);
     const eventId = eventOf(res).id;
     const [{ total, rows }, totals] = await Promise.all([
-      listResponses(ctx.db, eventId, { q: typeof req.query.q === 'string' ? req.query.q.trim() : undefined, status, page, pageSize: PAGE_SIZE }),
-      responseTotals(ctx.db, eventId),
+      ctx.store.listResponses(eventId, { q: typeof req.query.q === 'string' ? req.query.q.trim() : undefined, status, page, pageSize: PAGE_SIZE }),
+      ctx.store.responseTotals(eventId),
     ]);
     res.json({ responses: rows, total, page, pageSize: PAGE_SIZE, totals });
   });
