@@ -19,9 +19,26 @@ The feature is a vertical slice from the organiser UI to the event store.
 - **`CreateEventCommand`** — domain command in `src/domain/events` carrying the submitted values and the identifier of the organiser who creates the event.
 - **`EventCreationService`** — domain service in `src/domain/events`. It checks the length of `Name`, rejects a date in the past, creates the `Event` in Draft status, and asks the repository to save it.
 - **`Event`** — domain entity in `src/domain/events`. It holds the event's identifier, type, name, date, start time, venue and status.
-- **`EventType`** — enumeration in `src/domain/events` of the occasion kinds named in L1-002: birthday, holiday, anniversary and other. The full list of values is `<TO SUPPLY>`.
+- **`EventType`** — enumeration in `src/domain/events` of the occasion kinds named in L1-002: `Birthday`, `Holiday`, `Anniversary` and `Other`. The values match the New event mock in `docs/mocks/pages/event-new`.
 - **`EventStatus`** — enumeration in `src/domain/events` with the value `Draft` used by this feature. The values `Invites open` and `Invites closed` are owned by the event status feature.
 - **`EventRepository`** — persistence class in `src/data/events` that writes the `Event` to the event store.
+
+The organiser app (`src/admin`) and the guest app (`src/rsvp`) are React 19 applications built with Vite. The API application runs on Node.js 24 with Express 5 and exchanges JSON over HTTPS.
+
+The code places each design component as follows.
+
+| Design component | Where it lives |
+|------------------|----------------|
+| `NewEventPage` | `NewEventPage` in `src/admin/pages/NewEvent.tsx` |
+| `EventsClient` | The shared `post` helper in `src/shared/ui/api.ts` |
+| `EventsController` | `POST /api/events` in `eventRoutes`, `src/api/events/routes.ts` |
+| `CreateEventRequest`, `CreateEventCommand` | The JSON body and `NewEvent` in `src/domain/events.ts`; the organiser identifier comes from the session |
+| `EventCreationService` | `validateNewEvent` in `src/domain/events.ts`, called by the route |
+| `Event`, `EventStatus` | `EventRecord` in `src/data/store.ts`; the `status` column defaults to `Draft` |
+| `EventType` | `EVENT_TYPES` in `src/domain/events.ts` |
+| `EventRepository` | `Store.createEvent`; it also sets the invite window from today to the event date and creates an empty page draft. `date`, `invite_open` and `invite_close` are Postgres `date` columns |
+
+Persistence goes through the `Store` interface in `src/data/store.ts`. The running app uses `PrismaStore` (`src/data/prismaStore.ts`), which reaches PostgreSQL 17 through Prisma ORM 7 with the `@prisma/adapter-pg` driver adapter. Every automated test and the Playwright e2e server use the in-memory `MemoryStore` (`src/data/memoryStore.ts`) instead. The schema and migrations are `src/data/prisma/schema.prisma` and `src/data/prisma/migrations/`.
 
 ## Requirements
 

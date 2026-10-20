@@ -25,6 +25,23 @@ The feature sits in the guests subsystem. The Guests page in the organiser app (
 - **`GuestReadRepository`** — persistence component under `src/data` that implements `GuestListReader` over the guest table.
 - **`ReplyStatus`** — enumeration of the reply states: `Waiting`, `Attending` and `Declined`.
 
+The organiser app (`src/admin`) and the guest app (`src/rsvp`) are React 19 applications built with Vite. The API application runs on Node.js 24 with Express 5 and exchanges JSON over HTTPS.
+
+The code places each design component as follows.
+
+| Design component | Where it lives |
+|------------------|----------------|
+| `GuestsPage` | `GuestsTab` in `src/admin/pages/Guests.tsx` |
+| `GuestSearchField` | Search input of `GuestsTab` with `useDebounced(search, 300)` from `src/shared/ui/hooks.ts` |
+| `GuestSelectionStore` | `Set` of selected identifiers held by `GuestsTab`, kept across pages |
+| `GuestListController` | `GET /api/events/:id/guests` in `src/api/guests/routes.ts` |
+| `GuestQuery` | `ListQuery` in `src/data/store.ts`: `q`, `status`, `page` and `pageSize` (50) |
+| `GuestSummary`, `GuestListPage` | `GuestListRow` and the `{ total, rows }` result of `Store.listGuests` |
+| `GuestListReader`, `GuestReadRepository` | `Store.listGuests`: guests with their reply, ordered by name, 50 per page, with a case-insensitive search on name or email |
+| `ReplyStatus` | `ReplyStatus` in `src/data/store.ts`: `waiting`, `attending` and `declined` |
+
+Persistence goes through the `Store` interface in `src/data/store.ts`. The running app uses `PrismaStore` (`src/data/prismaStore.ts`), which reaches PostgreSQL 17 through Prisma ORM 7 with the `@prisma/adapter-pg` driver adapter. Every automated test and the Playwright e2e server use the in-memory `MemoryStore` (`src/data/memoryStore.ts`) instead. The schema and migrations are `src/data/prisma/schema.prisma` and `src/data/prisma/migrations/`.
+
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |

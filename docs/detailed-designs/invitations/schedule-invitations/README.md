@@ -26,6 +26,26 @@ The feature is a vertical slice that runs from the organiser dialog to the sched
 - **`SenderIdentity`** — value object under `src/domain/invitations`. It removes line breaks from the sender name and validates the reply-to address. The Event settings feature also uses it when the organiser saves the settings.
 - **`ScheduledEmailRepository`** — repository under `src/data`. It adds the scheduled emails of one request in one transaction.
 
+The organiser app (`src/admin`) and the guest app (`src/rsvp`) are React 19 applications built with Vite. The API application runs on Node.js 24 with Express 5 and exchanges JSON over HTTPS.
+
+The mail worker (`sendDueEmails` and `startMailWorker` in `src/shared/mail/worker.ts`) polls for due emails and takes a lease on each through `locked_until`. It creates the deliveries, then sends each one through a `MailTransport` from `src/shared/mail/transport.ts`: `SmtpTransport` through nodemailer in production, `LogTransport` in development and `MemoryTransport` in tests. Each delivery has a unique idempotency key. A failed send is retried after 1, 2, 4 and 8 minutes, with at most 5 attempts. The message text comes from `invitationText` in `src/domain/invitations/message.ts`. The queue operations (`dueEmailIds`, `claimEmail`, `materialiseDeliveries`, `dueDeliveries`, `markDelivery`, `settleEmail`) are methods of the `Store` interface.
+
+The code places each design component as follows.
+
+| Design component | Where it lives |
+|------------------|----------------|
+| `ScheduleInvitationsDialog` | `ScheduleDialog` in `src/admin/pages/Emails.tsx` |
+| `EmailsApiClient` | The shared `post` helper in `src/shared/ui/api.ts` |
+| `InvitationScheduleController` | `POST /api/events/:id/emails` in `src/api/guests/routes.ts` |
+| `ScheduleInvitationsCommand` | JSON body with `audience` (`all` or `non-responders`), `subject`, `sendOn`, `senderName` and `replyTo` |
+| `ScheduleInvitationsCommandHandler` | Merged into the route: it validates, counts the planned recipients and saves one `emails` row |
+| `InvitationSchedulePolicy`, `SenderIdentity` | `validateSchedule` in `src/domain/invitations/schedule.ts`: subject of 1 to 150 characters, send date on or before invites close, line breaks removed from subject and sender name, reply-to like name@example.com |
+| `InvitationSchedule` | `sendTime` in the same module sets `send_at` to 9:00 am on the send date |
+| `ScheduledEmail` | One `emails` row per schedule with status `Scheduled`, and one `deliveries` row per guest created when the email is sent. Recipients are resolved at send time, not when scheduling |
+| `ScheduledEmailRepository` | `Store.insertEmail` |
+
+Persistence goes through the `Store` interface in `src/data/store.ts`. The running app uses `PrismaStore` (`src/data/prismaStore.ts`), which reaches PostgreSQL 17 through Prisma ORM 7 with the `@prisma/adapter-pg` driver adapter. Every automated test and the Playwright e2e server use the in-memory `MemoryStore` (`src/data/memoryStore.ts`) instead. The schema and migrations are `src/data/prisma/schema.prisma` and `src/data/prisma/migrations/`.
+
 ## Requirements
 
 The feature realizes the following level-2 (L2) requirements. Each L2 requirement refines a level-1 (L1) requirement, cited by identifier.

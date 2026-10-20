@@ -23,7 +23,26 @@ The feature is a vertical slice from the RSVP form through the public API to the
 - **`RsvpPolicy`** — domain policy in `src/domain/responses`. It returns field errors for a yes without a meal, a party size above the places on the invitation, a missing guest name, or a value over its limit.
 - **`Response`** — entity in `src/domain/responses`. It holds the saved reply for one guest and its `Apply` operation sets the reply and the update time.
 - **`RsvpReply`** — value carried by the command, with the choice, party size, meal, guest names, dietary note, song request and message.
-- **`ResponseRepository`** — data component in `src/data`. It reads the reply of a guest and writes the reply once for each submission. Its storage layout is `<TO SUPPLY>`.
+- **`ResponseRepository`** — data component in `src/data`. It reads the reply of a guest and writes the reply once for each submission. It is realised by `getResponse` and `saveResponse` on the `Store` interface. Replies sit in the `responses` table, one row per guest with `guest_id` as the primary key. The columns are `attending`, `party_size`, `meal`, `guest_names` (jsonb), `dietary`, `song`, `message` and `updated_at`. `PrismaStore` saves with a native `INSERT ... ON CONFLICT`, so a double submit stores one row. The same transaction cancels the guest's pending deliveries of emails addressed to people who have not replied.
+
+The organiser app (`src/admin`) and the guest app (`src/rsvp`) are React 19 applications built with Vite. The API application runs on Node.js 24 with Express 5 and exchanges JSON over HTTPS.
+
+The code places each design component as follows.
+
+| Design component | Where it lives |
+|------------------|----------------|
+| `RsvpForm` | `RsvpForm` in `src/rsvp/RsvpForm.tsx` |
+| `DeclineDialog` | The "Send your regrets?" `Dialog` inside `RsvpForm` |
+| `PublicApiClient` | The shared `post` helper in `src/shared/ui/api.ts` |
+| `RsvpFieldLimits` | `LIMITS` and `MEALS` in `src/domain/rsvp.ts`, imported by the form and the API |
+| `RsvpController` | `POST /api/public/invite/:token/rsvp` in `src/api/public/routes.ts` |
+| `SubmitRsvpCommandHandler` | Merged into that route: window check, `validateReply`, then `Store.saveResponse` |
+| `RsvpPolicy` | `validateReply` in `src/domain/rsvp.ts` |
+| `Response`, `RsvpReply` | `Reply` in `src/domain/rsvp.ts` and `ResponseRecord` in `src/data/store.ts` |
+| `SubmissionId` | Not used; the upsert keyed by guest makes a repeated send store one row |
+| `ResponseRepository` | `Store.getResponse` and `Store.saveResponse` |
+
+Persistence goes through the `Store` interface in `src/data/store.ts`. The running app uses `PrismaStore` (`src/data/prismaStore.ts`), which reaches PostgreSQL 17 through Prisma ORM 7 with the `@prisma/adapter-pg` driver adapter. Every automated test and the Playwright e2e server use the in-memory `MemoryStore` (`src/data/memoryStore.ts`) instead. The schema and migrations are `src/data/prisma/schema.prisma` and `src/data/prisma/migrations/`.
 
 ## Requirements
 

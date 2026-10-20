@@ -24,6 +24,23 @@ The feature is a vertical slice that runs from the Emails page to the scheduled 
 - **`EmailPreview`** — value under `src/domain/invitations`. It holds the From value, the Subject and the rendered body.
 - **`ScheduledEmailRepository`** — repository under `src/data`, shared with the schedule feature. It reads the scheduled emails of an event.
 
+The organiser app (`src/admin`) and the guest app (`src/rsvp`) are React 19 applications built with Vite. The API application runs on Node.js 24 with Express 5 and exchanges JSON over HTTPS.
+
+The code places each design component as follows.
+
+| Design component | Where it lives |
+|------------------|----------------|
+| `EmailsPage` | `EmailsTab` in `src/admin/pages/Emails.tsx` |
+| `EmailPreviewDialog` | `PreviewDialog` in `src/admin/pages/Emails.tsx` |
+| `EmailsApiClient` | The shared `get` helper in `src/shared/ui/api.ts` |
+| `ScheduledEmailsController` | `GET /api/events/:id/emails` and `GET /api/events/:id/emails/:emailId/preview` in `src/api/guests/routes.ts` |
+| `ScheduledEmailQuery` | Path parameters only; the list returns every email of the event, ordered by send time |
+| `ScheduledEmailQueryHandler`, `ScheduledEmailListItem` | `emailJson` in `src/api/guests/routes.ts`: kind, audience label, send time, recipients, status and subject |
+| `InvitationPreviewRenderer`, `EmailPreview` | `invitationText`, `personalLink` and `SAMPLE_GUEST` in `src/domain/invitations/message.ts`; the route returns `from`, `replyTo`, `subject` and `body`, the same text the mail worker sends |
+| `ScheduledEmailRepository` | `Store.listEmails` and `Store.getEmail` |
+
+Persistence goes through the `Store` interface in `src/data/store.ts`. The running app uses `PrismaStore` (`src/data/prismaStore.ts`), which reaches PostgreSQL 17 through Prisma ORM 7 with the `@prisma/adapter-pg` driver adapter. Every automated test and the Playwright e2e server use the in-memory `MemoryStore` (`src/data/memoryStore.ts`) instead. The schema and migrations are `src/data/prisma/schema.prisma` and `src/data/prisma/migrations/`.
+
 ## Requirements
 
 The feature realizes the following level-2 (L2) requirements. Each L2 requirement refines a level-1 (L1) requirement, cited by identifier.

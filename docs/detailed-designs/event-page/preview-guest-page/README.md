@@ -21,6 +21,23 @@ The feature sits in the event-page subsystem. The preview is built from the page
 - **`GuestPageView`** — component under `src/rsvp`. It renders the published page through `PageBlockRenderer`. It contains no organiser-only code.
 - **`PageSource`** — enumeration with the values `Draft` and `Published`.
 
+The organiser app (`src/admin`) and the guest app (`src/rsvp`) are React 19 applications built with Vite. The API application runs on Node.js 24 with Express 5 and exchanges JSON over HTTPS.
+
+The code places each design component as follows.
+
+| Design component | Where it lives |
+|------------------|----------------|
+| `PagePreviewPanel` | Preview mode of `Composer` in `src/admin/pages/PageComposer.tsx`; it renders the editor's current block list, which autosave keeps equal to the stored draft |
+| `PagePreviewController` | `GET /api/events/:id/page/preview` in `src/api/events/routes.ts`; it returns the event and the stored draft blocks |
+| `PageRenderModelBuilder` | No separate builder. The preview route returns `pages.draft`, and `GET /api/public/invite/:token` in `src/api/public/routes.ts` returns `pages.published` only |
+| `PageRenderModel`, `RenderedBlock` | The `{ event, blocks }` response and `Block` in `src/domain/blocks.ts` |
+| `PageBlockRenderer` | `BlockView` in `src/shared/ui/blocks.tsx` |
+| `GuestPageView` | `InvitePage` in `src/rsvp/InvitePage.tsx` |
+| `PageSource` | Implicit in the endpoint called |
+| `PageDraftRepository`, `PublishedPageRepository` | `Store.getPage`, which returns `pages.draft` and `pages.published` |
+
+Persistence goes through the `Store` interface in `src/data/store.ts`. The running app uses `PrismaStore` (`src/data/prismaStore.ts`), which reaches PostgreSQL 17 through Prisma ORM 7 with the `@prisma/adapter-pg` driver adapter. Every automated test and the Playwright e2e server use the in-memory `MemoryStore` (`src/data/memoryStore.ts`) instead. The schema and migrations are `src/data/prisma/schema.prisma` and `src/data/prisma/migrations/`.
+
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |
@@ -37,7 +54,7 @@ The organiser previews the unpublished draft in the RSVP CMS, while the guest re
 
 ### Containers
 
-The preview is served by the organiser API from the draft, and the guest app reads the published page. Both apps render blocks through the shared page renderer.
+The API application serves the draft to the organiser app and only the published page to the guest app, through `GET /api/public/invite/:token`. Both apps render blocks through the shared page renderer.
 
 ![Container view for previewing the page as a guest](diagrams/c4-container.png)
 

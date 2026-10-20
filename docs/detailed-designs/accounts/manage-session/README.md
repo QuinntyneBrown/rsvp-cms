@@ -22,7 +22,25 @@ The feature is a vertical slice that runs from the organiser shell to the sessio
 - **`SessionCheck`** — enumeration of the results of a check: `Valid`, `Missing`, `Revoked` and `Inactive`.
 - **`Session`** — domain entity holding the account identifier, the sign-in choice, the last activity time, the expiry time and the revocation time. `IsInactive` compares the last activity time with the 8 hour limit.
 - **`SignInService`** — the sign-in component of the Sign in as an organiser feature. It calls `SessionService.Create` after a successful sign-in.
-- **`SessionStore`** — persistence component under `src/data` that reads and writes `Session` records. `<TO SUPPLY>` for the storage technology.
+- **`SessionStore`** — persistence component under `src/data` that reads and writes `Session` records. It is realised by the `Store` interface, whose `createSession`, `findSession`, `touchSession` and `deleteSession` methods work on the `sessions` table. A row's `id` is a 256-bit random hex value that is also the cookie value. `expires_at` is null for a browser session and 30 days after sign-in with Keep me signed in. `last_seen` drives the 8 hour idle limit, and `password_version` ties the row to the password it was created under.
+
+The organiser app (`src/admin`) and the guest app (`src/rsvp`) are React 19 applications built with Vite. The API application runs on Node.js 24 with Express 5 and exchanges JSON over HTTPS.
+
+Changing the password (`POST /api/auth/password`, L2-060) increments `organisers.password_version`. Every other session of the account then fails its next check with "Your session ended. Sign in again." The device that made the change receives a new session with the same lifetime choice.
+
+The code places each design component as follows.
+
+| Design component | Where it lives |
+|------------------|----------------|
+| `OrganiserShell` | `App` in `src/admin/App.tsx` (top bar and Sign out); `setUnauthorizedHandler` in `src/shared/ui/api.ts` routes a 401 to Sign in with the server message |
+| `SessionGuard` | `requireAuth` in `src/api/auth.ts`, mounted on `/api/events`, `/api/auth/me` and `/api/auth/password` |
+| `SignOutEndpoint` | `POST /api/auth/sign-out` in `src/api/auth.ts`; it deletes the session row and clears the `sid` cookie |
+| `SessionService` | `isSessionAlive`, `IDLE_LIMIT_MS` (8 hours) and `REMEMBER_MS` (30 days) in `src/domain/session.ts`, with the session methods of `Store` |
+| `SessionCheck` | No separate type; `requireAuth` answers 401 "Sign in to continue" for a missing session and "Your session ended. Sign in again." for an inactive, expired or revoked one |
+| `Session` | `SessionRecord` in `src/data/store.ts`; sign-out deletes the row, and a password change leaves it with an older `password_version` |
+| `SessionStore` | `sessions` table through the `Store` interface |
+
+Persistence goes through the `Store` interface in `src/data/store.ts`. The running app uses `PrismaStore` (`src/data/prismaStore.ts`), which reaches PostgreSQL 17 through Prisma ORM 7 with the `@prisma/adapter-pg` driver adapter. Every automated test and the Playwright e2e server use the in-memory `MemoryStore` (`src/data/memoryStore.ts`) instead. The schema and migrations are `src/data/prisma/schema.prisma` and `src/data/prisma/migrations/`.
 
 ## Requirements
 

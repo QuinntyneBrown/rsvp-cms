@@ -21,7 +21,24 @@ The feature is a vertical slice from the guest page through the public API to th
 - **`EventSnapshot`** — read model in `src/domain/invitations` with the event identifier, name, publication flag and `InvitationWindow`.
 - **`InvitationLink`** — entity in `src/domain/invitations` linking one guest to one event by the token. Its `IsValid` flag is cleared when links are regenerated.
 - **`InvitationPageView`** — domain result with `GuestPageState`, the guest name, the event name, the open and close instants, and the published content. Fields that do not apply to a state are empty.
-- **`InvitationLinkRepository`** and **`EventRepository`** — data components in `src/data`. They read links by token and events by identifier. The storage layout is `<TO SUPPLY>`.
+- **`InvitationLinkRepository`** and **`EventRepository`** — data components in `src/data`. They read links by token and events by identifier. Both are realised by the `Store` interface (`guestByToken` and `getEvent`). The personal link has no table of its own: its token is the unique `token` column of the `guests` table, a random UUID. Events store `invite_open` and `invite_close` as Postgres `date` values, and the published blocks sit in `pages.published` as jsonb.
+
+The organiser app (`src/admin`) and the guest app (`src/rsvp`) are React 19 applications built with Vite. The API application runs on Node.js 24 with Express 5 and exchanges JSON over HTTPS.
+
+The code places each design component as follows.
+
+| Design component | Where it lives |
+|------------------|----------------|
+| `InvitationPage` | `InvitePage` in `src/rsvp/InvitePage.tsx` |
+| `PublicPageRenderer` | `BlockView` in `src/shared/ui/blocks.tsx` |
+| `PersonalInvitationController` | `GET /api/public/invite/:token` in `src/api/public/routes.ts` |
+| `InvitationViewAssembler`, `PersonalLinkResolver` | Merged into that route. Every failure answers 404 "This invitation link doesn't work" |
+| `InvitationWindow` | `windowState` in the same file: a Draft event is not open, and the window runs from `invite_open` to the end of `invite_close` |
+| `EventSnapshot`, `InvitationPageView` | `EventRecord` and the route's JSON: the state, the guest's name and places, the event, the guest's own reply and, unless not yet open, the published blocks |
+| `InvitationLink` | The `token` column of `guests`; no link regeneration exists, and the token is deleted with the guest |
+| `InvitationLinkRepository`, `EventRepository` | `Store.guestByToken` and `Store.getEvent` |
+
+Persistence goes through the `Store` interface in `src/data/store.ts`. The running app uses `PrismaStore` (`src/data/prismaStore.ts`), which reaches PostgreSQL 17 through Prisma ORM 7 with the `@prisma/adapter-pg` driver adapter. Every automated test and the Playwright e2e server use the in-memory `MemoryStore` (`src/data/memoryStore.ts`) instead. The schema and migrations are `src/data/prisma/schema.prisma` and `src/data/prisma/migrations/`.
 
 ## Requirements
 

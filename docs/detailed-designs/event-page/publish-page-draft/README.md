@@ -23,6 +23,25 @@ The feature sits in the event-page subsystem, next to the block editor described
 - **`PageDraftRepository`** and **`PublishedPageRepository`** — persistence components under `src/data`. Each loads and saves one page in a single write.
 - **`DraftSaveState`** — enumeration of the save states shown by the status bar: `Saved`, `Pending` and `Failed`.
 
+The organiser app (`src/admin`) and the guest app (`src/rsvp`) are React 19 applications built with Vite. The API application runs on Node.js 24 with Express 5 and exchanges JSON over HTTPS.
+
+The code places each design component as follows.
+
+| Design component | Where it lives |
+|------------------|----------------|
+| `DraftStatusBar` | Status line and buttons of `Composer` in `src/admin/pages/PageComposer.tsx` |
+| `DraftAutosave` | Effect in `Composer` that sends `PUT /api/events/:id/page/draft` 2 seconds after the last edit |
+| `UnsavedChangesGuard` | `beforeunload` listener in `Composer` |
+| `DiscardChangesDialog` | `Dialog` from `src/shared/ui/components.tsx`, opened by `Composer` |
+| `PageDraftController` | `PUT /page/draft`, `POST /page/publish` and `POST /page/discard` under `/api/events/:id` in `src/api/events/routes.ts` |
+| `PagePublisher` | Merged into the publish and discard routes: `validateBlocks` then `Store.publishDraft`, and `Store.discardDraft` |
+| `PageDraft` | `pages.draft` (jsonb); the API reports `hasUnpublishedChanges` by comparing it with `pages.published` |
+| `PublishedPage` | `pages.published` (jsonb) and `pages.published_at`; `publishDraft` also sets `events.status` to `Published` in the same transaction |
+| `DraftSaveState` | `saveState` in `Composer`: `saved`, `saving` and `error` |
+| `PageDraftRepository`, `PublishedPageRepository` | `getPage`, `saveDraft`, `publishDraft` and `discardDraft` on the `Store` interface |
+
+Persistence goes through the `Store` interface in `src/data/store.ts`. The running app uses `PrismaStore` (`src/data/prismaStore.ts`), which reaches PostgreSQL 17 through Prisma ORM 7 with the `@prisma/adapter-pg` driver adapter. Every automated test and the Playwright e2e server use the in-memory `MemoryStore` (`src/data/memoryStore.ts`) instead. The schema and migrations are `src/data/prisma/schema.prisma` and `src/data/prisma/migrations/`.
+
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |
@@ -40,7 +59,7 @@ The organiser saves, publishes and discards page changes, and the guest reads th
 
 ### Containers
 
-The organiser app sends draft, publish and discard requests to the organiser API. The guest app reads the published page from the application database, and never the draft.
+The organiser app sends draft, publish and discard requests to the organiser API. The guest app reads the published page through the public endpoint of the API application, and never the draft.
 
 ![Container view for saving, publishing and discarding page drafts](diagrams/c4-container.png)
 

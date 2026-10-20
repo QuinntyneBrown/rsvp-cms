@@ -19,7 +19,24 @@ The feature is a vertical slice from the Responses page to the reply store.
 - **`ResponseListQuery`** — value object in `src/domain/responses` with the event identifier, the filter, the search term and the page. Its page size is fixed at 50 rows.
 - **`ResponseRow`** — read model in `src/domain/responses` with the guest name, reply, guests count, meal, dietary note, message and update time. Rows are sorted by the update time, most recent first.
 - **`ResponseTotalsCalculator`** — domain component in `src/domain/responses`. It computes the totals from the stored replies.
-- **`ResponseQueryRepository`** — data component in `src/data`. It returns a page of rows that match a query, the count of matching rows, and the replies needed for totals. Its storage layout is `<TO SUPPLY>`.
+- **`ResponseQueryRepository`** — data component in `src/data`. It returns a page of rows that match a query, the count of matching rows, and the replies needed for totals. It is realised by `listResponses` and `responseTotals` on the `Store` interface. It reads the `responses` table joined to `guests`, newest `updated_at` first, 50 rows per page, with a case-insensitive search on the guest name. The Waiting filter lists the guests that have no `responses` row instead, ordered by name.
+
+The organiser app (`src/admin`) and the guest app (`src/rsvp`) are React 19 applications built with Vite. The API application runs on Node.js 24 with Express 5 and exchanges JSON over HTTPS.
+
+The code places each design component as follows.
+
+| Design component | Where it lives |
+|------------------|----------------|
+| `ResponsesPage` | `ResponsesTab` in `src/admin/pages/Responses.tsx` |
+| `ResponseTotalsStrip` | Totals list inside `ResponsesTab`; the tab reloads every 5 seconds |
+| `ResponsesApiClient` | The shared `get` helper in `src/shared/ui/api.ts` |
+| `ResponsesController` | `GET /api/events/:id/responses` in `src/api/responses/routes.ts`; it returns the rows and the totals in one response, so no separate totals endpoint exists |
+| `ResponseListQuery` | `ListQuery` in `src/data/store.ts` |
+| `ResponseRow` | `ResponseListRow` in `src/data/store.ts` |
+| `ResponseTotalsCalculator` | `Store.responseTotals`, computed from the stored replies |
+| `ResponseQueryRepository` | `Store.listResponses` |
+
+Persistence goes through the `Store` interface in `src/data/store.ts`. The running app uses `PrismaStore` (`src/data/prismaStore.ts`), which reaches PostgreSQL 17 through Prisma ORM 7 with the `@prisma/adapter-pg` driver adapter. Every automated test and the Playwright e2e server use the in-memory `MemoryStore` (`src/data/memoryStore.ts`) instead. The schema and migrations are `src/data/prisma/schema.prisma` and `src/data/prisma/migrations/`.
 
 ## Requirements
 

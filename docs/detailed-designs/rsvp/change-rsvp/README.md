@@ -21,6 +21,23 @@ The feature is a vertical slice from the reply summary on the guest page to the 
 - **`Response`** — entity in `src/domain/responses`. Its `Change` operation replaces the reply and sets the update time. When the new choice is a decline, it clears the party size, the meal choice and the guest names.
 - **`ResponseRepository`** — data component in `src/data`. It loads the saved reply of a guest and saves the changed reply. Totals are not stored separately, so the organiser's counts reflect the changed reply the next time they are read.
 
+The organiser app (`src/admin`) and the guest app (`src/rsvp`) are React 19 applications built with Vite. The API application runs on Node.js 24 with Express 5 and exchanges JSON over HTTPS.
+
+The code places each design component as follows.
+
+| Design component | Where it lives |
+|------------------|----------------|
+| `ReplySummaryPanel` | Summary view of `RsvpForm` with `ReplySummary` in `src/rsvp/RsvpForm.tsx`; `InvitePage` renders the closed state |
+| `RsvpForm` | `RsvpForm` in `src/rsvp/RsvpForm.tsx`, prefilled from the saved reply |
+| `PublicApiClient` | The shared `post` helper in `src/shared/ui/api.ts` |
+| `RsvpController` | A change uses the same `POST /api/public/invite/:token/rsvp` as the first reply (`src/api/public/routes.ts`), not a separate `PUT` |
+| `ChangeRsvpCommandHandler` | Merged into that route; a closed window answers 403 "Replies closed on [date], 11:59 pm" |
+| `InvitationWindow` | `windowState` in `src/api/public/routes.ts` |
+| `Response` | `validateReply` in `src/domain/rsvp.ts` sets party size 0, no meal and no guest names for a decline, and `Store.saveResponse` replaces the row |
+| `ResponseRepository` | `Store.getResponse` and `Store.saveResponse` |
+
+Persistence goes through the `Store` interface in `src/data/store.ts`. The running app uses `PrismaStore` (`src/data/prismaStore.ts`), which reaches PostgreSQL 17 through Prisma ORM 7 with the `@prisma/adapter-pg` driver adapter. Every automated test and the Playwright e2e server use the in-memory `MemoryStore` (`src/data/memoryStore.ts`) instead. The schema and migrations are `src/data/prisma/schema.prisma` and `src/data/prisma/migrations/`.
+
 ## Requirements
 
 The feature realizes the following level-2 (L2) requirement. The requirement refines a level-1 (L1) requirement, cited by identifier.

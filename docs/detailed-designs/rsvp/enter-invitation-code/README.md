@@ -17,7 +17,21 @@ The feature is a vertical slice from the guest page through the public API to th
 - **`InvitationCodeController`** — endpoint in `src/api/public`. It exposes `POST /public/invitation-codes` and dispatches the redemption.
 - **`InvitationCodeService`** — domain service in `src/domain/invitations`. It normalises the raw code, looks up the invitation, and returns the result without revealing the reason for a failure.
 - **`InvitationCode`** — value object in `src/domain/invitations`. Its `Normalise` operation converts a raw code to upper case and removes spaces and separators, so `maya-7k2q` and `MAYA-7K2Q` resolve to the same invitation.
-- **`InvitationCodeRepository`** — data component in `src/data`. It finds the invitation record that matches a normalised code and returns no record for an unknown or expired code. The storage form of the code is `<TO SUPPLY>`.
+- **`InvitationCodeRepository`** — data component in `src/data`. It finds the invitation record that matches a normalised code and returns no record for an unknown or expired code. It is realised by `Store.guestByCode`. The code is stored in its normalised form in the unique `code` column of the `guests` table: eight upper-case characters as `XXXX-XXXX`, such as `MAYA-7K2Q`, drawn from an alphabet without `I`, `O`, `0` and `1`. A code has no expiry of its own; it is deleted with its guest, and the invitation page applies the invite window.
+
+The organiser app (`src/admin`) and the guest app (`src/rsvp`) are React 19 applications built with Vite. The API application runs on Node.js 24 with Express 5 and exchanges JSON over HTTPS.
+
+The code places each design component as follows.
+
+| Design component | Where it lives |
+|------------------|----------------|
+| `InvitationCodeForm` | `CodeEntry` in `src/rsvp/CodeEntry.tsx` |
+| `PublicApiClient` | The shared `post` helper in `src/shared/ui/api.ts` |
+| `InvitationCodeController`, `InvitationCodeService` | `POST /api/public/code` in `src/api/public/routes.ts`; it answers with the guest's token, and the form opens `/i/<token>`. Every failure answers 404 "This invitation link doesn't work" |
+| `InvitationCode` | `normaliseCode` and `generateCode` in `src/domain/code.ts` |
+| `InvitationCodeRepository` | `Store.guestByCode` |
+
+Persistence goes through the `Store` interface in `src/data/store.ts`. The running app uses `PrismaStore` (`src/data/prismaStore.ts`), which reaches PostgreSQL 17 through Prisma ORM 7 with the `@prisma/adapter-pg` driver adapter. Every automated test and the Playwright e2e server use the in-memory `MemoryStore` (`src/data/memoryStore.ts`) instead. The schema and migrations are `src/data/prisma/schema.prisma` and `src/data/prisma/migrations/`.
 
 ## Requirements
 
