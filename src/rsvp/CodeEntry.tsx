@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { ApiError, post } from '../shared/ui/api.js';
-import { Button, Card, Stack, TextField } from '../shared/ui/components/index.js';
+import { Button, Card, Stack, TextField, Text } from '../shared/ui/components/index.js';
 
 export function CodeEntry() {
   const [code, setCode] = useState('');
@@ -26,7 +26,7 @@ export function CodeEntry() {
     <Card>
       <Stack as="form" onSubmit={submit} noValidate aria-label="Find your invitation">
         <h1>Find your invitation</h1>
-        <p className="text-muted">Type the code from your invitation email, like MAYA-7K2Q.</p>
+        <Text tone="muted">Type the code from your invitation email, like MAYA-7K2Q.</Text>
         <TextField label="Invitation code" id="code" error={error} autoCapitalize="characters" autoComplete="off" value={code} onChange={(e) => setCode(e.target.value)} />
         <Button variant="primary" type="submit" disabled={busy} loading={busy}>{busy ? 'Looking…' : 'Find my invitation'}</Button>
       </Stack>

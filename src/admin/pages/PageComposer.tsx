@@ -3,7 +3,7 @@ import { BLOCK_TYPES, MAX_BLOCKS, type Block, type BlockType } from '../../domai
 import { ApiError, get, post, put } from '../../shared/ui/api.js';
 import { BLOCK_SPECS, BlockView } from '../../shared/ui/blocks.js';
 import {
-  Alert, Button, Card, Cluster, Dialog, EmptyState, InlineStatus, List, ListItem, Skeleton, Stack, Textarea, TextField,
+  Alert, Button, Card, Cluster, Dialog, EmptyState, InlineStatus, List, ListItem, Skeleton, Stack, Textarea, TextField, Text,
 } from '../../shared/ui/components/index.js';
 import { useLoad } from '../../shared/ui/hooks.js';
 
@@ -216,7 +216,7 @@ function Composer({ eventId, initial }: { eventId: number; initial: PageState })
                       ? <Textarea key={f.key} {...field} onChange={(e) => edit(b.id, f.key, e.target.value)} />
                       : <TextField key={f.key} {...field} onChange={(e) => edit(b.id, f.key, e.target.value)} />;
                   })}
-                  {open && b.type === 'rsvp' && <p className="text-muted">The RSVP fields are fixed and cannot be removed individually.</p>}
+                  {open && b.type === 'rsvp' && <Text tone="muted">The RSVP fields are fixed and cannot be removed individually.</Text>}
                 </Stack>
               </Card>
             </li>
