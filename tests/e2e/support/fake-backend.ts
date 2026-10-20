@@ -530,13 +530,17 @@ export class FakeBackend {
       .filter((r) => status !== 'attending' || r.attending)
       .filter((r) => status !== 'declined' || !r.attending)
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || b.guestId - a.guestId);
+    // Waiting lists the guests with no reply, by name, as MemoryStore.listResponses does.
+    const waiting = [...guests.values()]
+      .filter((g) => !this.replies.has(g.id) && (!q || g.name.toLowerCase().includes(q)))
+      .sort((a, b) => a.name.localeCompare(b.name));
     const attending = replies.filter((r) => r.attending);
     const meals: Record<string, number> = {};
     for (const r of [...attending].sort((a, b) => String(a.meal).localeCompare(String(b.meal)))) {
       if (r.meal) meals[r.meal] = (meals[r.meal] ?? 0) + r.partySize;
     }
-    return ok({
-      responses: rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((r) => ({
+    const waitingRows = waiting.map((g) => ({ guestId: g.id, guest: g.name, reply: 'waiting', guestsCount: 0, meal: null, dietary: '', message: '', updatedAt: null }));
+    const replyRows = rows.map((r) => ({
         guestId: r.guestId,
         guest: guests.get(r.guestId)!.name,
         reply: r.attending ? 'attending' : 'declined',
@@ -545,8 +549,11 @@ export class FakeBackend {
         dietary: r.dietary,
         message: r.message,
         updatedAt: r.updatedAt,
-      })),
-      total: rows.length,
+      }));
+    const all = status === 'waiting' ? waitingRows : replyRows;
+    return ok({
+      responses: all.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+      total: all.length,
       page,
       pageSize: PAGE_SIZE,
       totals: {

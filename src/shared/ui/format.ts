@@ -21,3 +21,16 @@ export function formatInstant(iso: string): string {
 
 /** 'Maya Chen' → 'Maya'. */
 export const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? name;
+
+/** ISO instant → '2 min ago', '3 hr ago', 'Yesterday', '4 days ago', then 'Mon 19 Oct', as the mock tables write it. */
+export function formatAgo(iso: string, now = Date.now()): string {
+  const minutes = Math.floor((now - Date.parse(iso)) / 60_000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hr ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 2) return 'Yesterday';
+  if (days < 7) return `${days} days ago`;
+  return formatDay(iso.slice(0, 10));
+}

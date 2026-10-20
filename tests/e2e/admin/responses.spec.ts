@@ -30,17 +30,39 @@ test.describe('L2-046 Responses table', () => {
     await expect(responses.total('Waiting')).toHaveText('1');
   });
 
+  test('AC4 the empty state links to the public page and the invitees', async ({ admin, api }) => {
+    api.addGuest(event.id, { name: 'Maya Chen' });
+    await admin.event.goto(event.id, 'responses');
+    await admin.page.getByRole('link', { name: 'View the public page' }).click();
+    await expect(admin.event.composer.heading).toBeVisible();
+    await admin.event.openTab('responses');
+    await admin.page.getByRole('link', { name: 'View invitees' }).click();
+    await expect(admin.event.guests.heading).toBeVisible();
+  });
+
+  test('AC2 shows placeholder rows while the replies load', async ({ admin, api }) => {
+    seedReplies(api);
+    const held = api.hold('GET', `/api/events/${event.id}/responses`);
+    await admin.event.goto(event.id, 'responses');
+    await expect(admin.page.getByText('Loading responses')).toBeAttached();
+    held.release();
+    await expect(admin.event.responses.rows).toHaveCount(3);
+    await expect(admin.page.getByText('Loading responses')).toHaveCount(0);
+  });
+
   test('AC1 lists each reply, most recently updated first', async ({ admin, api }) => {
     seedReplies(api);
     const responses = admin.event.responses;
     await admin.event.goto(event.id, 'responses');
     await expect(responses.rows).toHaveCount(3);
     await expect.poll(() => responses.guestNames()).toEqual(['Ana Ruiz', 'Sam Okafor', 'Maya Chen']);
-    await expect.poll(() => responses.cells(2)).toEqual({
-      guest: 'Maya Chen', reply: 'Attending', guests: '2', meal: 'Chicken', dietary: 'No nuts', message: '–',
-      updated: api.replyOf(api.guestsOf(event.id)[0]!.id)!.updatedAt.slice(0, 16).replace('T', ' '),
+    await expect.poll(() => responses.cells(2)).toMatchObject({
+      guest: 'Maya Chen', reply: 'Attending', guests: '2', meal: 'Chicken', dietary: 'No nuts', message: '—',
     });
-    await expect.poll(() => responses.cells(1)).toMatchObject({ guest: 'Sam Okafor', reply: 'Declined', guests: '–', meal: '–', dietary: '–', message: 'Sorry, travelling' });
+    const updated = responses.rows.nth(2).locator('time');
+    await expect(updated).toHaveAttribute('datetime', api.replyOf(api.guestsOf(event.id)[0]!.id)!.updatedAt);
+    await expect(updated).toHaveText(/^(just now|\d+ min ago|\d+ hr ago|Yesterday|\d+ days ago|\w{3} \d+ \w{3})$/);
+    await expect.poll(() => responses.cells(1)).toMatchObject({ guest: 'Sam Okafor', reply: 'Declined', guests: '0', meal: '—', dietary: '—', message: 'Sorry, travelling' });
   });
 
   test('pages at 50 replies', async ({ admin, api }) => {
@@ -61,7 +83,7 @@ test.describe('L2-046 Responses table', () => {
     seedReplies(api);
     api.failNext('GET', `/api/events/${event.id}/responses`);
     await admin.event.goto(event.id, 'responses');
-    await expect(admin.event.error).toContainText('Something went wrong. Try again.');
+    await expect(admin.event.error).toContainText("We couldn't load responses");
     await admin.event.retry.click();
     await expect(admin.event.responses.rows).toHaveCount(3);
   });
@@ -108,6 +130,15 @@ test.describe('L2-048 Filter and search responses', () => {
     await expect(responses.rows).toHaveCount(3);
   });
 
+  test('AC1 the Waiting filter lists the guests who have not replied', async ({ admin }) => {
+    const responses = admin.event.responses;
+    await admin.event.goto(event.id, 'responses');
+    await responses.filter('Waiting').click();
+    await expect(responses.filter('Waiting')).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(() => responses.cells(0)).toMatchObject({ guest: 'Leo Park', reply: 'Waiting', guests: '0', updated: '—' });
+    await expect(responses.rows).toHaveCount(1);
+  });
+
   test('searches guest names case-insensitively', async ({ admin }) => {
     const responses = admin.event.responses;
     await admin.event.goto(event.id, 'responses');
@@ -115,12 +146,12 @@ test.describe('L2-048 Filter and search responses', () => {
     await expect.poll(() => responses.guestNames()).toEqual(['Maya Chen']);
   });
 
-  test('no matches shows "No replies match" and Clear search brings them back', async ({ admin }) => {
+  test('AC3 no matches shows "No responses match" and Clear search brings them back', async ({ admin }) => {
     const responses = admin.event.responses;
     await admin.event.goto(event.id, 'responses');
     await responses.filter('Declined').click();
     await responses.search.fill('Maya');
-    await expect(responses.noMatch).toBeVisible();
+    await expect(responses.noMatch).toHaveText('No responses match “Maya”');
     await expect(responses.empty).toHaveCount(0);
     await responses.clearSearch.click();
     await expect(responses.search).toHaveValue('');

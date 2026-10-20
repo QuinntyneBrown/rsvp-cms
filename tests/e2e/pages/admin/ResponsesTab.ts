@@ -20,8 +20,8 @@ export class ResponsesTab {
     this.search = page.getByRole('searchbox', { name: 'Search responses' });
     this.table = page.getByRole('table');
     this.rows = this.table.locator('tbody tr');
-    this.empty = page.getByRole('heading', { name: 'No replies yet' });
-    this.noMatch = page.getByRole('heading', { name: 'No replies match' });
+    this.empty = page.getByRole('heading', { name: 'No responses yet' });
+    this.noMatch = page.getByRole('heading', { name: /^No responses match/ });
     this.clearSearch = page.getByRole('button', { name: 'Clear search' });
     this.previous = page.getByRole('button', { name: 'Previous page' });
     this.next = page.getByRole('button', { name: 'Next page' });
@@ -33,8 +33,8 @@ export class ResponsesTab {
     return this.totals.locator('.stat').filter({ has: this.page.locator('.stat__label').getByText(label, { exact: true }) }).locator('.stat__value');
   }
 
-  filter(label: 'All' | 'Attending' | 'Declined') {
-    return this.page.getByRole('button', { name: label, exact: true });
+  filter(label: 'All' | 'Attending' | 'Declined' | 'Waiting') {
+    return this.page.getByRole('group', { name: 'Filter by reply' }).getByRole('button', { name: label, exact: true });
   }
 
   /** The text of each column: guest, reply, guests, meal, dietary note, message, updated. */
