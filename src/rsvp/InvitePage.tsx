@@ -1,52 +1,78 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { Block } from '../domain/blocks.js';
 import { get } from '../shared/ui/api.js';
 import { BlockView } from '../shared/ui/blocks.js';
-import { Button, Card, EmptyState, Link, Skeleton, Stack, Toast } from '../shared/ui/components/index.js';
+import { Button, Card, EmptyState, Link, Skeleton, Stack, Toast, ToastRegion } from '../shared/ui/components/index.js';
+import { formatDay } from '../shared/ui/format.js';
 import { useLoad, useToast } from '../shared/ui/hooks.js';
-import { ReplySummary, RsvpForm, type Reply } from './RsvpForm.js';
+import { Text } from '../shared/ui/primitives/index.js';
+import { GuestLayout } from './GuestLayout.js';
+import { ReplySummary, RsvpForm, type InviteEvent, type Reply } from './RsvpForm.js';
 
 interface Invite {
   state: 'open' | 'not-open' | 'closed';
   guest: { name: string; places: number };
-  event: { name: string; date: string; inviteOpen: string; inviteClose: string };
+  event: InviteEvent;
   reply: Reply | null;
   blocks?: Block[];
 }
 
+const INVALID = "This invitation link doesn't work";
+
+/** A guest's personal invitation page at /i/<token> (L2-038, L2-039). */
 export function InvitePage({ token }: { token: string }) {
   const { data, error, loading, reload } = useLoad(() => get<Invite>(`/api/public/invite/${encodeURIComponent(token)}`), [token]);
   const [reply, setReply] = useState<Reply | null | undefined>(undefined);
   const { toast, show } = useToast();
 
-  if (loading) return <Skeleton rows={6} />;
+  if (loading) {
+    return <GuestLayout><Skeleton rows={6} label="Loading your invitation" /></GuestLayout>;
+  }
   if (error && !data) {
-    return error.includes("doesn't work") ? (
-      <Card>
-        <EmptyState
-          tone="error"
-          headingLevel={1}
-          title="This invitation link doesn't work"
-          text="Check the link in your invitation email, or ask your host for a new one."
-          actions={<Link href="/" variant="standalone">Enter your invitation code</Link>}
-        />
-      </Card>
-    ) : (
-      <EmptyState tone="error" title={error} actions={<Button onClick={reload}>Try again</Button>} />
+    return (
+      <GuestLayout>
+        <Card>
+          {error === INVALID ? (
+            <EmptyState
+              headingLevel={1}
+              title={INVALID}
+              text="Check the link in your invitation email, or ask your host for a new one."
+              actions={<Link href="/" variant="standalone">Enter an invitation code</Link>}
+            />
+          ) : (
+            <EmptyState
+              tone="error"
+              headingLevel={1}
+              title="We couldn't find your invitation right now"
+              text="Your reply is safe. Try again in a moment."
+              actions={<Button onClick={reload}>Try again</Button>}
+            />
+          )}
+        </Card>
+      </GuestLayout>
     );
   }
   if (!data) return null;
 
+  const { event, guest } = data;
   const current = reply === undefined ? data.reply : reply;
+  const layout = (children: ReactNode) => (
+    <GuestLayout title={event.name} href={`/i/${encodeURIComponent(token)}`} host={event.host}>
+      {children}
+      <ToastRegion>{toast && <Toast tone="success" title={toast} />}</ToastRegion>
+    </GuestLayout>
+  );
 
+  // Draft or not yet open: nothing of the page is shown (L2-039 AC2, AC4).
   if (data.state === 'not-open') {
-    return (
+    return layout(
       <Card>
         <Stack>
-          <h1>{data.event.name}</h1>
-          <p>Codes are accepted from {data.event.inviteOpen}.</p>
+          <h1>{event.name} is coming together</h1>
+          <p>Codes are accepted from {formatDay(event.inviteOpen)}.</p>
+          <Text tone="muted">Your invitation email arrives that morning. Come back then to reply.</Text>
         </Stack>
-      </Card>
+      </Card>,
     );
   }
 
@@ -54,21 +80,20 @@ export function InvitePage({ token }: { token: string }) {
     data.state === 'closed' ? (
       <Card>
         <Stack>
-          <h2>Replies closed on {data.event.inviteClose}</h2>
+          <h2>Replies closed on {formatDay(event.inviteClose)}</h2>
           {current ? <ReplySummary reply={current} /> : <p>We didn't receive a reply from you.</p>}
+          {event.host && <Text tone="muted">Contact {event.host} if you need to change your answer.</Text>}
         </Stack>
       </Card>
     ) : (
-      <RsvpForm token={token} places={data.guest.places} reply={current} onSaved={(r, msg) => { setReply(r); show(msg); }} />
+      <RsvpForm token={token} guest={guest} event={event} reply={current} onSaved={(r, msg) => { setReply(r); show(msg); }} />
     );
 
   const blocks = data.blocks ?? [];
-  return (
+  return layout(
     <Stack>
-      <p>Hello, {data.guest.name}</p>
       {blocks.map((b) => <BlockView key={b.id} block={b} rsvpSlot={rsvpSlot} />)}
       {!blocks.some((b) => b.type === 'rsvp') && rsvpSlot}
-      <Toast message={toast} />
-    </Stack>
+    </Stack>,
   );
 }

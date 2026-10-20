@@ -6,7 +6,7 @@ import { GUEST_URL } from '../urls.js';
 export class ReplySummary {
   constructor(readonly root: Locator) {}
 
-  /** The value for 'Your reply', 'Party size', 'Meal' or 'Message'. */
+  /** The value for 'Attending', 'Guests', 'Meal' or 'Message'. */
   value(term: string) {
     return definition(this.root, term);
   }
@@ -25,6 +25,7 @@ export class RsvpForm {
   readonly song: Locator;
   readonly message: Locator;
   readonly send: Locator;
+  readonly cantMakeIt: Locator;
   readonly cancel: Locator;
   readonly failure: Locator;
   readonly tryAgain: Locator;
@@ -32,6 +33,7 @@ export class RsvpForm {
   readonly regretsMessage: Locator;
   readonly sendRegrets: Locator;
   readonly keepReply: Locator;
+  readonly regretsFailure: Locator;
 
   constructor(readonly page: Page) {
     this.root = page.getByRole('form', { name: 'RSVP' });
@@ -44,13 +46,15 @@ export class RsvpForm {
     this.dietary = this.root.getByLabel('Dietary needs');
     this.song = this.root.getByLabel('Song request');
     this.message = this.root.locator('#rsvp-message');
-    this.send = this.root.getByRole('button', { name: /^(Send my RSVP|Sending…)$/ }).first();
+    this.send = this.root.getByRole('button', { name: /^(Send my RSVP|Sending your RSVP…)$/ });
+    this.cantMakeIt = this.root.getByRole('button', { name: "Can't make it?" });
     this.cancel = this.root.getByRole('button', { name: 'Cancel' });
     this.failure = failure(this.root);
     this.tryAgain = this.failure.getByRole('button', { name: 'Try again' });
-    this.regrets = page.getByRole('dialog', { name: 'Send your regrets?' });
+    this.regrets = page.getByRole('dialog', { name: "Sorry you can't make it?" });
     this.regretsMessage = this.regrets.getByLabel('Message');
-    this.sendRegrets = this.regrets.getByRole('button', { name: /^(Send my regrets|Sending…)$/ });
+    this.sendRegrets = this.regrets.getByRole('button', { name: /^(Send my regrets|Sending regrets…)$/ });
+    this.regretsFailure = failure(this.regrets);
     this.keepReply = this.regrets.getByRole('button', { name: 'Keep my reply' });
   }
 
@@ -97,17 +101,17 @@ export class InvitePage {
   readonly form: RsvpForm;
 
   constructor(readonly page: Page) {
-    this.greeting = page.getByText(/^Hello, /);
+    this.greeting = page.getByRole('heading', { name: /will you join us\?$/ });
     this.invalid = page.getByRole('heading', { name: "This invitation link doesn't work" });
-    this.enterCode = page.getByRole('link', { name: 'Enter your invitation code' });
+    this.enterCode = page.getByRole('link', { name: 'Enter an invitation code' });
     this.error = failure(page.locator('main'));
     this.retry = page.getByRole('button', { name: 'Try again' });
     this.notOpen = page.getByText(/^Codes are accepted from /);
     this.closed = page.getByRole('heading', { name: /^Replies closed on / });
     this.noReply = page.getByText("We didn't receive a reply from you.");
-    this.thanks = page.getByRole('heading', { name: 'Thank you for replying' });
+    this.thanks = page.getByRole('heading', { name: /^Thanks/ });
     this.changeReply = page.getByRole('button', { name: 'Change reply' });
-    this.summary = new ReplySummary(page.locator('dl').filter({ has: page.locator('dt').getByText('Your reply', { exact: true }) }));
+    this.summary = new ReplySummary(page.locator('dl').filter({ has: page.locator('dt').getByText('Attending', { exact: true }) }));
     this.toast = page.locator('.toast');
     this.form = new RsvpForm(page);
   }

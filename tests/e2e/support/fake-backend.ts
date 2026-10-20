@@ -597,7 +597,7 @@ function bodyOf(req: Request): Json {
 }
 
 const replyJson = (r: FakeReply | null) =>
-  r && { attending: r.attending, partySize: r.partySize, meal: r.meal, guestNames: r.guestNames, dietary: r.dietary, song: r.song, message: r.message };
+  r && { attending: r.attending, partySize: r.partySize, meal: r.meal, guestNames: r.guestNames, dietary: r.dietary, song: r.song, message: r.message, updatedAt: r.updatedAt };
 
 const emailJson = (e: FakeEmail) => ({
   id: e.id,

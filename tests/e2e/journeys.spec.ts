@@ -49,7 +49,7 @@ test('organiser sets up an event, a guest replies by code, the organiser sees it
   await guest.codeEntry.find('nonsense');
   await expect(guest.codeEntry.error).toHaveText("This invitation link doesn't work");
   await guest.codeEntry.find(code!.toLowerCase());
-  await expect(guest.invite.greeting).toHaveText('Hello, Maya Chen');
+  await expect(guest.invite.greeting).toHaveText('Hi Maya, will you join us?');
   await expect(guest.invite.section('Hero')).toContainText('Join us');
   const form = guest.invite.form;
   await form.send.click();

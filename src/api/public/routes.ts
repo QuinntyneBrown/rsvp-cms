@@ -25,6 +25,7 @@ const replyJson = (r: ResponseRecord | null) =>
     dietary: r.dietary,
     song: r.song,
     message: r.message,
+    updatedAt: r.updatedAt,
   };
 
 export function publicRoutes(ctx: Ctx): Router {

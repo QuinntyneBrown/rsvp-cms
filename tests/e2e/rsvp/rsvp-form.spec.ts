@@ -89,6 +89,19 @@ test.describe('L2-041 RSVP validation', () => {
     await expect(form.guestName(0, true)).toBeFocused();
   });
 
+  test('AC2 several problems are summarised and the first invalid field on the page is focused', async ({ guest, api }) => {
+    const maya = invited(api, 1);
+    await guest.invite.goto(maya.token);
+    const form = guest.invite.form;
+    await form.attend({ partySize: 'Me and one guest' });
+    await form.send.click();
+    const summary = form.root.getByRole('alert').filter({ hasText: '2 things to fix' });
+    await expect(summary.getByRole('link')).toHaveText(['Choose a meal', 'Add the name of your guest']);
+    await expect(form.guestName(0, false)).toBeFocused();
+    await summary.getByRole('link', { name: 'Choose a meal' }).click();
+    await expect(form.meal).toBeFocused();
+  });
+
   test('over-long notes are refused with the limit', async ({ guest, api }) => {
     const maya = invited(api);
     await guest.invite.goto(maya.token);
@@ -111,10 +124,12 @@ test.describe('L2-042 RSVP submission', () => {
     await form.song.fill('Dancing Queen');
     await form.send.click();
     await expect(guest.invite.toast).toHaveText('Your reply is saved');
-    await expect(guest.invite.thanks).toBeVisible();
-    await expect(guest.invite.summary.value('Your reply')).toHaveText('Joyfully accepting');
-    await expect(guest.invite.summary.value('Party size')).toHaveText('2');
+    await expect(guest.invite.thanks).toHaveText('Thanks, Maya! See you on Sat 12 Dec.');
+    await expect(guest.page.getByRole('heading', { name: 'Your reply is saved' })).toBeVisible();
+    await expect(guest.invite.summary.value('Attending')).toHaveText('Joyfully accepting');
+    await expect(guest.invite.summary.value('Guests')).toHaveText('You + Sam Okafor');
     await expect(guest.invite.summary.value('Meal')).toHaveText('Vegetarian');
+    await expect(guest.invite.changeReply).toBeVisible();
     expect(api.calls('POST', `/api/public/invite/${maya.token}/rsvp`)[0]!.body).toEqual({
       attending: true, partySize: 2, meal: 'Vegetarian', guestNames: ['Sam Okafor'], dietary: 'No nuts', song: 'Dancing Queen',
     });
@@ -132,14 +147,14 @@ test.describe('L2-042 RSVP submission', () => {
     expect(api.calls('POST', `/api/public/invite/${maya.token}/rsvp`)[0]!.body.guestNames).toEqual(['Sam']);
   });
 
-  test('shows Sending… and blocks a second send while saving', async ({ guest, api }) => {
+  test('AC5 shows Sending your RSVP… and blocks a second send while saving', async ({ guest, api }) => {
     const maya = invited(api);
     const held = api.hold('POST', `/api/public/invite/${maya.token}/rsvp`);
     await guest.invite.goto(maya.token);
     const form = guest.invite.form;
     await form.attend({ meal: 'Chicken' });
     await form.send.click();
-    await expect(form.send).toHaveText('Sending…');
+    await expect(form.send).toHaveText('Sending your RSVP…');
     await expect(form.send).toBeDisabled();
     held.release();
     await expect(guest.invite.thanks).toBeVisible();
@@ -177,7 +192,8 @@ test.describe('L2-043 Changing a reply', () => {
     const maya = invited(api, 1);
     api.addReply(maya.id, { attending: true, partySize: 2, meal: 'Chicken', guestNames: ['Sam'], dietary: 'No nuts' });
     await guest.invite.goto(maya.token);
-    await expect(guest.invite.thanks).toBeVisible();
+    await expect(guest.invite.thanks).toHaveText('Thanks, Maya. We have your reply.');
+    await expect(guest.page.getByText(/^Sent \w{3} \d+ \w{3} at \d+:\d\d [ap]m$/)).toBeVisible();
     await expect(guest.invite.summary.value('Meal')).toHaveText('Chicken');
     await guest.invite.changeReply.click();
     const form = guest.invite.form;
@@ -200,7 +216,7 @@ test.describe('L2-043 Changing a reply', () => {
     await guest.invite.changeReply.click();
     await guest.invite.form.decline.check();
     await guest.invite.form.cancel.click();
-    await expect(guest.invite.summary.value('Your reply')).toHaveText('Joyfully accepting');
+    await expect(guest.invite.summary.value('Attending')).toHaveText('Joyfully accepting');
     expect(api.calls('POST', `/api/public/invite/${maya.token}/rsvp`)).toHaveLength(0);
   });
 });
@@ -214,13 +230,13 @@ test.describe('L2-044 Declining with a message', () => {
     await form.message.fill('Sorry, travelling');
     await form.send.click();
     await expect(form.regrets).toBeVisible();
-    await expect(form.regrets).toContainText("We'll let your hosts know you can't make it.");
+    await expect(form.regrets).toContainText("We'll tell Olivia. You can change your mind until Sat 12 Dec.");
     await expect(form.regretsMessage).toHaveValue('Sorry, travelling');
     await form.regretsMessage.fill('Sorry, travelling that week');
     await form.sendRegrets.click();
     await expect(guest.invite.toast).toHaveText('Your regrets are sent');
     await expect(form.regrets).toHaveCount(0);
-    await expect(guest.invite.summary.value('Your reply')).toHaveText('Regretfully declining');
+    await expect(guest.invite.summary.value('Attending')).toHaveText('Regretfully declining');
     await expect(guest.invite.summary.value('Message')).toHaveText('Sorry, travelling that week');
     await expect(guest.invite.summary.value('Meal')).toHaveCount(0);
     expect(api.calls('POST', `/api/public/invite/${maya.token}/rsvp`)[0]!.body).toEqual({ attending: false, message: 'Sorry, travelling that week' });
@@ -250,7 +266,7 @@ test.describe('L2-044 Declining with a message', () => {
     expect(api.replyOf(maya.id)).toMatchObject({ attending: false, partySize: 0, meal: null });
   });
 
-  test('a failed regrets send closes the confirmation and keeps the message', async ({ guest, api }) => {
+  test('AC4 a failed regrets send keeps the dialog and the message and offers Try again', async ({ guest, api }) => {
     const maya = invited(api);
     api.failNext('POST', `/api/public/invite/${maya.token}/rsvp`);
     await guest.invite.goto(maya.token);
@@ -259,8 +275,36 @@ test.describe('L2-044 Declining with a message', () => {
     await form.message.fill('Sorry');
     await form.send.click();
     await form.sendRegrets.click();
-    await expect(form.failure).toContainText('Something went wrong. Try again.');
-    await expect(form.regrets).toHaveCount(0);
-    await expect(form.message).toHaveValue('Sorry');
+    await expect(form.regretsFailure).toContainText("Your reply wasn't sent");
+    await expect(form.regrets).toBeVisible();
+    await expect(form.regretsMessage).toHaveValue('Sorry');
+    await form.regretsFailure.getByRole('button', { name: 'Try again' }).click();
+    await expect(guest.invite.toast).toHaveText('Your regrets are sent');
+    expect(api.replyOf(maya.id)).toMatchObject({ attending: false, message: 'Sorry' });
+  });
+
+  test('AC3 Send my regrets shows a busy state while sending', async ({ guest, api }) => {
+    const maya = invited(api);
+    const held = api.hold('POST', `/api/public/invite/${maya.token}/rsvp`);
+    await guest.invite.goto(maya.token);
+    const form = guest.invite.form;
+    await form.cantMakeIt.click();
+    await expect(form.decline).toBeChecked();
+    await form.sendRegrets.click();
+    await expect(form.sendRegrets).toHaveText('Sending regrets…');
+    await expect(form.sendRegrets).toBeDisabled();
+    held.release();
+    await expect(guest.invite.toast).toHaveText('Your regrets are sent');
+    await expect(guest.invite.thanks).toHaveText('Thanks for letting us know, Maya.');
+  });
+
+  test("an attending guest who can't make it after all sends regrets from their saved reply", async ({ guest, api }) => {
+    const maya = invited(api);
+    api.addReply(maya.id, { attending: true, meal: 'Chicken' });
+    await guest.invite.goto(maya.token);
+    await guest.page.getByRole('button', { name: "Can't make it after all" }).click();
+    await guest.invite.form.sendRegrets.click();
+    await expect(guest.invite.toast).toHaveText('Your regrets are sent');
+    expect(api.replyOf(maya.id)).toMatchObject({ attending: false, meal: null });
   });
 });

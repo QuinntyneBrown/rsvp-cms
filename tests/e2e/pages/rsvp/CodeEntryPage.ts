@@ -1,7 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { GUEST_URL } from '../urls.js';
 
-/** Find your invitation by code (L2-037). */
+/** Find my invitation by code (L2-037). */
 export class CodeEntryPage {
   readonly heading: Locator;
   readonly code: Locator;
@@ -9,10 +9,10 @@ export class CodeEntryPage {
   readonly error: Locator;
 
   constructor(readonly page: Page) {
-    const form = page.getByRole('form', { name: 'Find your invitation' });
-    this.heading = page.getByRole('heading', { name: 'Find your invitation' });
+    const form = page.getByRole('form', { name: 'Find my invitation' });
+    this.heading = page.getByRole('heading', { name: 'Find my invitation' });
     this.code = form.getByLabel('Invitation code');
-    this.submit = form.getByRole('button', { name: /^(Find my invitation|Looking…)$/ });
+    this.submit = form.getByRole('button', { name: /^(Continue to RSVP|Checking…)$/ });
     this.error = page.locator('#code-error');
   }
 

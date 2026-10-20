@@ -14,7 +14,10 @@ test.describe('L2-038 Personal link access and invalid links', () => {
     api.publish(event.id, page);
     const maya = api.addGuest(event.id, { name: 'Maya Chen' });
     await guest.invite.goto(maya.token);
-    await expect(guest.invite.greeting).toHaveText('Hello, Maya Chen');
+    await expect(guest.invite.greeting).toHaveText('Hi Maya, will you join us?');
+    await expect(guest.page.getByRole('banner')).toContainText('Maya & Sam');
+    await expect(guest.page.getByRole('banner')).toContainText('From Olivia');
+    await expect(guest.page.getByRole('contentinfo')).toHaveText('Sent with Invitely');
   });
 
   test('AC2 an unknown link explains it does not work and points to code entry', async ({ guest }) => {
@@ -31,9 +34,10 @@ test.describe('L2-038 Personal link access and invalid links', () => {
     const maya = api.addGuest(event.id, { name: 'Maya Chen' });
     api.failNext('GET', `/api/public/invite/${maya.token}`);
     await guest.invite.goto(maya.token);
-    await expect(guest.invite.error).toContainText('Something went wrong. Try again.');
+    await expect(guest.invite.error).toContainText("We couldn't find your invitation right now");
+    await expect(guest.invite.error).toContainText('Your reply is safe. Try again in a moment.');
     await guest.invite.retry.click();
-    await expect(guest.invite.greeting).toHaveText('Hello, Maya Chen');
+    await expect(guest.invite.greeting).toHaveText('Hi Maya, will you join us?');
   });
 });
 
@@ -69,8 +73,8 @@ test.describe('L2-039 Public invitation page states', () => {
     const event = api.addEvent({ name: 'Maya & Sam', inviteOpen: '2026-10-19' });
     const maya = api.addGuest(event.id);
     await guest.invite.goto(maya.token);
-    await expect(guest.page.getByRole('heading', { name: 'Maya & Sam' })).toBeVisible();
-    await expect(guest.invite.notOpen).toHaveText('Codes are accepted from 2026-10-19.');
+    await expect(guest.page.getByRole('heading', { name: 'Maya & Sam is coming together' })).toBeVisible();
+    await expect(guest.invite.notOpen).toHaveText('Codes are accepted from Mon 19 Oct.');
     await expect(guest.invite.form.root).toHaveCount(0);
   });
 
@@ -79,7 +83,7 @@ test.describe('L2-039 Public invitation page states', () => {
     api.publish(event.id, page);
     const maya = api.addGuest(event.id);
     await guest.invite.goto(maya.token);
-    await expect(guest.invite.notOpen).toHaveText('Codes are accepted from 2026-11-01.');
+    await expect(guest.invite.notOpen).toHaveText('Codes are accepted from Sun 1 Nov.');
     await expect(guest.invite.section('Hero')).toHaveCount(0);
   });
 
@@ -89,10 +93,11 @@ test.describe('L2-039 Public invitation page states', () => {
     const maya = api.addGuest(event.id, { plusOnes: 1 });
     api.addReply(maya.id, { attending: true, partySize: 2, meal: 'Vegan' });
     await guest.invite.goto(maya.token);
-    await expect(guest.invite.closed).toHaveText('Replies closed on 2026-10-01');
-    await expect(guest.invite.summary.value('Your reply')).toHaveText('Joyfully accepting');
-    await expect(guest.invite.summary.value('Party size')).toHaveText('2');
+    await expect(guest.invite.closed).toHaveText('Replies closed on Thu 1 Oct');
+    await expect(guest.invite.summary.value('Attending')).toHaveText('Joyfully accepting');
+    await expect(guest.invite.summary.value('Guests')).toHaveText('You + 1');
     await expect(guest.invite.summary.value('Meal')).toHaveText('Vegan');
+    await expect(guest.page.getByText('Contact Olivia if you need to change your answer.')).toBeVisible();
     await expect(guest.invite.form.root).toHaveCount(0);
     await expect(guest.invite.changeReply).toHaveCount(0);
   });
