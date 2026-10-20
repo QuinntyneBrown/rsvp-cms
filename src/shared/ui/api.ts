@@ -9,6 +9,16 @@ export class ApiError extends Error {
   }
 }
 
+let onUnauthorized: ((message: string) => void) | null = null;
+
+/**
+ * The organiser app registers this so that any 401 mid-session sends the organiser back to
+ * Sign in with the server's message (L2-005 AC1). The guest app never registers it.
+ */
+export function setUnauthorizedHandler(handler: ((message: string) => void) | null) {
+  onUnauthorized = handler;
+}
+
 export async function api<T = unknown>(method: string, url: string, body?: unknown): Promise<T> {
   let res: Response;
   try {
@@ -22,7 +32,11 @@ export async function api<T = unknown>(method: string, url: string, body?: unkno
   }
   if (res.status === 204) return undefined as T;
   const data = (await res.json().catch(() => ({}))) as { error?: string; errors?: Record<string, string>; firstInvalid?: string };
-  if (!res.ok) throw new ApiError(res.status, data.error ?? 'Something went wrong. Try again.', data.errors, data.firstInvalid);
+  if (!res.ok) {
+    const error = new ApiError(res.status, data.error ?? 'Something went wrong. Try again.', data.errors, data.firstInvalid);
+    if (res.status === 401 && onUnauthorized && !url.startsWith('/api/auth/sign-in')) onUnauthorized(error.message);
+    throw error;
+  }
   return data as T;
 }
 

@@ -18,6 +18,7 @@ model Organiser {
   passwordHash    String    @map("password_hash")
   /// Bumped on every password change; sessions minted under an older version are ended (L2-005 AC3).
   passwordVersion Int       @default(1) @map("password_version")
+  passwordChangedAt DateTime? @map("password_changed_at") @db.Timestamptz(3)
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   sessions        Session[]
   events          Event[]

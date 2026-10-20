@@ -57,7 +57,7 @@ export const cookieOf = (res: { headers: Record<string, unknown> }) =>
 export type Env = Awaited<ReturnType<typeof makeEnv>>;
 
 export const futureEvent = (over: Record<string, unknown> = {}) => ({
-  type: 'Wedding',
+  type: 'Anniversary',
   name: 'Maya & Sam',
   date: '2026-12-12',
   startTime: '16:00',

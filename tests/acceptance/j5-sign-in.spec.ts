@@ -69,12 +69,12 @@ describe('L2-005 Session lifetime', () => {
   it('AC4 a password change ends other sessions', async () => {
     const env = await makeEnv();
     const { cookie } = await env.signIn();
-    await setPassword(env.db, env.organiserId, hashPassword('new password'));
+    await setPassword(env.db, env.organiserId, hashPassword('new password'), env.clock.now);
     expect((await env.api.get('/api/auth/me').set('Cookie', cookie)).status).toBe(401);
   });
 });
 
-describe('L2-005 AC3 Changing the password ends the other sessions', () => {
+describe('L2-005 AC3 / L2-060 Changing the password ends the other sessions', () => {
   const change = (env: Env, cookie: string, b: Record<string, unknown>) => env.api.post('/api/auth/password').set('Cookie', cookie).send(b);
 
   it('signs out every other device and keeps this one signed in', async () => {
@@ -105,11 +105,13 @@ describe('L2-005 AC3 Changing the password ends the other sessions', () => {
     const { cookie } = await env.signIn();
     const wrong = await change(env, cookie, { currentPassword: 'nope', newPassword: 'a much longer secret' });
     expect(wrong.status).toBe(422);
-    expect(wrong.body.errors.currentPassword).toBe('Your current password is not right');
+    expect(wrong.body.errors.currentPassword).toBe('Current password is not right');
     const short = await change(env, cookie, { currentPassword: PASSWORD, newPassword: 'short' });
     expect(short.body.errors.newPassword).toBe('Use at least 12 characters');
     const email = await change(env, cookie, { currentPassword: PASSWORD, newPassword: 'Olivia@Example.com' });
     expect(email.body.errors.newPassword).toBe("Your password can't be your email address");
+    const same = await change(env, cookie, { currentPassword: PASSWORD, newPassword: PASSWORD });
+    expect(same.body.errors.newPassword).toBe('Choose a different password');
     expect((await env.api.get('/api/auth/me').set('Cookie', cookie)).status).toBe(200);
     expect((await env.signIn()).res.status).toBe(200);
   });
@@ -117,5 +119,16 @@ describe('L2-005 AC3 Changing the password ends the other sessions', () => {
   it('requires a signed-in session', async () => {
     const env = await makeEnv();
     expect((await env.api.post('/api/auth/password').send({})).status).toBe(401);
+  });
+});
+
+describe('L2-060 Password change time', () => {
+  it('records when the password was last changed', async () => {
+    const env = await makeEnv();
+    const { cookie } = await env.signIn();
+    expect((await env.api.get('/api/auth/me').set('Cookie', cookie)).body.passwordChangedAt).toBeNull();
+    const res = await env.api.post('/api/auth/password').set('Cookie', cookie).send({ currentPassword: PASSWORD, newPassword: 'a much longer secret' });
+    const me = await env.api.get('/api/auth/me').set('Cookie', cookieOf(res));
+    expect(me.body.passwordChangedAt).toBe(new Date(env.clock.now).toISOString());
   });
 });

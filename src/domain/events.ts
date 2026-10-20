@@ -1,6 +1,13 @@
 import { fail, pass, type Validated } from './result.js';
 
-export const EVENT_TYPES = ['Wedding', 'Birthday', 'Corporate', 'Other'] as const;
+/** The occasions named in L1-002, with the hint shown under each choice on New event. */
+export const EVENT_TYPES = ['Birthday', 'Holiday', 'Anniversary', 'Other'] as const;
+export const EVENT_TYPE_HINTS: Record<(typeof EVENT_TYPES)[number], string> = {
+  Birthday: 'Milestones, dinners and parties',
+  Holiday: 'Christmas, Diwali, Hanukkah, New Year',
+  Anniversary: 'Weddings, years together',
+  Other: 'Office parties, reunions, anything else',
+};
 
 export interface NewEvent {
   type: string;

@@ -37,6 +37,7 @@ export function requireAuth(ctx: Ctx) {
     res.locals.organiserId = organiser.id;
     res.locals.organiserName = organiser.name;
     res.locals.organiserEmail = organiser.email;
+    res.locals.passwordChangedAt = organiser.passwordChangedAt?.toISOString() ?? null;
     res.locals.session = session;
     next();
   };
@@ -72,11 +73,16 @@ export function authRoutes(ctx: Ctx): Router {
   });
 
   r.get('/me', requireAuth(ctx), (_req, res) => {
-    res.json({ id: res.locals.organiserId, name: res.locals.organiserName, email: res.locals.organiserEmail });
+    res.json({
+      id: res.locals.organiserId,
+      name: res.locals.organiserName,
+      email: res.locals.organiserEmail,
+      passwordChangedAt: res.locals.passwordChangedAt,
+    });
   });
 
   /**
-   * Changes the password, which ends every other session of the account (L2-005 AC3).
+   * Changes the password (L2-060), which ends every other session of the account (L2-005 AC3).
    * This browser gets a fresh session so the organiser stays signed in here.
    */
   r.post('/password', requireAuth(ctx), async (req, res) => {
@@ -87,7 +93,7 @@ export function authRoutes(ctx: Ctx): Router {
       return;
     }
     if (!verifyPassword(String(currentPassword ?? ''), organiser.passwordHash)) {
-      res.status(422).json({ errors: { currentPassword: 'Your current password is not right' } });
+      res.status(422).json({ errors: { currentPassword: 'Current password is not right' } });
       return;
     }
     const v = validateNewPassword(String(newPassword ?? ''), organiser.email);
@@ -95,10 +101,14 @@ export function authRoutes(ctx: Ctx): Router {
       res.status(422).json({ errors: v.errors });
       return;
     }
-    const version = await setPassword(ctx.db, organiser.id, hashPassword(v.value));
+    if (verifyPassword(v.value, organiser.passwordHash)) {
+      res.status(422).json({ errors: { newPassword: 'Choose a different password' } });
+      return;
+    }
+    const now = ctx.now();
+    const version = await setPassword(ctx.db, organiser.id, hashPassword(v.value), now);
     const old = res.locals.session as { id: string; expiresAt: number | null };
     await deleteSession(ctx.db, old.id);
-    const now = ctx.now();
     const remember = old.expiresAt !== null;
     const sid = await createSession(ctx.db, organiser.id, version, now, remember ? now + REMEMBER_MS : null);
     setSessionCookie(res, sid, remember);

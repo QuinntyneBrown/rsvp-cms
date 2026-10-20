@@ -24,6 +24,7 @@ export interface OrganiserRecord {
   name: string;
   passwordHash: string;
   passwordVersion: number;
+  passwordChangedAt: Date | null;
 }
 
 export const findOrganiserByEmail = (db: Db, email: string): Promise<OrganiserRecord | null> =>
@@ -40,8 +41,11 @@ export async function createOrganiser(db: Db, email: string, name: string, passw
  * Changing the password bumps its version, which ends every session minted under the old one (L2-005 AC3).
  * The old rows stay until their next request, so that device is told "Your session ended" rather than a bare 401.
  */
-export async function setPassword(db: Db, id: number, hash: string): Promise<number> {
-  const row = await db.organiser.update({ where: { id }, data: { passwordHash: hash, passwordVersion: { increment: 1 } } });
+export async function setPassword(db: Db, id: number, hash: string, now: number): Promise<number> {
+  const row = await db.organiser.update({
+    where: { id },
+    data: { passwordHash: hash, passwordVersion: { increment: 1 }, passwordChangedAt: new Date(now) },
+  });
   return row.passwordVersion;
 }
 

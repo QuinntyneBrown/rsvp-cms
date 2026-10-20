@@ -16,7 +16,7 @@
     "db:down": "docker compose -f deploy/docker-compose.yml down",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
-    "db:migrate:dev": "prisma migrate dev",
+    "db:migrate:dev": "prisma migrate dev && prisma generate",
     "db:seed": "tsx scripts/seed.ts"
   },
   "devDependencies": {
