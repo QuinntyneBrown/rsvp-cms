@@ -23,14 +23,14 @@ export class ResponsesTab {
     this.empty = page.getByRole('heading', { name: 'No replies yet' });
     this.noMatch = page.getByRole('heading', { name: 'No replies match' });
     this.clearSearch = page.getByRole('button', { name: 'Clear search' });
-    this.previous = page.getByRole('button', { name: 'Previous' });
-    this.next = page.getByRole('button', { name: 'Next' });
-    this.pageLabel = page.getByText(/^Page \d+ of \d+$/);
+    this.previous = page.getByRole('button', { name: 'Previous page' });
+    this.next = page.getByRole('button', { name: 'Next page' });
+    this.pageLabel = page.getByText(/^Showing \d+–\d+ of [\d,]+$/);
   }
 
   /** A total by its label: 'Attending', 'Guests coming', 'Declined', 'Waiting' or a meal name. */
   total(label: string) {
-    return this.totals.locator('div').filter({ has: this.page.getByRole('term').filter({ hasText: new RegExp(`^${label}$`) }) }).getByRole('definition');
+    return this.totals.locator('.stat').filter({ has: this.page.locator('.stat__label').getByText(label, { exact: true }) }).locator('.stat__value');
   }
 
   filter(label: 'All' | 'Attending' | 'Declined') {

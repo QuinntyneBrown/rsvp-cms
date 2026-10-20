@@ -100,7 +100,7 @@ export function ResponsesTab({ eventId }: { eventId: number }) {
               ))}
             </TableBody>
           </Table>
-          <Pagination page={page} pageCount={Math.max(1, Math.ceil(data.total / data.pageSize))} onPageChange={setPage} />
+          <Pagination page={page} pageCount={Math.max(1, Math.ceil(data.total / data.pageSize))} summary={`Showing ${(page - 1) * data.pageSize + 1}–${(page - 1) * data.pageSize + data.responses.length} of ${data.total.toLocaleString('en-GB')}`} onPageChange={setPage} />
         </>
       )}
     </Stack>

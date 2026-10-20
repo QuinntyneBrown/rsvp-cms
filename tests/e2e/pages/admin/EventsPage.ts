@@ -7,6 +7,9 @@ export class EventsPage {
   readonly newEvent: Locator;
   readonly list: Locator;
   readonly items: Locator;
+  /** Each row's event name and its date and status line. */
+  readonly titles: Locator;
+  readonly metas: Locator;
   readonly empty: Locator;
   readonly error: Locator;
   readonly retry: Locator;
@@ -16,6 +19,8 @@ export class EventsPage {
     this.newEvent = page.getByRole('link', { name: 'New event' });
     this.list = page.getByRole('list', { name: 'Events' });
     this.items = this.list.getByRole('listitem');
+    this.titles = this.items.locator('.list__title');
+    this.metas = this.items.locator('.list__meta');
     this.empty = page.getByRole('heading', { name: 'No events yet' });
     this.error = page.getByRole('alert');
     this.retry = page.getByRole('button', { name: 'Try again' });
@@ -26,6 +31,6 @@ export class EventsPage {
   }
 
   open(name: string) {
-    return this.list.getByRole('link', { name, exact: true }).click();
+    return this.list.getByRole('link').filter({ has: this.page.locator('.list__title').getByText(name, { exact: true }) }).click();
   }
 }

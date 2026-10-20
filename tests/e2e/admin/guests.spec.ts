@@ -39,11 +39,11 @@ test.describe('L2-019 Guest list table', () => {
     await admin.event.goto(event.id, 'guests');
     const guests = admin.event.guests;
     await expect(guests.rows).toHaveCount(50);
-    await expect(guests.pageLabel).toHaveText('Page 1 of 2');
+    await expect(guests.pageLabel).toHaveText('Showing 1–50 of 52');
     await expect(guests.previous).toBeDisabled();
     await guests.next.click();
     await expect(guests.rows).toHaveCount(2);
-    await expect(guests.pageLabel).toHaveText('Page 2 of 2');
+    await expect(guests.pageLabel).toHaveText('Showing 51–52 of 52');
     await expect(guests.next).toBeDisabled();
     await guests.previous.click();
     await expect(guests.rows).toHaveCount(50);
@@ -115,9 +115,9 @@ test.describe('L2-020 Search and filter guests', () => {
     const guests = admin.event.guests;
     await admin.event.goto(event.id, 'guests');
     await guests.next.click();
-    await expect(guests.pageLabel).toHaveText('Page 2 of 2');
+    await expect(guests.pageLabel).toHaveText(/^Showing 51–/);
     await guests.search.fill('Guest 0');
-    await expect(guests.pageLabel).toHaveText('Page 1 of 1');
+    await expect(guests.pageLabel).toHaveText('Showing 1–10 of 10');
     await expect(guests.rows).toHaveCount(10);
   });
 });
@@ -140,7 +140,7 @@ test.describe('L2-021 Add a guest', () => {
   test('moves focus into the dialog when it opens', async ({ admin }) => {
     await admin.event.goto(event.id, 'guests');
     await admin.event.guests.addGuest.click();
-    await expect(admin.event.guests.addDialog.root).toBeFocused();
+    await expect(admin.event.guests.addDialog.name).toBeFocused(); // the first field (design system: dialog focus)
   });
 
   test('shows field errors for a missing name, a bad email and out-of-range plus-ones', async ({ admin, api }) => {

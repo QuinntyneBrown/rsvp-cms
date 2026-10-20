@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
+import { definition, failure } from '../definitions.js';
 import { GUEST_URL } from '../urls.js';
 
 /** The read-only summary of a saved reply. */
@@ -7,7 +8,7 @@ export class ReplySummary {
 
   /** The value for 'Your reply', 'Party size', 'Meal' or 'Message'. */
   value(term: string) {
-    return this.root.locator('div').filter({ has: this.root.page().getByRole('term').filter({ hasText: new RegExp(`^${term}$`) }) }).getByRole('definition');
+    return definition(this.root, term);
   }
 }
 
@@ -45,7 +46,7 @@ export class RsvpForm {
     this.message = this.root.locator('#rsvp-message');
     this.send = this.root.getByRole('button', { name: /^(Send my RSVP|Sending…)$/ }).first();
     this.cancel = this.root.getByRole('button', { name: 'Cancel' });
-    this.failure = this.root.locator(':scope > p[role="alert"]');
+    this.failure = failure(this.root);
     this.tryAgain = this.failure.getByRole('button', { name: 'Try again' });
     this.regrets = page.getByRole('dialog', { name: 'Send your regrets?' });
     this.regretsMessage = this.regrets.getByLabel('Message');
@@ -99,14 +100,14 @@ export class InvitePage {
     this.greeting = page.getByText(/^Hello, /);
     this.invalid = page.getByRole('heading', { name: "This invitation link doesn't work" });
     this.enterCode = page.getByRole('link', { name: 'Enter your invitation code' });
-    this.error = page.locator('.card[role="alert"]');
+    this.error = failure(page.locator('main'));
     this.retry = page.getByRole('button', { name: 'Try again' });
     this.notOpen = page.getByText(/^Codes are accepted from /);
     this.closed = page.getByRole('heading', { name: /^Replies closed on / });
     this.noReply = page.getByText("We didn't receive a reply from you.");
     this.thanks = page.getByRole('heading', { name: 'Thank you for replying' });
     this.changeReply = page.getByRole('button', { name: 'Change reply' });
-    this.summary = new ReplySummary(page.locator('dl[aria-label="Your reply"]'));
+    this.summary = new ReplySummary(page.locator('dl').filter({ has: page.locator('dt').getByText('Your reply', { exact: true }) }));
     this.toast = page.locator('.toast');
     this.form = new RsvpForm(page);
   }

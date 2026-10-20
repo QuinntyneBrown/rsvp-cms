@@ -18,7 +18,7 @@ export class SignInPage {
     this.password = page.getByLabel('Password', { exact: true });
     this.keepSignedIn = page.getByLabel('Keep me signed in');
     this.submit = page.getByRole('form', { name: 'Sign in' }).getByRole('button');
-    this.alert = page.locator('.auth-card > p[role="alert"]');
+    this.alert = page.getByRole('main').getByRole('alert').first();
     this.emailError = page.locator('#si-email-error');
   }
 

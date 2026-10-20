@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
+import { failure } from '../definitions.js';
 import { ADMIN_URL } from '../urls.js';
 
 export interface EventForm {
@@ -35,7 +36,7 @@ export class NewEventPage {
     this.venue = form.getByLabel('Venue');
     this.create = form.getByRole('button', { name: /Create event|Creating…/ });
     this.cancel = form.getByRole('link', { name: 'Cancel' });
-    this.failure = form.locator(':scope > p[role="alert"]');
+    this.failure = failure(form);
     this.tryAgain = this.failure.getByRole('button', { name: 'Try again' });
   }
 

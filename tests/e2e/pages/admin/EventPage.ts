@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
+import { definition } from '../definitions.js';
 import { ADMIN_URL } from '../urls.js';
 import { EmailsTab } from './EmailsTab.js';
 import { GuestsTab } from './GuestsTab.js';
@@ -24,9 +25,9 @@ export class EventPage {
 
   constructor(readonly page: Page) {
     this.heading = page.locator('main h1');
-    this.subtitle = page.locator('main h1 + p.text-muted');
+    this.subtitle = page.locator('main h1 + p');
     this.nav = page.getByRole('navigation', { name: 'Event sections' });
-    this.overview = page.locator('main dl.card');
+    this.overview = page.locator('main dl');
     this.toast = page.locator('.toast');
     this.error = page.getByRole('alert');
     this.retry = page.getByRole('button', { name: 'Try again' });
@@ -50,6 +51,6 @@ export class EventPage {
 
   /** The value shown for an overview term such as 'Date', 'Venue' or 'Replies accepted'. */
   detail(term: string) {
-    return this.overview.locator('div').filter({ has: this.page.getByRole('term').filter({ hasText: term }) }).getByRole('definition');
+    return definition(this.overview, term);
   }
 }

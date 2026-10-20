@@ -12,7 +12,7 @@ export class AdminShell {
     this.brand = topbar.getByRole('link', { name: 'Invitely' });
     this.signOut = topbar.getByRole('button', { name: 'Sign out' });
     this.skipLink = page.getByRole('link', { name: 'Skip to content' });
-    this.loading = page.getByLabel('Loading');
+    this.loading = page.getByText('Loading', { exact: true });
   }
 
   userName(name: string) {

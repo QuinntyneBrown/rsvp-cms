@@ -16,7 +16,8 @@ test.describe('L2-012 Events list', () => {
     api.addEvent({ name: 'Winter party', date: '2027-01-20' });
     api.addEvent({ name: 'Maya & Sam', date: '2026-12-12', status: 'Published' });
     await admin.events.goto();
-    await expect(admin.events.items).toHaveText(['Maya & Sam · 2026-12-12 · Published', 'Winter party · 2027-01-20 · Draft']);
+    await expect(admin.events.titles).toHaveText(['Maya & Sam', 'Winter party']);
+    await expect(admin.events.metas).toHaveText(['2026-12-12 · Published', '2027-01-20 · Draft']);
   });
 
   test('opens an event from the list', async ({ admin, api }) => {

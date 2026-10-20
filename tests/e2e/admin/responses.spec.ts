@@ -48,13 +48,13 @@ test.describe('L2-046 Responses table', () => {
     const responses = admin.event.responses;
     await admin.event.goto(event.id, 'responses');
     await expect(responses.rows).toHaveCount(50);
-    await expect(responses.pageLabel).toHaveText('Page 1 of 2');
+    await expect(responses.pageLabel).toHaveText('Showing 1–50 of 51');
     await expect(responses.previous).toBeDisabled();
     await responses.next.click();
     await expect(responses.rows).toHaveCount(1);
     await expect(responses.next).toBeDisabled();
     await responses.previous.click();
-    await expect(responses.pageLabel).toHaveText('Page 1 of 2');
+    await expect(responses.pageLabel).toHaveText('Showing 1–50 of 51');
   });
 
   test('a failed load can be retried', async ({ admin, api }) => {

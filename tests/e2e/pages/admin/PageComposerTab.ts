@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
+import { failure } from '../definitions.js';
 
 /** One block card in the page outline. */
 export class BlockCard {
@@ -57,16 +58,16 @@ export class PageComposerTab {
   constructor(readonly page: Page) {
     this.heading = page.getByRole('heading', { name: 'Event page' });
     // The composer's own status sits beside the heading; the toast region is a separate status.
-    this.status = page.locator('.cluster--between > [role="status"]');
+    this.status = page.locator('.inline-status[role="status"]');
     this.publish = page.getByRole('button', { name: 'Publish', exact: true });
     this.preview = page.getByRole('button', { name: 'Preview', exact: true });
     this.discardChanges = page.getByRole('button', { name: 'Discard changes' });
     this.addBlock = page.getByRole('button', { name: 'Add a block' });
     this.outline = page.getByRole('list', { name: 'Page outline' });
     this.blocks = this.outline.locator(':scope > li');
-    this.empty = page.getByText('No blocks yet. Add a block to start your page.');
+    this.empty = page.getByRole('heading', { name: 'Start with a hero' });
     this.pageError = page.locator('p.field__error[role="alert"]').filter({ hasText: 'A page can have up to 12 blocks' });
-    this.publishError = page.locator('.card[role="alert"]');
+    this.publishError = failure(page.locator('main'));
     this.undo = page.getByRole('button', { name: 'Undo' });
     this.picker = page.getByRole('dialog', { name: 'Add a block' });
     this.pickerNote = this.picker.getByRole('alert');
@@ -94,7 +95,7 @@ export class PageComposerTab {
   }
 
   closePicker() {
-    return this.picker.getByRole('button', { name: 'Close' }).click();
+    return this.picker.locator('.dialog__footer').getByRole('button', { name: 'Close' }).click();
   }
 
   keepEditing() {

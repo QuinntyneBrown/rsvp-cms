@@ -182,7 +182,16 @@ function Composer({ eventId, initial }: { eventId: number; initial: PageState })
       {errors.page && <Alert tone="danger" live>{errors.page}</Alert>}
       {undo && <Alert actions={<Button size="sm" onClick={undoRemove}>Undo</Button>}>Block removed.</Alert>}
 
-      {blocks.length === 0 && <EmptyState compact title="No blocks yet" text="Add a block to start your page." />}
+      {blocks.length === 0 && (
+        <Card>
+          <EmptyState
+            title="Start with a hero"
+            headingLevel={3}
+            text="A page is built from blocks. The hero says who is celebrating and when; the RSVP block lets guests answer."
+            actions={<><Button variant="primary" onClick={() => addBlock('hero')}>Add a hero block</Button><Button onClick={() => { setPickerNote(undefined); setPicker(true); }}>Browse blocks</Button></>}
+          />
+        </Card>
+      )}
       <Stack as="ol" aria-label="Page outline">
         {blocks.map((b, i) => {
           const spec = BLOCK_SPECS[b.type];

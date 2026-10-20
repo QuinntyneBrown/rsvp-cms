@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
+import { definition, failure } from '../definitions.js';
 
 export interface ScheduleForm {
   audience?: 'all' | 'non-responders';
@@ -34,7 +35,7 @@ export class ScheduleDialog {
     this.replyTo = this.root.getByLabel('Reply-to email');
     this.submit = this.root.getByRole('button', { name: /^(Schedule invitation|Scheduling…)$/ });
     this.cancel = this.root.getByRole('button', { name: 'Cancel' });
-    this.failure = this.root.locator('form > p[role="alert"]');
+    this.failure = failure(this.root);
     this.tryAgain = this.failure.getByRole('button', { name: 'Try again' });
   }
 
@@ -64,13 +65,13 @@ export class EmailPreviewDialog {
 
   constructor(readonly page: Page) {
     this.root = page.getByRole('dialog', { name: 'Email preview' });
-    this.close = this.root.getByRole('button', { name: 'Close' });
-    this.body = this.root.locator('dl > div').last();
+    this.close = this.root.locator('.dialog__footer').getByRole('button', { name: 'Close' });
+    this.body = this.root.locator('.well');
   }
 
   /** The value for 'From', 'Reply-to' or 'Subject'. */
   value(term: string) {
-    return this.root.locator('dl > div').filter({ has: this.page.getByRole('term').filter({ hasText: new RegExp(`^${term}$`) }) }).getByRole('definition');
+    return definition(this.root.locator('dl'), term);
   }
 }
 

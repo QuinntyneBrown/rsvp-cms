@@ -41,7 +41,7 @@ test.describe('L2-029 Schedule invitations', () => {
     const dialog = admin.event.emails.dialog;
     await admin.event.goto(event.id, 'emails');
     await admin.event.emails.scheduleInvitations.click();
-    await expect(dialog.root).toBeFocused();
+    await expect(dialog.audience).toBeFocused(); // the first field (design system: dialog focus)
     await expect(dialog.audience).toHaveValue('all');
     await expect(dialog.audience.locator('option')).toHaveText(['All invitees', "Only people who haven't replied"]);
     await expect(dialog.subject).toHaveValue("You're invited to Maya & Sam");
@@ -96,7 +96,7 @@ test.describe('L2-029 Schedule invitations', () => {
     await admin.event.emails.scheduleInvitations.click();
     await dialog.schedule({ sendOn: '2026-12-13' });
     await expect(dialog.errorFor('sendOn')).toHaveText('Invitations must go out before invites close');
-    await expect(dialog.sendOnHint).toHaveCount(0);
+    await expect(dialog.sendOnHint).toBeVisible(); // help stays above the error (design system: form field)
   });
 
   test('L2-036 refuses a malformed reply-to address', async ({ admin }) => {
@@ -161,7 +161,7 @@ test.describe('L2-031 Preview an invitation email and L2-036 sender identity', (
     const text = invitationText({
       guestName: SAMPLE_GUEST.name, eventName: 'Maya & Sam', eventDate: '2026-12-12', link: personalLink(RSVP_URL, SAMPLE_GUEST.token), code: SAMPLE_GUEST.code,
     });
-    await expect.poll(() => preview.body.textContent()).toBe(text);
+    await expect.poll(() => preview.body.innerText()).toBe(text);
     await preview.close.click();
     await expect(preview.root).toHaveCount(0);
   });

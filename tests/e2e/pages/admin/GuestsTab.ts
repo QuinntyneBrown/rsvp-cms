@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
+import { failure } from '../definitions.js';
 
 export interface GuestForm {
   name?: string;
@@ -27,7 +28,7 @@ export class GuestDialog {
     this.plusOnes = this.root.getByLabel('Plus-ones');
     this.submit = this.root.getByRole('button', { name: title === 'Add guest' ? 'Add guest' : 'Save' });
     this.cancel = this.root.getByRole('button', { name: 'Cancel' });
-    this.failure = this.root.locator('form > p[role="alert"]');
+    this.failure = failure(this.root);
     this.tryAgain = this.failure.getByRole('button', { name: 'Try again' });
   }
 
@@ -78,9 +79,9 @@ export class GuestsTab {
     this.empty = page.getByRole('heading', { name: 'No guests yet' });
     this.noMatch = page.getByRole('heading', { name: 'No guests match' });
     this.clearSearch = page.getByRole('button', { name: 'Clear search' });
-    this.previous = page.getByRole('button', { name: 'Previous' });
-    this.next = page.getByRole('button', { name: 'Next' });
-    this.pageLabel = page.getByText(/^Page \d+ of \d+$/);
+    this.previous = page.getByRole('button', { name: 'Previous page' });
+    this.next = page.getByRole('button', { name: 'Next page' });
+    this.pageLabel = page.getByText(/^Showing \d+–\d+ of [\d,]+$/);
     this.addDialog = new GuestDialog(page, 'Add guest');
     this.editDialog = new GuestDialog(page, 'Edit guest');
     this.removeDialog = page.getByRole('dialog', { name: /^Remove \d+ guests?\?$/ });
