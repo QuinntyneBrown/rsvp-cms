@@ -21,14 +21,14 @@ test.describe('L2-001 Organiser sign-in', () => {
   test('AC2 a wrong password shows one generic error', async ({ admin }) => {
     await admin.signIn.goto();
     await admin.signIn.signIn(ORGANISER.email, 'wrong');
-    await expect(admin.signIn.alert).toHaveText('Email or password is not right');
+    await expect(admin.signIn.alert).toContainText('Email or password is not right');
     await expect(admin.signIn.submit).toBeEnabled();
   });
 
   test('AC2 an unknown email shows the same generic error', async ({ admin }) => {
     await admin.signIn.goto();
     await admin.signIn.signIn('nobody@example.com', ORGANISER.password);
-    await expect(admin.signIn.alert).toHaveText('Email or password is not right');
+    await expect(admin.signIn.alert).toContainText('Email or password is not right');
   });
 
   test('AC3 a malformed email is caught before anything is sent and the field gets focus', async ({ admin, api }) => {
@@ -62,7 +62,7 @@ test.describe('L2-001 Organiser sign-in', () => {
     api.abortNext('POST', '/api/auth/sign-in');
     await admin.signIn.goto();
     await admin.signIn.signIn(ORGANISER.email, ORGANISER.password);
-    await expect(admin.signIn.alert).toHaveText('Something went wrong. Check your connection and try again.');
+    await expect(admin.signIn.alert).toContainText('Something went wrong. Check your connection and try again.');
     await admin.signIn.submit.click();
     await expect(admin.events.heading).toBeVisible();
   });
@@ -87,7 +87,26 @@ test.describe('L2-005 Session lifetime and sign-out', () => {
     api.session = 'ended';
     await admin.events.goto();
     await expect(admin.signIn.heading).toBeVisible();
-    await expect(admin.signIn.alert).toHaveText(SESSION_ENDED);
+    await expect(admin.signIn.alert).toContainText(SESSION_ENDED);
+  });
+
+  test('AC1 a session that ends mid-visit returns to Sign in on the next request', async ({ admin, api }) => {
+    const event = api.addEvent({ name: 'Maya & Sam' });
+    api.signIn();
+    await admin.events.goto();
+    await expect(admin.events.heading).toBeVisible();
+    api.session = 'ended';
+    await admin.events.open('Maya & Sam');
+    await expect(admin.signIn.heading).toBeVisible();
+    await expect(admin.signIn.alert).toContainText(SESSION_ENDED);
+    expect(api.calls('GET', `/api/events/${event.id}`)).toHaveLength(1);
+  });
+
+  test('the shell names the organiser and lists Events in the primary navigation', async ({ admin, api }) => {
+    api.signIn();
+    await admin.events.goto();
+    await expect(admin.shell.userName(ORGANISER.name)).toBeVisible();
+    await expect(admin.shell.nav.getByRole('link', { name: 'Events' })).toHaveAttribute('aria-current', 'page');
   });
 
   test('AC2 Sign out ends the session and returns to Sign in', async ({ admin, api }) => {

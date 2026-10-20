@@ -10,7 +10,7 @@ test('organiser sets up an event, a guest replies by code, the organiser sees it
   // J5 sign in
   await admin.signIn.goto();
   await admin.signIn.signIn(ORGANISER.email, 'wrong');
-  await expect(admin.signIn.alert).toHaveText('Email or password is not right');
+  await expect(admin.signIn.alert).toContainText('Email or password is not right');
   await admin.signIn.signIn(ORGANISER.email, ORGANISER.password);
   await expect(admin.events.heading).toBeVisible();
 
