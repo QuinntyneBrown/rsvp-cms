@@ -1,5 +1,5 @@
 import cookieParser from 'cookie-parser';
-import express from 'express';
+import express, { type NextFunction, type Request, type Response } from 'express';
 import { authRoutes, requireAuth } from './auth.js';
 import type { Ctx } from './context.js';
 import { eventRoutes } from './events/routes.js';
@@ -9,7 +9,7 @@ import { responseRoutes } from './responses/routes.js';
 
 export function createApp(ctx: Ctx) {
   const app = express();
-  app.use(express.json());
+  app.use(express.json({ limit: '1mb' }));
   app.use(cookieParser());
 
   app.use('/api/auth', authRoutes(ctx));
@@ -17,6 +17,12 @@ export function createApp(ctx: Ctx) {
 
   const auth = requireAuth(ctx);
   app.use('/api/events', auth, eventRoutes(ctx), guestRoutes(ctx), responseRoutes(ctx));
+
+  // Unexpected failures (e.g. the database is down) answer with a generic message; details stay in the log.
+  app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    console.error(err);
+    if (!res.headersSent) res.status(500).json({ error: 'Something went wrong. Try again.' });
+  });
 
   return app;
 }

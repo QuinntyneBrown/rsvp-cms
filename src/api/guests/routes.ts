@@ -1,22 +1,38 @@
 import { Router } from 'express';
 import {
-  countGuests, countNonResponders, deleteGuests, getEmail, getGuest, getResponse, guestByEmail,
-  insertEmail, insertGuest, listEmails, listGuests, updateGuest,
+  countGuests, countNonResponders, deleteGuests, getEmail, getGuest, getResponse, guestByEmail, insertEmail, insertGuest,
+  isUniqueViolation, listEmails, listGuests, updateGuest, type EmailRecord, type GuestListRow, type GuestRecord, type ReplyStatus,
 } from '../../data/repos.js';
 import { confirmedPlusOnes, PLUS_ONES_BELOW_CONFIRMED, validateGuest } from '../../domain/guests.js';
+import { invitationText, personalLink, SAMPLE_GUEST } from '../../domain/invitations/message.js';
 import { sendTime, validateSchedule } from '../../domain/invitations/schedule.js';
-import { body, eventOf, isoStamp, ownEvent, toInt, type Ctx } from '../context.js';
+import { body, eventOf, ownEvent, toInt, type Ctx } from '../context.js';
 
 const PAGE_SIZE = 50;
+const DUPLICATE_EMAIL = { errors: { email: 'This email is already on the list' } };
 
-const guestJson = (g: Record<string, unknown>) => ({
+const guestJson = (g: GuestRecord & Partial<GuestListRow>) => ({
   id: g.id,
   name: g.name,
   email: g.email,
-  group: g.group_name,
-  plusOnes: g.plus_ones,
+  group: g.group,
+  plusOnes: g.plusOnes,
   code: g.code,
-  status: g.attending === null || g.attending === undefined ? 'waiting' : g.attending === 1 ? 'attending' : 'declined',
+  status: g.status ?? 'waiting',
+  partySize: g.partySize ?? null,
+  updatedAt: g.updatedAt ?? null,
+});
+
+const AUDIENCE_LABEL = { all: 'All invitees', 'non-responders': "People who haven't replied" } as const;
+
+const emailJson = (e: EmailRecord) => ({
+  id: e.id,
+  kind: e.kind,
+  audience: AUDIENCE_LABEL[e.audience],
+  sendAt: e.sendAt,
+  recipients: e.recipients,
+  status: e.status,
+  subject: e.subject,
 });
 
 export function guestRoutes(ctx: Ctx): Router {
@@ -25,39 +41,44 @@ export function guestRoutes(ctx: Ctx): Router {
 
   // ---- guest list (L2-019, L2-020) ----------------------------------------
 
-  r.get('/:id/guests', own, (req, res) => {
-    const status = ['attending', 'declined', 'waiting'].includes(String(req.query.status))
-      ? (req.query.status as 'attending' | 'declined' | 'waiting')
-      : undefined;
+  r.get('/:id/guests', own, async (req, res) => {
+    const status = ['attending', 'declined', 'waiting'].includes(String(req.query.status)) ? (req.query.status as ReplyStatus) : undefined;
     const page = toInt(req.query.page, 1);
-    const { total, rows } = listGuests(ctx.db, eventOf(res).id, {
-      q: typeof req.query.q === 'string' ? req.query.q.trim() : undefined,
-      status,
-      page,
-      pageSize: PAGE_SIZE,
-    });
-    res.json({ guests: rows.map(guestJson), total, page, pageSize: PAGE_SIZE, invitees: countGuests(ctx.db, eventOf(res).id) });
+    const eventId = eventOf(res).id;
+    const [{ total, rows }, invitees] = await Promise.all([
+      listGuests(ctx.db, eventId, { q: typeof req.query.q === 'string' ? req.query.q.trim() : undefined, status, page, pageSize: PAGE_SIZE }),
+      countGuests(ctx.db, eventId),
+    ]);
+    res.json({ guests: rows.map(guestJson), total, page, pageSize: PAGE_SIZE, invitees });
   });
 
   // ---- add / edit / remove (L2-021..L2-023) --------------------------------
 
-  r.post('/:id/guests', own, (req, res) => {
+  r.post('/:id/guests', own, async (req, res) => {
     const v = validateGuest(body(req));
     if (!v.ok) {
       res.status(422).json({ errors: v.errors });
       return;
     }
-    if (guestByEmail(ctx.db, eventOf(res).id, v.value.email)) {
-      res.status(422).json({ errors: { email: 'This email is already on the list' } });
+    const eventId = eventOf(res).id;
+    if (await guestByEmail(ctx.db, eventId, v.value.email)) {
+      res.status(422).json(DUPLICATE_EMAIL);
       return;
     }
-    const id = insertGuest(ctx.db, eventOf(res).id, v.value, isoStamp(ctx.now()));
-    res.status(201).json({ guest: guestJson(getGuest(ctx.db, id)!) });
+    try {
+      const id = await insertGuest(ctx.db, eventId, v.value);
+      res.status(201).json({ guest: guestJson((await getGuest(ctx.db, id))!) });
+    } catch (e) {
+      // Two adds of the same email racing each other: the unique index lets only one through.
+      if (!isUniqueViolation(e)) throw e;
+      res.status(422).json(DUPLICATE_EMAIL);
+    }
   });
 
-  r.put('/:id/guests/:guestId', own, (req, res) => {
-    const guest = getGuest(ctx.db, Number(req.params.guestId));
-    if (!guest || guest.event_id !== eventOf(res).id) {
+  r.put('/:id/guests/:guestId', own, async (req, res) => {
+    const eventId = eventOf(res).id;
+    const guest = await getGuest(ctx.db, Number(req.params.guestId));
+    if (!guest || guest.eventId !== eventId) {
       res.status(404).json({ error: 'Guest not found' });
       return;
     }
@@ -66,77 +87,86 @@ export function guestRoutes(ctx: Ctx): Router {
       res.status(422).json({ errors: v.errors });
       return;
     }
-    const clash = guestByEmail(ctx.db, eventOf(res).id, v.value.email);
+    const clash = await guestByEmail(ctx.db, eventId, v.value.email);
     if (clash && clash.id !== guest.id) {
-      res.status(422).json({ errors: { email: 'This email is already on the list' } });
+      res.status(422).json(DUPLICATE_EMAIL);
       return;
     }
-    const reply = getResponse(ctx.db, Number(guest.id));
-    if (reply && reply.attending === 1 && v.value.plusOnes < confirmedPlusOnes(Number(reply.party_size))) {
+    const reply = await getResponse(ctx.db, guest.id);
+    if (reply?.attending && v.value.plusOnes < confirmedPlusOnes(reply.partySize)) {
       res.status(422).json({ errors: { plusOnes: PLUS_ONES_BELOW_CONFIRMED } });
       return;
     }
-    updateGuest(ctx.db, Number(guest.id), v.value);
-    res.json({ guest: guestJson(getGuest(ctx.db, Number(guest.id))!) });
+    try {
+      await updateGuest(ctx.db, guest.id, v.value);
+    } catch (e) {
+      if (!isUniqueViolation(e)) throw e;
+      res.status(422).json(DUPLICATE_EMAIL);
+      return;
+    }
+    res.json({ guest: guestJson((await getGuest(ctx.db, guest.id))!) });
   });
 
-  /** Removing a guest deletes their personal link and reply (cascade). */
-  r.post('/:id/guests/remove', own, (req, res) => {
-    const ids = Array.isArray(body(req).ids) ? (body(req).ids as unknown[]).map(Number).filter(Number.isInteger) : [];
-    res.json({ removed: deleteGuests(ctx.db, eventOf(res).id, ids) });
+  /** Removing a guest deletes their personal link, reply and pending emails (cascade). */
+  r.post('/:id/guests/remove', own, async (req, res) => {
+    const raw = body(req).ids;
+    const ids = Array.isArray(raw) ? raw.map(Number).filter(Number.isSafeInteger) : [];
+    res.json({ removed: await deleteGuests(ctx.db, eventOf(res).id, ids) });
   });
 
   // ---- invitations (L2-029..L2-031, L2-036) ---------------------------------
 
-  r.post('/:id/emails', own, (req, res) => {
+  r.post('/:id/emails', own, async (req, res) => {
     const event = eventOf(res);
-    const v = validateSchedule(body(req), event.invite_close);
+    const v = validateSchedule(body(req), event.inviteClose);
     if (!v.ok) {
       res.status(422).json({ errors: v.errors });
       return;
     }
-    const recipients = v.value.audience === 'all' ? countGuests(ctx.db, event.id) : countNonResponders(ctx.db, event.id);
-    const id = insertEmail(ctx.db, event.id, {
+    const recipients = v.value.audience === 'all' ? await countGuests(ctx.db, event.id) : await countNonResponders(ctx.db, event.id);
+    const id = await insertEmail(ctx.db, event.id, {
       kind: 'Invitation',
-      audience: v.value.audience === 'all' ? 'All invitees' : "People who haven't replied",
+      audience: v.value.audience,
       subject: v.value.subject,
       sendAt: sendTime(v.value.sendOn),
-      status: 'Scheduled',
       recipients,
       senderName: v.value.senderName,
       replyTo: v.value.replyTo,
     });
-    res.status(201).json({ email: emailJson(getEmail(ctx.db, id)!), sendTime: sendTime(v.value.sendOn) });
+    res.status(201).json({ email: emailJson((await getEmail(ctx.db, id))!), sendTime: sendTime(v.value.sendOn) });
   });
 
-  r.get('/:id/emails', own, (_req, res) => {
-    res.json({ emails: listEmails(ctx.db, eventOf(res).id).map(emailJson) });
+  r.get('/:id/emails', own, async (_req, res) => {
+    const event = eventOf(res);
+    const [emails, invitees, nonResponders] = await Promise.all([
+      listEmails(ctx.db, event.id),
+      countGuests(ctx.db, event.id),
+      countNonResponders(ctx.db, event.id),
+    ]);
+    res.json({ emails: emails.map(emailJson), counts: { all: invitees, nonResponders } });
   });
 
-  r.get('/:id/emails/:emailId/preview', own, (req, res) => {
-    const email = getEmail(ctx.db, Number(req.params.emailId));
-    if (!email || email.event_id !== eventOf(res).id) {
+  /** The exact text a guest receives, with a sample guest's name, link and code (L2-031 AC1). */
+  r.get('/:id/emails/:emailId/preview', own, async (req, res) => {
+    const event = eventOf(res);
+    const email = await getEmail(ctx.db, Number(req.params.emailId));
+    if (!email || email.eventId !== event.id) {
       res.status(404).json({ error: 'Email not found' });
       return;
     }
-    const event = eventOf(res);
     res.json({
-      from: String(email.sender_name) || res.locals.organiserName,
-      replyTo: email.reply_to || null,
+      from: email.senderName || res.locals.organiserName,
+      replyTo: email.replyTo || null,
       subject: email.subject,
-      body: `Hi Maya Sample,\n\nYou're invited to ${event.name} on ${event.date}.\nReply with your personal link: https://rsvp.example/i/SAMPLE-CODE`,
+      body: invitationText({
+        guestName: SAMPLE_GUEST.name,
+        eventName: event.name,
+        eventDate: event.date,
+        link: personalLink(ctx.rsvpUrl, SAMPLE_GUEST.token),
+        code: SAMPLE_GUEST.code,
+      }),
     });
   });
 
   return r;
 }
-
-const emailJson = (e: Record<string, unknown>) => ({
-  id: e.id,
-  kind: e.kind,
-  audience: e.audience,
-  sendAt: e.send_at,
-  recipients: e.recipients,
-  status: e.status,
-  subject: e.subject,
-});

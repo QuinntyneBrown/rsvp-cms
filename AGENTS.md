@@ -41,6 +41,11 @@ rsvp-cms/
 │   ├── admin/                 # Organizer UI (event setup, guest lists, response review)
 │   ├── rsvp/                  # Public guest-facing RSVP page
 │   ├── shared/                # Code used by more than one area: UI components, utilities, types
+│   │   ├── ui/                # UI used by both admin and rsvp: tokens, global styles, components
+│   │   │   ├── components/    # Design-system components, see "UI components" below
+│   │   │   │   ├── {Component}/
+│   │   │   │   └── index.ts   # The only import path for components
+│   │   │   └── tokens.css     # Design tokens owned by src (never imported from docs/)
 │   │   ├── forms/             # Form validation helpers
 │   │   ├── storage/           # Client and server storage helpers
 │   │   └── mail/              # Mail queue and transports
@@ -59,5 +64,20 @@ Rules (all MUST be followed):
 - Tests MUST trace back to requirement IDs in `docs/specs/`.
 - The guest-facing `src/rsvp/` MUST NOT contain organizer-only code; share through `src/shared/`.
 - The responsibilities of the `src/` subfolders MUST stay separate. Stack-specific subfolders may be added inside them, but the folders listed above MUST NOT be replaced or bypassed.
+
+## UI components (MANDATORY)
+
+`src/shared/ui/components/` is the React implementation of `docs/design-system/`. Follow this pattern for every component; the design system, not this file, is the list of components.
+
+- One folder per design-system component, named in PascalCase after its design-system page (`Button/`, `Dialog/`, `EmptyState/`). It MUST contain `{Component}.tsx` and `index.ts`, and MAY contain `{Component}.css`. Nothing else goes in a component folder.
+- Every component MUST be exported from `components/index.ts`, and code outside the folder MUST import from that barrel, never from a component's own files.
+- Components MUST be presentational: data comes in through props and user actions go out through callbacks. They MUST NOT fetch data, call `src/api`, read routes or hold business rules.
+- Variants, sizes and states are props that mirror the design system (for example `variant="primary"`), not class names passed in by callers.
+- Styling MUST use the tokens in `src/shared/ui/tokens.css`. No hard-coded colours, spacing, radii, shadows or z-index, and no inline `style`. Code in `src/` MUST NOT import CSS or assets from `docs/`.
+- Each component MUST meet WCAG 2.2 AA on its own: correct role and name, keyboard operation, visible focus and, for overlays, focus trap and focus return.
+- Pages in `src/admin/` and `src/rsvp/` MUST compose these components and MUST NOT re-create them with raw design-system class names (`className="btn"`, `"card"`, `"badge"`...).
+- UI used by only one app stays in that app. UI used by both apps that is not a design-system component (such as event-page blocks) lives in `src/shared/ui/`, outside `components/`.
+- A new component starts as a page in `docs/design-system/` and an entry in `docs/screen-composition.md`; only then is its folder added. A component with no design-system page MUST NOT be added to `components/`.
+- Unit tests live in `tests/unit/shared/ui/components/{Component}/` and cover every variant and state on the component's design-system page.
 
 

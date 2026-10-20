@@ -1,5 +1,17 @@
 import { fail, pass, type Validated } from './result.js';
 
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** 'YYYY-MM-DD' → 'Sat 7 Nov'. */
+export function formatDay(day: string): string {
+  const d = new Date(`${day}T00:00:00Z`);
+  return `${DAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+}
+
+/** The invite window closes at the end of its last day (L2-009 AC4): "Replies closed on Sat 7 Nov, 11:59 pm". */
+export const repliesClosedMessage = (inviteClose: string) => `Replies closed on ${formatDay(inviteClose)}, 11:59 pm`;
+
 export const MEALS = ['Beef', 'Fish', 'Vegetarian'] as const;
 export const LIMITS = { dietary: 500, song: 120, message: 280 } as const;
 

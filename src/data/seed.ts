@@ -5,8 +5,8 @@ import { hashPassword } from '../domain/password.js';
 export const SEED_ORGANISER = { email: 'olivia@example.com', name: 'Olivia', password: 'correct horse' };
 
 /** Idempotent: adds the demo organiser only when missing. */
-export function seed(db: Db) {
-  if (!findOrganiserByEmail(db, SEED_ORGANISER.email)) {
-    createOrganiser(db, SEED_ORGANISER.email, SEED_ORGANISER.name, hashPassword(SEED_ORGANISER.password));
+export async function seed(db: Db) {
+  if (!(await findOrganiserByEmail(db, SEED_ORGANISER.email))) {
+    await createOrganiser(db, SEED_ORGANISER.email, SEED_ORGANISER.name, hashPassword(SEED_ORGANISER.password));
   }
 }

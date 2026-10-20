@@ -1,0 +1,172 @@
+// PostgreSQL schema for rsvp-cms. Tables and columns are snake_case; the
+// generated client uses camelCase. Migrations live next to this file.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Organiser {
+  id              Int       @id @default(autoincrement())
+  email           String    @unique
+  name            String
+  passwordHash    String    @map("password_hash")
+  /// Bumped on every password change; sessions minted under an older version are ended (L2-005 AC3).
+  passwordVersion Int       @default(1) @map("password_version")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  sessions        Session[]
+  events          Event[]
+
+  @@map("organisers")
+}
+
+model Session {
+  /// 256-bit random identifier, also the cookie value.
+  id              String    @id
+  organiserId     Int       @map("organiser_id")
+  passwordVersion Int       @map("password_version")
+  lastSeen        DateTime  @map("last_seen") @db.Timestamptz(3)
+  /// Null means the session ends with the browser session.
+  expiresAt       DateTime? @map("expires_at") @db.Timestamptz(3)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  organiser       Organiser @relation(fields: [organiserId], references: [id], onDelete: Cascade)
+
+  @@index([organiserId])
+  @@map("sessions")
+}
+
+model Event {
+  id          Int       @id @default(autoincrement())
+  organiserId Int       @map("organiser_id")
+  type        String
+  name        String
+  date        DateTime  @db.Date
+  /// HH:MM, local to the venue.
+  startTime   String    @map("start_time") @db.VarChar(5)
+  venue       String    @default("")
+  /// Draft until the page is first published, then Published.
+  status      String    @default("Draft")
+  inviteOpen  DateTime  @map("invite_open") @db.Date
+  inviteClose DateTime  @map("invite_close") @db.Date
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  organiser   Organiser @relation(fields: [organiserId], references: [id], onDelete: Cascade)
+  guests      Guest[]
+  page        Page?
+  emails      Email[]
+
+  @@index([organiserId, date])
+  @@map("events")
+}
+
+model Guest {
+  id         Int        @id @default(autoincrement())
+  eventId    Int        @map("event_id")
+  name       String
+  email      String
+  groupName  String     @default("") @map("group_name")
+  plusOnes   Int        @default(0) @map("plus_ones")
+  /// Personal link token: a random UUID, 122 bits of entropy plus the version bits.
+  token      String     @unique
+  code       String     @unique
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  event      Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  response   Response?
+  deliveries Delivery[]
+
+  @@unique([eventId, email])
+  @@index([eventId, name])
+  @@map("guests")
+}
+
+model Page {
+  eventId      Int       @id @map("event_id")
+  draft        Json      @default("[]")
+  published    Json?
+  draftSavedAt DateTime? @map("draft_saved_at") @db.Timestamptz(3)
+  publishedAt  DateTime? @map("published_at") @db.Timestamptz(3)
+  event        Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("pages")
+}
+
+enum EmailStatus {
+  Scheduled
+  Sending
+  Sent
+  Failed
+}
+
+model Email {
+  id          Int         @id @default(autoincrement())
+  eventId     Int         @map("event_id")
+  kind        String
+  /// 'all' or 'non-responders'; resolved to guests at send time.
+  audience    String
+  subject     String
+  /// Wall-clock send time (9:00 am on the send date).
+  sendAt      DateTime    @map("send_at") @db.Timestamp(0)
+  status      EmailStatus @default(Scheduled)
+  /// Planned count while scheduled; the delivered count once sent.
+  recipients  Int
+  senderName  String      @default("") @map("sender_name")
+  replyTo     String      @default("") @map("reply_to")
+  /// Lease held by the worker that is sending this email, so instances never send it twice.
+  lockedUntil DateTime?   @map("locked_until") @db.Timestamptz(3)
+  sentAt      DateTime?   @map("sent_at") @db.Timestamptz(3)
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  event       Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  deliveries  Delivery[]
+
+  @@index([status, sendAt])
+  @@index([eventId])
+  @@map("emails")
+}
+
+enum DeliveryStatus {
+  Pending
+  Sent
+  Failed
+  Cancelled
+}
+
+/// One message to one guest. The unique key makes each send idempotent (L2-035).
+model Delivery {
+  id             Int            @id @default(autoincrement())
+  emailId        Int            @map("email_id")
+  guestId        Int            @map("guest_id")
+  status         DeliveryStatus @default(Pending)
+  idempotencyKey String         @unique @map("idempotency_key")
+  attempts       Int            @default(0)
+  nextAttemptAt  DateTime?      @map("next_attempt_at") @db.Timestamptz(3)
+  lastError      String?        @map("last_error")
+  sentAt         DateTime?      @map("sent_at") @db.Timestamptz(3)
+  email          Email          @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  guest          Guest          @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  @@unique([emailId, guestId])
+  @@index([guestId])
+  @@map("deliveries")
+}
+
+model Response {
+  guestId    Int      @id @map("guest_id")
+  attending  Boolean
+  partySize  Int      @map("party_size")
+  meal       String?
+  guestNames Json     @default("[]") @map("guest_names")
+  dietary    String   @default("")
+  song       String   @default("")
+  message    String   @default("")
+  updatedAt  DateTime @map("updated_at") @db.Timestamptz(3)
+  guest      Guest    @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  @@index([updatedAt])
+  @@map("responses")
+}

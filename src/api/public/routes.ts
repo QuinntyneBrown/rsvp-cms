@@ -1,47 +1,43 @@
 import { Router } from 'express';
-import { getEvent, getPage, getResponse, guestByCode, guestByToken, saveResponse } from '../../data/repos.js';
+import { getEvent, getPage, getResponse, guestByCode, guestByToken, saveResponse, type EventRecord, type ResponseRecord } from '../../data/repos.js';
 import { normaliseCode } from '../../domain/code.js';
-import { validateReply } from '../../domain/rsvp.js';
-import { body, isoDate, isoStamp, type Ctx } from '../context.js';
+import { repliesClosedMessage, validateReply } from '../../domain/rsvp.js';
+import { body, isoDate, type Ctx } from '../context.js';
 
-const INVALID = 'This invitation link doesn\'t work';
-
-type Row = Record<string, unknown>;
+const INVALID = "This invitation link doesn't work";
 
 type WindowState = 'open' | 'not-open' | 'closed';
 
 /** Draft events are never open to guests (L2-039 AC4). */
-function windowState(event: Row, today: string): WindowState {
+function windowState(event: EventRecord, today: string): WindowState {
   if (event.status !== 'Published') return 'not-open';
-  if (today < String(event.invite_open)) return 'not-open';
-  if (today > String(event.invite_close)) return 'closed';
+  if (today < event.inviteOpen) return 'not-open';
+  if (today > event.inviteClose) return 'closed';
   return 'open';
 }
 
-function replyJson(row: Row | undefined) {
-  if (!row) return null;
-  return {
-    attending: row.attending === 1,
-    partySize: row.party_size,
-    meal: row.meal,
-    guestNames: JSON.parse(String(row.guest_names)) as string[],
-    dietary: row.dietary,
-    song: row.song,
-    message: row.message,
+const replyJson = (r: ResponseRecord | null) =>
+  r && {
+    attending: r.attending,
+    partySize: r.partySize,
+    meal: r.meal,
+    guestNames: r.guestNames,
+    dietary: r.dietary,
+    song: r.song,
+    message: r.message,
   };
-}
 
 export function publicRoutes(ctx: Ctx): Router {
   const r = Router();
 
   /** Invitation code → personal token. Every failure looks the same (L2-037). */
-  r.post('/code', (req, res) => {
+  r.post('/code', async (req, res) => {
     const raw = String(body(req).code ?? '').trim();
     if (!raw) {
       res.status(422).json({ errors: { code: 'Enter your invitation code' } });
       return;
     }
-    const guest = guestByCode(ctx.db, normaliseCode(raw));
+    const guest = await guestByCode(ctx.db, normaliseCode(raw));
     if (!guest) {
       res.status(404).json({ error: INVALID });
       return;
@@ -49,47 +45,43 @@ export function publicRoutes(ctx: Ctx): Router {
     res.json({ token: guest.token });
   });
 
-  r.get('/invite/:token', (req, res) => {
-    const guest = guestByToken(ctx.db, req.params.token);
-    const event = guest ? getEvent(ctx.db, Number(guest.event_id)) : undefined;
+  r.get('/invite/:token', async (req, res) => {
+    const guest = await guestByToken(ctx.db, req.params.token);
+    const event = guest ? await getEvent(ctx.db, guest.eventId) : null;
     if (!guest || !event) {
       res.status(404).json({ error: INVALID });
       return;
     }
     const state = windowState(event, isoDate(ctx.now()));
     // Only this guest's own data ever leaves the server (L2-038 AC4).
-    const payload: Row = {
+    const payload: Record<string, unknown> = {
       state,
-      guest: { name: guest.name, places: Number(guest.plus_ones) + 1 },
-      event: { name: event.name, date: event.date, inviteOpen: event.invite_open, inviteClose: event.invite_close },
-      reply: replyJson(getResponse(ctx.db, Number(guest.id))),
+      guest: { name: guest.name, places: guest.plusOnes + 1 },
+      event: { name: event.name, date: event.date, inviteOpen: event.inviteOpen, inviteClose: event.inviteClose },
+      reply: replyJson(await getResponse(ctx.db, guest.id)),
     };
-    if (state !== 'not-open') {
-      const page = getPage(ctx.db, Number(event.id))!;
-      payload.blocks = page.published ? JSON.parse(String(page.published)) : [];
-    }
+    if (state !== 'not-open') payload.blocks = (await getPage(ctx.db, event.id)).published ?? [];
     res.json(payload);
   });
 
-  r.post('/invite/:token/rsvp', (req, res) => {
-    const guest = guestByToken(ctx.db, req.params.token);
-    const event = guest ? getEvent(ctx.db, Number(guest.event_id)) : undefined;
+  r.post('/invite/:token/rsvp', async (req, res) => {
+    const guest = await guestByToken(ctx.db, req.params.token);
+    const event = guest ? await getEvent(ctx.db, guest.eventId) : null;
     if (!guest || !event) {
       res.status(404).json({ error: INVALID });
       return;
     }
     const state = windowState(event, isoDate(ctx.now()));
     if (state !== 'open') {
-      res.status(403).json({ error: state === 'closed' ? `Replies closed on ${event.invite_close}` : 'Replies are not open yet' });
+      res.status(403).json({ error: state === 'closed' ? repliesClosedMessage(event.inviteClose) : 'Replies are not open yet' });
       return;
     }
-    const v = validateReply(body(req), Number(guest.plus_ones) + 1);
+    const v = validateReply(body(req), guest.plusOnes + 1);
     if (!v.ok) {
       res.status(422).json({ errors: v.errors });
       return;
     }
-    saveResponse(ctx.db, Number(guest.id), v.value, isoStamp(ctx.now()));
-    res.json({ reply: replyJson(getResponse(ctx.db, Number(guest.id))) });
+    res.json({ reply: replyJson(await saveResponse(ctx.db, guest.id, v.value, ctx.now())) });
   });
 
   return r;
