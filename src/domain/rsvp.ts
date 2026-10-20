@@ -12,7 +12,8 @@ export function formatDay(day: string): string {
 /** The invite window closes at the end of its last day (L2-009 AC4): "Replies closed on Sat 7 Nov, 11:59 pm". */
 export const repliesClosedMessage = (inviteClose: string) => `Replies closed on ${formatDay(inviteClose)}, 11:59 pm`;
 
-export const MEALS = ['Beef', 'Fish', 'Vegetarian'] as const;
+/** The meal choices on the RSVP mock. */
+export const MEALS = ['Chicken', 'Vegetarian', 'Vegan', "Kids' meal"] as const;
 export const LIMITS = { dietary: 500, song: 120, message: 280 } as const;
 
 export interface Reply {

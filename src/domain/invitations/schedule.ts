@@ -24,7 +24,7 @@ export function validateSchedule(input: Record<string, unknown>, inviteClose: st
   else if (subject.length > 150) errors.subject = 'Subject can be up to 150 characters';
   if (!/^\d{4}-\d{2}-\d{2}$/.test(sendOn)) errors.sendOn = 'Pick a send date';
   else if (sendOn > inviteClose) errors.sendOn = 'Invitations must go out before invites close';
-  if (replyTo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(replyTo)) errors.replyTo = 'Enter an email like name@example.com';
+  if (replyTo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(replyTo)) errors.replyTo = 'Enter a valid email address'; // L2-036 AC2
 
   return Object.keys(errors).length ? fail(errors) : pass({ audience, subject, sendOn, senderName, replyTo });
 }

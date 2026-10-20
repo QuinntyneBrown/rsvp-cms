@@ -1,5 +1,5 @@
-import { randomBytes, randomUUID } from 'node:crypto';
-import { generateCode } from '../domain/code.js';
+import { randomBytes } from 'node:crypto';
+import { generateCode, generateToken } from '../domain/code.js';
 import type { Block } from '../domain/blocks.js';
 import type { NewEvent } from '../domain/events.js';
 import type { GuestInput } from '../domain/guests.js';
@@ -265,7 +265,7 @@ export class PrismaStore implements Store {
     const at = new Date(now);
     const row = await unique('email', () =>
       this.db.guest.create({
-        data: { eventId, name: g.name, email: g.email, groupName: g.group, plusOnes: g.plusOnes, token: randomUUID(), code: generateCode(), createdAt: at, updatedAt: at },
+        data: { eventId, name: g.name, email: g.email, groupName: g.group, plusOnes: g.plusOnes, token: generateToken(), code: generateCode(), createdAt: at, updatedAt: at },
       }),
     );
     return row.id;

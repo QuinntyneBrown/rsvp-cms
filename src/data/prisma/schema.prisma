@@ -72,7 +72,7 @@ model Guest {
   email      String
   groupName  String     @default("") @map("group_name")
   plusOnes   Int        @default(0) @map("plus_ones")
-  /// Personal link token: a random UUID, 122 bits of entropy plus the version bits.
+  /// Personal link token: 256 random bits, base64url (L2-033 AC1).
   token      String     @unique
   code       String     @unique
   createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)

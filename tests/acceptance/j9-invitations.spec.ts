@@ -64,7 +64,7 @@ describe('L2-031 / L2-036 Email preview and sender identity', () => {
 
   it('validates reply-to and strips line breaks from header values', async () => {
     const s = await setup();
-    expect((await schedule(s, { replyTo: 'nope' })).body.errors.replyTo).toBeTruthy();
+    expect((await schedule(s, { replyTo: 'nope' })).body.errors.replyTo).toBe('Enter a valid email address');
     const ok = await schedule(s, { subject: 'Hello\r\nBcc: evil@example.com', senderName: 'A\nB' });
     expect(ok.body.email.subject).toBe('Hello Bcc: evil@example.com');
     const row = [...s.store.emails.values()][0]!;

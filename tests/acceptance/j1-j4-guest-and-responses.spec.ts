@@ -14,7 +14,7 @@ async function openEvent(guest: Record<string, unknown> = {}) {
 }
 
 const rsvp = (s: Setup, token: string, b: Record<string, unknown>) => s.api.post(`/api/public/invite/${token}/rsvp`).send(b);
-const yes = { attending: true, partySize: 1, meal: 'Fish' };
+const yes = { attending: true, partySize: 1, meal: 'Chicken' };
 
 describe('J1 L2-038 Personal link access', () => {
   it('AC1 shows the invitation with the guest name', async () => {
@@ -22,6 +22,7 @@ describe('J1 L2-038 Personal link access', () => {
     const res = await s.api.get(`/api/public/invite/${token}`);
     expect(res.body.guest.name).toBe('Maya Chen');
     expect(res.body.state).toBe('open');
+    expect(res.body.event).toMatchObject({ name: 'Maya & Sam', startTime: '16:00', venue: 'The Barn', host: 'Olivia' });
   });
 
   it('AC2/3 an unknown link and a deleted event look the same and disclose nothing', async () => {
@@ -40,6 +41,7 @@ describe('J1 L2-038 Personal link access', () => {
     const text = JSON.stringify((await s.api.get(`/api/public/invite/${token}`)).body);
     expect(text).not.toContain('Secret Other');
     expect(text).not.toContain('other@example.com');
+    expect(text).not.toContain('olivia@example.com'); // the host by name, never their email
   });
 });
 
@@ -102,7 +104,7 @@ describe('J1 L2-042/044 Submission and regrets', () => {
     expect([a.status, b.status]).toEqual([200, 200]);
     expect(s.store.responses.size).toBe(1);
     const again = await s.api.get(`/api/public/invite/${token}`);
-    expect(again.body.reply).toMatchObject({ attending: true, partySize: 1, meal: 'Fish' });
+    expect(again.body.reply).toMatchObject({ attending: true, partySize: 1, meal: 'Chicken' });
   });
 
   it('declining stores the message', async () => {
@@ -136,10 +138,10 @@ describe('J3 L2-043 Change or decline a reply', () => {
   it('AC1 a new answer replaces the old one and organiser counts update', async () => {
     const { s, token } = await openEvent();
     await rsvp(s, token, yes);
-    await rsvp(s, token, { attending: true, partySize: 2, meal: 'Beef', guestNames: ['Sam'] });
+    await rsvp(s, token, { attending: true, partySize: 2, meal: 'Vegetarian', guestNames: ['Sam'] });
     const rows = await s.api.get(`/api/events/${s.eventId}/responses`).set('Cookie', s.cookie);
     expect(rows.body.responses).toHaveLength(1);
-    expect(rows.body.totals).toMatchObject({ attending: 1, guestsComing: 2, meals: { Beef: 2 } });
+    expect(rows.body.totals).toMatchObject({ attending: 1, guestsComing: 2, meals: { Vegetarian: 2 } });
   });
 
   it('AC2 once closed the reply is returned but cannot change', async () => {
@@ -166,7 +168,7 @@ describe('J4 L2-046/047/048 Review responses', () => {
     const { s, token } = await openEvent({ plusOnes: 2 });
     const sam = await addGuest(s, { name: 'Sam Okafor', email: 'sam@example.com' });
     await addGuest(s, { name: 'Lee Waiting', email: 'lee@example.com' });
-    await rsvp(s, token, { attending: true, partySize: 3, meal: 'Beef', guestNames: ['A', 'B'], dietary: 'No nuts' });
+    await rsvp(s, token, { attending: true, partySize: 3, meal: 'Vegetarian', guestNames: ['A', 'B'], dietary: 'No nuts' });
     s.clock.now += 60_000;
     await rsvp(s, await tokenOf(s, sam.id), { attending: false, message: 'Sorry' });
     return s;
@@ -176,14 +178,14 @@ describe('J4 L2-046/047/048 Review responses', () => {
     const s = await withReplies();
     const res = await s.api.get(`/api/events/${s.eventId}/responses`).set('Cookie', s.cookie);
     expect(res.body.responses.map((r: { guest: string }) => r.guest)).toEqual(['Sam Okafor', 'Maya Chen']);
-    expect(res.body.responses[1]).toMatchObject({ reply: 'attending', guestsCount: 3, meal: 'Beef', dietary: 'No nuts' });
+    expect(res.body.responses[1]).toMatchObject({ reply: 'attending', guestsCount: 3, meal: 'Vegetarian', dietary: 'No nuts' });
   });
 
   it('L2-046 AC3 pages at 50 rows', async () => {
     const { s } = await openEvent();
     for (let i = 0; i < 120; i++) {
       const id = await s.store.insertGuest(s.eventId, { name: `G${i}`, email: `g${i}@x.co`, group: '', plusOnes: 0 }, s.clock.now);
-      const reply = { attending: true, partySize: 1, meal: 'Fish', guestNames: [], dietary: '', song: '', message: '' };
+      const reply = { attending: true, partySize: 1, meal: 'Chicken', guestNames: [], dietary: '', song: '', message: '' };
       await s.store.saveResponse(id, reply, Date.parse(`2026-10-20T00:${String(i % 60).padStart(2, '0')}:00Z`));
     }
     const p3 = await s.api.get(`/api/events/${s.eventId}/responses?page=3`).set('Cookie', s.cookie);
@@ -194,7 +196,7 @@ describe('J4 L2-046/047/048 Review responses', () => {
   it('L2-047 AC1 totals match the stored replies', async () => {
     const s = await withReplies();
     const { totals } = (await s.api.get(`/api/events/${s.eventId}/responses`).set('Cookie', s.cookie)).body;
-    expect(totals).toEqual({ attending: 1, declined: 1, waiting: 1, guestsComing: 3, meals: { Beef: 3 } });
+    expect(totals).toEqual({ attending: 1, declined: 1, waiting: 1, guestsComing: 3, meals: { Vegetarian: 3 } });
   });
 
   it('L2-047 AC3 removing a reply removes it from totals', async () => {
@@ -224,7 +226,7 @@ describe('J4 L2-046/047/048 Review responses', () => {
     const s = await withReplies();
     const before = (await s.api.get(`/api/events/${s.eventId}/responses`).set('Cookie', s.cookie)).body.totals;
     const lee = [...s.store.guests.values()].find((g) => g.name === 'Lee Waiting')!;
-    await rsvp(s, await tokenOf(s, lee.id), { attending: true, partySize: 1, meal: 'Fish' });
+    await rsvp(s, await tokenOf(s, lee.id), { attending: true, partySize: 1, meal: 'Chicken' });
     const after = (await s.api.get(`/api/events/${s.eventId}/responses`).set('Cookie', s.cookie)).body.totals;
     expect(after.attending).toBe(before.attending + 1);
     expect(after.waiting).toBe(0);

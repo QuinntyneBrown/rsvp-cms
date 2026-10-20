@@ -1,6 +1,6 @@
-import { randomBytes, randomUUID } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 import type { Block } from '../domain/blocks.js';
-import { generateCode } from '../domain/code.js';
+import { generateCode, generateToken } from '../domain/code.js';
 import type { NewEvent } from '../domain/events.js';
 import type { GuestInput } from '../domain/guests.js';
 import type { Reply } from '../domain/rsvp.js';
@@ -97,7 +97,7 @@ export class MemoryStore implements Store {
 
   // ---- events & pages ------------------------------------------------------
 
-  async createEvent(organiserId: number, e: NewEvent, today: string) {
+  async createEvent(organiserId: number, e: NewEvent, today: string, _now?: number) {
     const id = this.next();
     this.events.set(id, { id, organiserId, type: e.type, name: e.name, date: e.date, startTime: e.startTime, venue: e.venue, status: 'Draft', inviteOpen: today, inviteClose: e.date });
     this.pages.set(id, { draft: [], published: null, draftSavedAt: null, publishedAt: null });
@@ -230,7 +230,7 @@ export class MemoryStore implements Store {
   async insertGuest(eventId: number, g: GuestInput, now: number) {
     this.assertEmailFree(eventId, g.email);
     const id = this.next();
-    this.guests.set(id, { id, eventId, name: g.name, email: g.email, group: g.group, plusOnes: g.plusOnes, token: randomUUID(), code: generateCode(), createdAt: now, updatedAt: now });
+    this.guests.set(id, { id, eventId, name: g.name, email: g.email, group: g.group, plusOnes: g.plusOnes, token: generateToken(), code: generateCode(), createdAt: now, updatedAt: now });
     return id;
   }
 
@@ -325,7 +325,7 @@ export class MemoryStore implements Store {
     };
   }
 
-  async insertEmail(eventId: number, e: NewEmail) {
+  async insertEmail(eventId: number, e: NewEmail, _now?: number) {
     const id = this.next();
     this.emails.set(id, { ...e, id, eventId, sendAt: fromWallClock(e.sendAt), status: 'Scheduled', lockedUntil: null, sentAt: null });
     return id;

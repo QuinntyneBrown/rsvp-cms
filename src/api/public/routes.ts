@@ -53,11 +53,15 @@ export function publicRoutes(ctx: Ctx): Router {
       return;
     }
     const state = windowState(event, isoDate(ctx.now()));
-    // Only this guest's own data ever leaves the server (L2-038 AC4).
+    const host = await ctx.store.findOrganiserById(event.organiserId);
+    // Only this guest's own data ever leaves the server (L2-038 AC4); the host is shown by name only.
     const payload: Record<string, unknown> = {
       state,
       guest: { name: guest.name, places: guest.plusOnes + 1 },
-      event: { name: event.name, date: event.date, inviteOpen: event.inviteOpen, inviteClose: event.inviteClose },
+      event: {
+        name: event.name, type: event.type, date: event.date, startTime: event.startTime, venue: event.venue,
+        inviteOpen: event.inviteOpen, inviteClose: event.inviteClose, host: host?.name ?? '',
+      },
       reply: replyJson(await ctx.store.getResponse(guest.id)),
     };
     if (state !== 'not-open') payload.blocks = (await ctx.store.getPage(event.id)).published ?? [];

@@ -7,19 +7,19 @@ describe('validateReply (L2-040, L2-041)', () => {
   });
 
   it('L2-043 AC3 a decline clears party size, meal and the yes-only fields', () => {
-    const v = validateReply({ attending: false, partySize: 3, meal: 'Fish', dietary: 'x', song: 'y', message: ' Sorry ' }, 3);
+    const v = validateReply({ attending: false, partySize: 3, meal: 'Chicken', dietary: 'x', song: 'y', message: ' Sorry ' }, 3);
     expect(v).toEqual({ ok: true, value: { attending: false, partySize: 0, meal: null, guestNames: [], dietary: '', song: '', message: 'Sorry' } });
   });
 
   it('L2-040 AC3 asks for one name per extra place and ignores names beyond the party', () => {
-    const v = validateReply({ attending: true, partySize: 2, meal: 'Beef', guestNames: ['Sam', 'Extra'] }, 3);
+    const v = validateReply({ attending: true, partySize: 2, meal: 'Vegetarian', guestNames: ['Sam', 'Extra'] }, 3);
     expect(v.ok && v.value.guestNames).toEqual(['Sam']);
-    const missing = validateReply({ attending: true, partySize: 3, meal: 'Beef', guestNames: ['Sam'] }, 3);
+    const missing = validateReply({ attending: true, partySize: 3, meal: 'Vegetarian', guestNames: ['Sam'] }, 3);
     expect(!missing.ok && missing.errors).toEqual({ 'guestNames.1': 'Add the name of your guest' });
   });
 
   it('L2-040 AC5 enforces the 500 / 120 / 280 limits exactly', () => {
-    const at = (k: string, n: number) => validateReply({ attending: true, meal: 'Fish', [k]: 'x'.repeat(n) }, 1);
+    const at = (k: string, n: number) => validateReply({ attending: true, meal: 'Chicken', [k]: 'x'.repeat(n) }, 1);
     expect(at('dietary', LIMITS.dietary).ok).toBe(true);
     expect(at('dietary', LIMITS.dietary + 1).ok).toBe(false);
     expect(at('song', LIMITS.song + 1).ok).toBe(false);
@@ -27,8 +27,8 @@ describe('validateReply (L2-040, L2-041)', () => {
   });
 
   it('refuses a party bigger than the invitation or smaller than one, and an unknown meal', () => {
-    expect(validateReply({ attending: true, meal: 'Fish', partySize: 0 }, 2).ok).toBe(false);
-    expect(validateReply({ attending: true, meal: 'Fish', partySize: 3 }, 2).ok).toBe(false);
+    expect(validateReply({ attending: true, meal: 'Chicken', partySize: 0 }, 2).ok).toBe(false);
+    expect(validateReply({ attending: true, meal: 'Chicken', partySize: 3 }, 2).ok).toBe(false);
     expect(validateReply({ attending: true, meal: 'Pizza' }, 1).ok).toBe(false);
   });
 });

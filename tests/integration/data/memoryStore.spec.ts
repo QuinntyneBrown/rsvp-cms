@@ -3,7 +3,7 @@ import { MemoryStore } from '../../../src/data/memoryStore.js';
 import { DuplicateError, LEASE_MS } from '../../../src/data/store.js';
 import { T0 } from '../../helpers.js';
 
-const reply = { attending: true, partySize: 2, meal: 'Fish', guestNames: ['Sam'], dietary: '', song: '', message: '' };
+const reply = { attending: true, partySize: 2, meal: 'Chicken', guestNames: ['Sam'], dietary: '', song: '', message: '' };
 
 async function seeded() {
   const store = new MemoryStore();
@@ -27,9 +27,9 @@ describe('Store behaviour the API relies on (in-memory implementation)', () => {
     await expect(store.insertGuest(eventId, { name: 'Again', email: 'maya@example.com', group: '', plusOnes: 0 }, T0)).rejects.toBeInstanceOf(DuplicateError);
   });
 
-  it('L2-033 AC1 personal tokens are random UUIDs', async () => {
+  it('L2-033 AC1 personal tokens carry 256 random bits', async () => {
     const { store, guestId } = await seeded();
-    expect((await store.getGuest(guestId))?.token).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    expect((await store.getGuest(guestId))?.token).toMatch(/^[A-Za-z0-9_-]{43}$/) // 32 bytes = 256 bits;
   });
 
   it('L2-042 AC2 replies are keyed by guest, so concurrent saves leave one row', async () => {

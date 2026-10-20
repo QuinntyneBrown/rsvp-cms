@@ -64,7 +64,7 @@ test('organiser sets up an event, a guest replies by code, the organiser sees it
   await expect(guest.getByText("Choose whether you're coming")).toBeVisible();
   await guest.getByLabel('Joyfully accepting').check();
   await guest.getByLabel('Party size').selectOption({ label: 'Me and one guest' });
-  await guest.getByLabel('Meal').selectOption('Fish');
+  await guest.getByLabel('Meal').selectOption('Chicken');
   await guest.getByRole('button', { name: 'Send my RSVP' }).click();
   await expect(guest.getByText('Add the name of your guest')).toBeVisible();
   await guest.getByLabel("Guest's name").fill('Sam Okafor');

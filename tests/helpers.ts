@@ -60,7 +60,7 @@ export async function tokenOf(s: Setup, guestId: number): Promise<string> {
 }
 
 /** Stores a reply directly, for tests that need replies without going through the guest page. */
-export async function storeReply(s: Setup, guestId: number, attending: boolean, partySize = attending ? 1 : 0, meal: string | null = attending ? 'Fish' : null) {
+export async function storeReply(s: Setup, guestId: number, attending: boolean, partySize = attending ? 1 : 0, meal: string | null = attending ? 'Chicken' : null) {
   await s.store.saveResponse(guestId, { attending, partySize, meal, guestNames: [], dietary: '', song: '', message: '' }, s.clock.now);
 }
 

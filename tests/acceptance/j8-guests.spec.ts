@@ -22,7 +22,7 @@ describe('L2-019/020 Guest list, search and filter', () => {
     const s = await setup();
     const g = await addGuest(s, { plusOnes: 2 });
     s.clock.now += 60_000;
-    await storeReply(s, g.id, true, 3, 'Beef');
+    await storeReply(s, g.id, true, 3, 'Vegetarian');
     const [row] = (await s.api.get(`/api/events/${s.eventId}/guests`).set('Cookie', s.cookie)).body.guests;
     expect(row).toMatchObject({ name: 'Maya Chen', email: 'maya@example.com', status: 'attending', partySize: 3 });
     expect(row.updatedAt).toBe(new Date(s.clock.now).toISOString());
@@ -97,7 +97,7 @@ describe('L2-022 Edit a guest', () => {
   it('AC4 refuses to lower plus-ones below the places already confirmed', async () => {
     const s = await setup();
     const g = await addGuest(s, { plusOnes: 2 });
-    await storeReply(s, g.id, true, 3, 'Beef');
+    await storeReply(s, g.id, true, 3, 'Vegetarian');
     const res = await s.api.put(`/api/events/${s.eventId}/guests/${g.id}`).set('Cookie', s.cookie).send({ name: 'Maya', email: 'maya@example.com', plusOnes: 1 });
     expect(res.status).toBe(422);
     expect(res.body.errors.plusOnes).toMatch(/ask them/i);

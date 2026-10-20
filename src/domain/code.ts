@@ -1,4 +1,4 @@
-import { randomInt } from 'node:crypto';
+import { randomBytes, randomInt } from 'node:crypto';
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -7,6 +7,9 @@ function chunk(n: number): string {
   for (let i = 0; i < n; i++) s += ALPHABET[randomInt(ALPHABET.length)];
   return s;
 }
+
+/** Personal-link token: 256 random bits, URL-safe (L2-033 AC1 asks for at least 128). */
+export const generateToken = () => randomBytes(32).toString('base64url');
 
 /** Invitation code like MAYA-7K2Q. */
 export function generateCode(): string {
