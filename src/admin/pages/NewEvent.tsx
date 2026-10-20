@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { EVENT_TYPES } from '../../domain/events.js';
 import { ApiError, post } from '../../shared/ui/api.js';
-import { Field } from '../../shared/ui/components.js';
+import { Alert, Button, Container, FormActions, Select, Stack, TextField } from '../../shared/ui/components/index.js';
 import { go } from '../router.js';
 
 const EMPTY = { type: 'Birthday', name: '', date: '', startTime: '', venue: '' };
@@ -33,34 +33,22 @@ export function NewEventPage() {
   }
 
   return (
-    <form className="stack container--narrow" onSubmit={submit} noValidate aria-label="New event">
-      <h1>New event</h1>
-      {serverError && (
-        <p role="alert" className="field__error">
-          {serverError} <button className="btn" type="submit">Try again</button>
-        </p>
-      )}
-      <Field label="Event type" id="ev-type" error={errors.type}>
-        <select className="select" id="ev-type" value={form.type} onChange={set('type')}>
+    <Container narrow>
+      <Stack as="form" onSubmit={submit} noValidate aria-label="New event">
+        <h1>New event</h1>
+        {serverError && <Alert tone="danger" live actions={<Button type="submit">Try again</Button>}>{serverError}</Alert>}
+        <Select label="Event type" id="ev-type" error={errors.type} value={form.type} onChange={set('type')}>
           {EVENT_TYPES.map((t) => <option key={t}>{t}</option>)}
-        </select>
-      </Field>
-      <Field label="Event name" id="ev-name" error={errors.name} counter={`${form.name.length}/120`}>
-        <input className="input" id="ev-name" value={form.name} onChange={set('name')} />
-      </Field>
-      <Field label="Date" id="ev-date" error={errors.date}>
-        <input className="input" id="ev-date" type="date" value={form.date} onChange={set('date')} />
-      </Field>
-      <Field label="Start time" id="ev-startTime" error={errors.startTime}>
-        <input className="input" id="ev-startTime" type="time" value={form.startTime} onChange={set('startTime')} />
-      </Field>
-      <Field label="Venue" id="ev-venue" optional error={errors.venue}>
-        <input className="input" id="ev-venue" value={form.venue} onChange={set('venue')} />
-      </Field>
-      <div className="form-actions">
-        <button className="btn btn--primary" type="submit" disabled={busy} aria-busy={busy}>{busy ? 'Creating…' : 'Create event'}</button>
-        <a className="btn btn--ghost" href="#/events">Cancel</a>
-      </div>
-    </form>
+        </Select>
+        <TextField label="Event name" id="ev-name" error={errors.name} counter={`${form.name.length}/120`} value={form.name} onChange={set('name')} />
+        <TextField label="Date" id="ev-date" type="date" error={errors.date} value={form.date} onChange={set('date')} />
+        <TextField label="Start time" id="ev-startTime" type="time" error={errors.startTime} value={form.startTime} onChange={set('startTime')} />
+        <TextField label="Venue" id="ev-venue" optional error={errors.venue} value={form.venue} onChange={set('venue')} />
+        <FormActions>
+          <Button variant="primary" type="submit" disabled={busy} loading={busy}>{busy ? 'Creating…' : 'Create event'}</Button>
+          <Button variant="ghost" href="#/events">Cancel</Button>
+        </FormActions>
+      </Stack>
+    </Container>
   );
 }

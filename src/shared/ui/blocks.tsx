@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Block, BlockType } from '../../domain/blocks.js';
+import { Button, Stack } from './components/index.js';
 
 export interface BlockSpec {
   label: string;
@@ -39,22 +40,27 @@ export function BlockView({ block, rsvpSlot }: { block: Block; rsvpSlot?: ReactN
   switch (block.type) {
     case 'hero':
       return (
-        <section className="stack" aria-label="Hero">
+        <Stack as="section" aria-label="Hero">
           <h1>{f.headline}</h1>
           {f.subhead && <p className="text-muted">{f.subhead}</p>}
-          {f.buttonLabel && <a className="btn btn--primary" href="#rsvp">{f.buttonLabel}</a>}
-        </section>
+          {f.buttonLabel && <div><Button variant="primary" href="#rsvp">{f.buttonLabel}</Button></div>}
+        </Stack>
       );
     case 'rsvp':
       return <section id="rsvp" aria-label="RSVP">{rsvpSlot ?? <p className="text-muted">The RSVP form appears here for guests.</p>}</section>;
     default: {
       const spec = BLOCK_SPECS[block.type];
       return (
-        <section className="stack" aria-label={spec.label}>
+        <Stack as="section" aria-label={spec.label}>
           <h2>{spec.label}</h2>
-          {spec.fields.map((s) => (f[s.key] ? <p key={s.key} style={{ whiteSpace: 'pre-wrap' }}>{f[s.key]}</p> : null))}
-        </section>
+          {spec.fields.map((s) => (f[s.key] ? <p key={s.key}>{withLineBreaks(f[s.key]!)}</p> : null))}
+        </Stack>
       );
     }
   }
+}
+
+/** Keeps the line breaks organisers type into multi-line fields. */
+function withLineBreaks(text: string): ReactNode[] {
+  return text.split('\n').flatMap((line, i) => (i ? [<br key={i} />, line] : [line]));
 }

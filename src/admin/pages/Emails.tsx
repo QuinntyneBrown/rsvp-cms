@@ -1,6 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { ApiError, get, post } from '../../shared/ui/api.js';
-import { Dialog, ErrorState, Field, Skeleton } from '../../shared/ui/components.js';
+import {
+  Alert, Button, Card, Cluster, DescriptionList, Dialog, EmptyState, FormActions, Select, Skeleton, Stack,
+  Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, TextField, Well,
+} from '../../shared/ui/components/index.js';
 import { useLoad } from '../../shared/ui/hooks.js';
 import type { EventDetail } from './EventShell.js';
 
@@ -19,37 +22,40 @@ export function EmailsTab({ event, showToast }: { event: EventDetail; showToast:
   const [previewId, setPreviewId] = useState<number | null>(null);
 
   return (
-    <div className="stack">
-      <div className="cluster cluster--between">
+    <Stack>
+      <Cluster justify="between">
         <h2>Emails</h2>
-        <button className="btn btn--primary" type="button" onClick={() => setScheduling(true)}>Schedule invitations</button>
-      </div>
+        <Button variant="primary" onClick={() => setScheduling(true)}>Schedule invitations</Button>
+      </Cluster>
       {list.loading && <Skeleton />}
-      {list.error && <ErrorState message={list.error} onRetry={list.reload} />}
+      {list.error && <EmptyState tone="error" title={list.error} actions={<Button onClick={list.reload}>Try again</Button>} />}
       {list.data && list.data.emails.length === 0 && (
-        <div className="card stack">
-          <h3>No emails planned</h3>
-          <div><button className="btn btn--primary" type="button" onClick={() => setScheduling(true)}>Schedule invitations</button></div>
-        </div>
+        <Card>
+          <EmptyState compact title="No emails planned" headingLevel={3} actions={<Button variant="primary" onClick={() => setScheduling(true)}>Schedule invitations</Button>} />
+        </Card>
       )}
       {list.data && list.data.emails.length > 0 && (
-        <div className="table-wrap">
-          <table className="table">
-            <thead><tr><th>Email</th><th>Audience</th><th>Send time</th><th>Recipients</th><th>Status</th><th /></tr></thead>
-            <tbody>
-              {list.data.emails.map((m) => (
-                <tr key={m.id}>
-                  <td>{m.subject}</td><td>{m.audience}</td><td>{m.sendAt.replace('T', ' ')}</td><td>{m.recipients}</td><td>{m.status}</td>
-                  <td><button className="btn btn--ghost" type="button" onClick={() => setPreviewId(m.id)}>Preview</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table caption="Emails" captionHidden>
+          <TableHead>
+            <TableRow>
+              <TableHeaderCell>Email</TableHeaderCell><TableHeaderCell>Audience</TableHeaderCell><TableHeaderCell>Send time</TableHeaderCell>
+              <TableHeaderCell numeric>Recipients</TableHeaderCell><TableHeaderCell>Status</TableHeaderCell><TableHeaderCell labelHidden>Actions</TableHeaderCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {list.data.emails.map((m) => (
+              <TableRow key={m.id}>
+                <TableCell>{m.subject}</TableCell><TableCell>{m.audience}</TableCell><TableCell>{m.sendAt.replace('T', ' ')}</TableCell>
+                <TableCell numeric>{m.recipients}</TableCell><TableCell>{m.status}</TableCell>
+                <TableCell actions><Button variant="ghost" size="sm" onClick={() => setPreviewId(m.id)}>Preview</Button></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       )}
       {scheduling && <ScheduleDialog event={event} onClose={() => setScheduling(false)} onDone={(t) => { setScheduling(false); showToast(`Invitation scheduled for ${t.replace('T', ' ')}`); list.reload(); }} />}
       {previewId !== null && <PreviewDialog eventId={event.id} emailId={previewId} onClose={() => setPreviewId(null)} />}
-    </div>
+    </Stack>
   );
 }
 
@@ -77,28 +83,22 @@ function ScheduleDialog(props: { event: EventDetail; onClose: () => void; onDone
   }
 
   return (
-    <Dialog title="Schedule invitations" onClose={props.onClose}>
-      <form className="stack" onSubmit={submit} noValidate>
-        {failure && <p role="alert" className="field__error">{failure} <button className="btn" type="submit">Try again</button></p>}
-        <Field label="Recipients" id="em-audience">
-          <select className="select" id="em-audience" value={form.audience} onChange={set('audience')} disabled={busy}>
-            <option value="all">All invitees</option>
-            <option value="non-responders">Only people who haven't replied</option>
-          </select>
-        </Field>
-        <Field label="Subject" id="em-subject" error={errors.subject} counter={`${form.subject.length}/150`}>
-          <input className="input" id="em-subject" value={form.subject} onChange={set('subject')} readOnly={busy} />
-        </Field>
-        <Field label="Send on" id="em-sendOn" error={errors.sendOn} hint="Emails go out at 9:00 am.">
-          <input className="input" id="em-sendOn" type="date" value={form.sendOn} onChange={set('sendOn')} readOnly={busy} />
-        </Field>
-        <Field label="Sender name" id="em-senderName" optional><input className="input" id="em-senderName" value={form.senderName} onChange={set('senderName')} readOnly={busy} /></Field>
-        <Field label="Reply-to email" id="em-replyTo" optional error={errors.replyTo}><input className="input" id="em-replyTo" type="email" value={form.replyTo} onChange={set('replyTo')} readOnly={busy} /></Field>
-        <div className="form-actions">
-          <button className="btn" type="button" onClick={props.onClose}>Cancel</button>
-          <button className="btn btn--primary" type="submit" disabled={busy} aria-busy={busy}>{busy ? 'Scheduling…' : 'Schedule invitation'}</button>
-        </div>
-      </form>
+    <Dialog title="Schedule invitations" onClose={props.onClose} busy={busy}>
+      <Stack as="form" onSubmit={submit} noValidate>
+        {failure && <Alert tone="danger" live actions={<Button type="submit">Try again</Button>}>{failure}</Alert>}
+        <Select label="Recipients" id="em-audience" value={form.audience} onChange={set('audience')} disabled={busy}>
+          <option value="all">All invitees</option>
+          <option value="non-responders">Only people who haven't replied</option>
+        </Select>
+        <TextField label="Subject" id="em-subject" error={errors.subject} counter={`${form.subject.length}/150`} value={form.subject} onChange={set('subject')} readOnly={busy} />
+        <TextField label="Send on" id="em-sendOn" type="date" error={errors.sendOn} hint="Emails go out at 9:00 am." value={form.sendOn} onChange={set('sendOn')} readOnly={busy} />
+        <TextField label="Sender name" id="em-senderName" optional value={form.senderName} onChange={set('senderName')} readOnly={busy} />
+        <TextField label="Reply-to email" id="em-replyTo" type="email" optional error={errors.replyTo} value={form.replyTo} onChange={set('replyTo')} readOnly={busy} />
+        <FormActions>
+          <Button onClick={props.onClose}>Cancel</Button>
+          <Button variant="primary" type="submit" disabled={busy} loading={busy}>{busy ? 'Scheduling…' : 'Schedule invitation'}</Button>
+        </FormActions>
+      </Stack>
     </Dialog>
   );
 }
@@ -109,18 +109,27 @@ function PreviewDialog(props: { eventId: number; emailId: number; onClose: () =>
     [props.eventId, props.emailId],
   );
   return (
-    <Dialog title="Email preview" onClose={props.onClose}>
+    <Dialog title="Email preview" size="lg" onClose={props.onClose} footer={<Button onClick={props.onClose}>Close</Button>}>
       {loading && <Skeleton />}
-      {error && <ErrorState message={error} onRetry={reload} />}
+      {error && <EmptyState tone="error" compact title={error} actions={<Button onClick={reload}>Try again</Button>} />}
       {data && (
-        <dl className="stack">
-          <div><dt>From</dt><dd>{data.from}</dd></div>
-          {data.replyTo && <div><dt>Reply-to</dt><dd>{data.replyTo}</dd></div>}
-          <div><dt>Subject</dt><dd>{data.subject}</dd></div>
-          <div style={{ maxHeight: 240, overflow: 'auto', whiteSpace: 'pre-wrap' }}>{data.body}</div>
-        </dl>
+        <Stack>
+          <DescriptionList
+            items={[
+              { term: 'From', description: data.from },
+              ...(data.replyTo ? [{ term: 'Reply-to', description: data.replyTo }] : []),
+              { term: 'Subject', description: data.subject },
+            ]}
+          />
+          <Well>
+            <Stack gap="sm">
+              {data.body.split(/\n{2,}/).map((para, i) => (
+                <p key={i}>{para.split('\n').flatMap((line, j) => (j ? [<br key={j} />, line] : [line]))}</p>
+              ))}
+            </Stack>
+          </Well>
+        </Stack>
       )}
-      <button className="btn" type="button" onClick={props.onClose}>Close</button>
     </Dialog>
   );
 }

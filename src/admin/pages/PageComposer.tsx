@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { BLOCK_TYPES, MAX_BLOCKS, type Block, type BlockType } from '../../domain/blocks.js';
 import { ApiError, get, post, put } from '../../shared/ui/api.js';
 import { BLOCK_SPECS, BlockView } from '../../shared/ui/blocks.js';
-import { Dialog, ErrorState, Field, Skeleton } from '../../shared/ui/components.js';
+import {
+  Alert, Button, Card, Cluster, Dialog, EmptyState, InlineStatus, List, ListItem, Skeleton, Stack, Textarea, TextField,
+} from '../../shared/ui/components/index.js';
 import { useLoad } from '../../shared/ui/hooks.js';
 
 interface PageState {
@@ -16,7 +18,7 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
 export function PageTab({ eventId }: { eventId: number }) {
   const { data, error, loading, reload } = useLoad(() => get<PageState>(`/api/events/${eventId}/page`), [eventId]);
   if (loading) return <Skeleton rows={4} />;
-  if (error || !data) return <ErrorState message={error ?? 'Could not load the page'} onRetry={reload} />;
+  if (error || !data) return <EmptyState tone="error" title={error ?? 'Could not load the page'} actions={<Button onClick={reload}>Try again</Button>} />;
   return <Composer eventId={eventId} initial={data} />;
 }
 
@@ -151,95 +153,102 @@ function Composer({ eventId, initial }: { eventId: number; initial: PageState })
 
   if (preview) {
     return (
-      <div className="stack">
-        <div className="cluster cluster--between">
+      <Stack>
+        <Cluster justify="between">
           <h2>Preview</h2>
-          <button className="btn" type="button" onClick={() => setPreview(false)}>Back to editing</button>
-        </div>
-        <div className="card stack" style={{ maxWidth: '100%' }}>
-          {blocks.map((b) => <BlockView key={b.id} block={b} />)}
-        </div>
-      </div>
+          <Button onClick={() => setPreview(false)}>Back to editing</Button>
+        </Cluster>
+        <Card>
+          <Stack>
+            {blocks.map((b) => <BlockView key={b.id} block={b} />)}
+          </Stack>
+        </Card>
+      </Stack>
     );
   }
 
   return (
-    <div className="stack">
-      <div className="cluster cluster--between">
+    <Stack>
+      <Cluster justify="between">
         <h2>Event page</h2>
-        <span role="status" aria-live="polite">{status}</span>
-      </div>
-      <div className="cluster">
-        <button className="btn btn--primary" type="button" onClick={publish} disabled={publishing} aria-busy={publishing}>Publish</button>
-        <button className="btn" type="button" onClick={() => setPreview(true)}>Preview</button>
-        {unpublished && <button className="btn btn--ghost" type="button" onClick={() => setDiscarding(true)}>Discard changes</button>}
-        <button className="btn" type="button" onClick={() => { setPickerNote(undefined); setPicker(true); }}>Add a block</button>
-      </div>
-      {publishError && <ErrorState message={publishError} onRetry={publish} />}
-      {errors.page && <p role="alert" className="field__error">{errors.page}</p>}
-      {undo && (
-        <p role="status">
-          Block removed. <button className="btn" type="button" onClick={undoRemove}>Undo</button>
-        </p>
-      )}
+        <InlineStatus live tone={saveState === 'error' ? 'danger' : 'neutral'}>{status}</InlineStatus>
+      </Cluster>
+      <Cluster>
+        <Button variant="primary" onClick={publish} disabled={publishing} loading={publishing}>Publish</Button>
+        <Button onClick={() => setPreview(true)}>Preview</Button>
+        {unpublished && <Button variant="ghost" onClick={() => setDiscarding(true)}>Discard changes</Button>}
+        <Button onClick={() => { setPickerNote(undefined); setPicker(true); }}>Add a block</Button>
+      </Cluster>
+      {publishError && <Alert tone="danger" live actions={<Button size="sm" onClick={publish}>Try again</Button>}>{publishError}</Alert>}
+      {errors.page && <Alert tone="danger" live>{errors.page}</Alert>}
+      {undo && <Alert actions={<Button size="sm" onClick={undoRemove}>Undo</Button>}>Block removed.</Alert>}
 
-      {blocks.length === 0 && <p className="text-muted">No blocks yet. Add a block to start your page.</p>}
-      <ol className="stack" aria-label="Page outline">
+      {blocks.length === 0 && <EmptyState compact title="No blocks yet" text="Add a block to start your page." />}
+      <Stack as="ol" aria-label="Page outline">
         {blocks.map((b, i) => {
           const spec = BLOCK_SPECS[b.type];
           const open = !collapsed.has(b.id);
           return (
-            <li key={b.id} className="card stack">
-              <div className="cluster cluster--between">
-                <strong>{spec.label}</strong>
-                <div className="cluster">
-                  <button id={`up-${b.id}`} className="btn" type="button" disabled={i === 0} onClick={() => move(i, -1)} aria-label={`Move up ${spec.label}`}>Move up</button>
-                  <button id={`down-${b.id}`} className="btn" type="button" disabled={i === blocks.length - 1} onClick={() => move(i, 1)} aria-label={`Move down ${spec.label}`}>Move down</button>
-                  <button className="btn" type="button" aria-expanded={open} onClick={() => setCollapsed((c) => { const n = new Set(c); if (open) n.add(b.id); else n.delete(b.id); return n; })}>{open ? 'Collapse' : 'Expand'}</button>
-                  <button className="btn btn--danger" type="button" onClick={() => removeBlock(i)}>Remove block</button>
-                </div>
-              </div>
-              {open && spec.fields.map((f) => {
-                const value = b.fields[f.key] ?? '';
-                const id = `f-${b.id}.${f.key}`;
-                const over = f.max !== undefined && value.length > f.max;
-                return (
-                  <Field key={f.key} id={id} label={f.label} counter={f.max ? `${value.length}/${f.max}` : undefined} error={errors[`${b.id}.${f.key}`] ?? (over ? `${f.label} can be up to ${f.max} characters` : undefined)}>
-                    {f.multiline
-                      ? <textarea className="textarea" id={id} value={value} onChange={(e) => edit(b.id, f.key, e.target.value)} />
-                      : <input className="input" id={id} value={value} onChange={(e) => edit(b.id, f.key, e.target.value)} />}
-                  </Field>
-                );
-              })}
-              {open && b.type === 'rsvp' && <p className="text-muted">The RSVP fields are fixed and cannot be removed individually.</p>}
+            <li key={b.id}>
+              <Card>
+                <Stack>
+                  <Cluster justify="between">
+                    <strong>{spec.label}</strong>
+                    <Cluster>
+                      <Button id={`up-${b.id}`} size="sm" disabled={i === 0} onClick={() => move(i, -1)} aria-label={`Move up ${spec.label}`}>Move up</Button>
+                      <Button id={`down-${b.id}`} size="sm" disabled={i === blocks.length - 1} onClick={() => move(i, 1)} aria-label={`Move down ${spec.label}`}>Move down</Button>
+                      <Button size="sm" aria-expanded={open} onClick={() => setCollapsed((c) => { const n = new Set(c); if (open) n.add(b.id); else n.delete(b.id); return n; })}>{open ? 'Collapse' : 'Expand'}</Button>
+                      <Button size="sm" variant="danger" onClick={() => removeBlock(i)}>Remove block</Button>
+                    </Cluster>
+                  </Cluster>
+                  {open && spec.fields.map((f) => {
+                    const value = b.fields[f.key] ?? '';
+                    const id = `f-${b.id}.${f.key}`;
+                    const over = f.max !== undefined && value.length > f.max;
+                    const field = {
+                      id,
+                      label: f.label,
+                      value,
+                      counter: f.max ? `${value.length}/${f.max}` : undefined,
+                      error: errors[`${b.id}.${f.key}`] ?? (over ? `${f.label} can be up to ${f.max} characters` : undefined),
+                    };
+                    return f.multiline
+                      ? <Textarea key={f.key} {...field} onChange={(e) => edit(b.id, f.key, e.target.value)} />
+                      : <TextField key={f.key} {...field} onChange={(e) => edit(b.id, f.key, e.target.value)} />;
+                  })}
+                  {open && b.type === 'rsvp' && <p className="text-muted">The RSVP fields are fixed and cannot be removed individually.</p>}
+                </Stack>
+              </Card>
             </li>
           );
         })}
-      </ol>
+      </Stack>
 
       {picker && (
-        <Dialog title="Add a block" onClose={() => setPicker(false)}>
-          {pickerNote && <p role="alert" className="field__error">{pickerNote}</p>}
-          <ul className="stack">
+        <Dialog title="Add a block" onClose={() => setPicker(false)} footer={<Button onClick={() => setPicker(false)}>Close</Button>}>
+          {pickerNote && <Alert tone="danger" live>{pickerNote}</Alert>}
+          <List aria-label="Block types">
             {BLOCK_TYPES.map((t) => (
-              <li key={t} className="cluster cluster--between">
-                <span><strong>{BLOCK_SPECS[t].label}</strong><br /><span className="text-muted">{BLOCK_SPECS[t].description}</span></span>
-                <button className="btn" type="button" onClick={() => addBlock(t)}>Add {BLOCK_SPECS[t].label}</button>
-              </li>
+              <ListItem
+                key={t}
+                title={BLOCK_SPECS[t].label}
+                meta={BLOCK_SPECS[t].description}
+                trailing={<Button size="sm" onClick={() => addBlock(t)}>Add {BLOCK_SPECS[t].label}</Button>}
+              />
             ))}
-          </ul>
-          <button className="btn" type="button" onClick={() => setPicker(false)}>Close</button>
+          </List>
         </Dialog>
       )}
       {discarding && (
-        <Dialog title="Discard unpublished changes?" onClose={() => setDiscarding(false)}>
+        <Dialog
+          title="Discard unpublished changes?"
+          tone="danger"
+          onClose={() => setDiscarding(false)}
+          footer={<><Button onClick={() => setDiscarding(false)}>Keep editing</Button><Button variant="danger" onClick={discard}>Discard</Button></>}
+        >
           <p>Your page goes back to the last published version.</p>
-          <div className="form-actions">
-            <button className="btn" type="button" onClick={() => setDiscarding(false)}>Keep editing</button>
-            <button className="btn btn--danger" type="button" onClick={discard}>Discard</button>
-          </div>
         </Dialog>
       )}
-    </div>
+    </Stack>
   );
 }

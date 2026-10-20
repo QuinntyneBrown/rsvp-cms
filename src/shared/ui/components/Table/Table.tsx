@@ -1,4 +1,5 @@
 import type { ReactNode, TdHTMLAttributes, ThHTMLAttributes } from 'react';
+import { VisuallyHidden } from '../index.js';
 import './Table.css';
 
 export interface TableProps {
@@ -18,7 +19,7 @@ export function Table({ caption, captionHidden, children }: TableProps) {
   return (
     <div className="table-wrap">
       <table className="table">
-        <caption className={captionHidden ? 'visually-hidden' : undefined}>{caption}</caption>
+        {captionHidden ? <VisuallyHidden as="caption">{caption}</VisuallyHidden> : <caption>{caption}</caption>}
         {children}
       </table>
     </div>
@@ -64,7 +65,7 @@ export interface TableHeaderCellProps extends Omit<ThHTMLAttributes<HTMLTableCel
 
 /** A header cell (<th>), optionally sortable. */
 export function TableHeaderCell({ numeric, sort, onSort, scope = 'col', labelHidden, children, ...rest }: TableHeaderCellProps) {
-  const label = labelHidden ? <span className="visually-hidden">{children}</span> : children;
+  const label = labelHidden ? <VisuallyHidden>{children}</VisuallyHidden> : children;
   const sortable = onSort !== undefined;
   return (
     <th {...rest} scope={scope} className={numeric ? 'num' : undefined} aria-sort={sortable ? (sort ?? 'none') : undefined}>

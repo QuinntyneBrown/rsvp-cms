@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { VisuallyHidden } from '../index.js';
 import './Badge.css';
 
 export type BadgeTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
@@ -30,7 +31,7 @@ export function Badge(props: BadgeProps) {
       // aria-label is not allowed on a generic span, so the name is visually hidden text and the bare number is hidden.
       <span className="badge badge--count">
         <span aria-hidden="true">{props.count}</span>
-        <span className="visually-hidden">{props.label}</span>
+        <VisuallyHidden>{props.label}</VisuallyHidden>
       </span>
     );
   }

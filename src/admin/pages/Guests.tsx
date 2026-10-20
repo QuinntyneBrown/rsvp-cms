@@ -1,6 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { ApiError, get, post, put } from '../../shared/ui/api.js';
-import { Dialog, ErrorState, Field, Skeleton } from '../../shared/ui/components.js';
+import {
+  Alert, Button, Card, Checkbox, Chip, Cluster, Dialog, EmptyState, FormActions, Pagination, Skeleton, Stack,
+  Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, TextField,
+} from '../../shared/ui/components/index.js';
 import { useDebounced, useLoad } from '../../shared/ui/hooks.js';
 
 interface Guest {
@@ -68,72 +71,66 @@ export function GuestsTab({ eventId, showToast }: { eventId: number; showToast: 
   }
 
   return (
-    <div className="stack">
-      <div className="cluster cluster--between">
+    <Stack>
+      <Cluster justify="between">
         <h2>Guests {data && <span className="text-muted">· {data.invitees.toLocaleString()} invitees</span>}</h2>
-        <button className="btn btn--primary" type="button" onClick={() => setEditing('new')}>Add guest</button>
-      </div>
+        <Button variant="primary" onClick={() => setEditing('new')}>Add guest</Button>
+      </Cluster>
 
-      <div className="cluster">
-        <label className="visually-hidden" htmlFor="guest-search">Search guests</label>
-        <input id="guest-search" className="input" type="search" placeholder="Search by name or email" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+      <Cluster>
+        <TextField label="Search guests" hideLabel id="guest-search" type="search" variant="search" placeholder="Search by name or email" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
         {FILTERS.map(([value, label]) => (
-          <button key={label} type="button" className={`btn ${status === value ? 'btn--primary' : ''}`} aria-pressed={status === value} onClick={() => { setStatus(value); setPage(1); }}>
-            {label}
-          </button>
+          <Chip key={label} pressed={status === value} onToggle={() => { setStatus(value); setPage(1); }}>{label}</Chip>
         ))}
         {selected.size > 0 && (
-          <button className="btn btn--danger" type="button" onClick={() => setRemoving(true)}>Remove {selected.size}</button>
+          <Button variant="danger" onClick={() => setRemoving(true)}>Remove {selected.size}</Button>
         )}
-      </div>
+      </Cluster>
 
       {list.loading && <Skeleton rows={5} />}
-      {list.error && <ErrorState message={list.error} onRetry={list.reload} />}
+      {list.error && <EmptyState tone="error" title={list.error} actions={<Button onClick={list.reload}>Try again</Button>} />}
       {data && data.total === 0 && !filtered && (
-        <div className="card stack">
-          <h3>No guests yet</h3>
-          <div className="cluster"><button className="btn btn--primary" type="button" onClick={() => setEditing('new')}>Add guest</button></div>
-        </div>
+        <Card>
+          <EmptyState compact title="No guests yet" headingLevel={3} actions={<Button variant="primary" onClick={() => setEditing('new')}>Add guest</Button>} />
+        </Card>
       )}
       {data && data.total === 0 && filtered && (
-        <div className="card stack">
-          <h3>No guests match</h3>
-          <div><button className="btn" type="button" onClick={() => { setSearch(''); setStatus(''); }}>Clear search</button></div>
-        </div>
+        <Card>
+          <EmptyState compact title="No guests match" headingLevel={3} actions={<Button onClick={() => { setSearch(''); setStatus(''); }}>Clear search</Button>} />
+        </Card>
       )}
       {data && data.total > 0 && (
-        <div className="table-wrap">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>
-                  <input
-                    type="checkbox"
-                    aria-label="Select all on this page"
+        <>
+          <Table caption="Guests" captionHidden>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell>
+                  <Checkbox
+                    label="Select all on this page"
+                    hideLabel
                     checked={selectedOnPage === pageIds.length}
-                    ref={(el) => { if (el) el.indeterminate = selectedOnPage > 0 && selectedOnPage < pageIds.length; }}
+                    indeterminate={selectedOnPage > 0 && selectedOnPage < pageIds.length}
                     onChange={toggleAll}
                   />
-                </th>
-                <th>Name</th><th>Email</th><th>Group</th><th>Places</th><th>Code</th><th>Status</th><th />
-              </tr>
-            </thead>
-            <tbody>
+                </TableHeaderCell>
+                <TableHeaderCell>Name</TableHeaderCell><TableHeaderCell>Email</TableHeaderCell><TableHeaderCell>Group</TableHeaderCell>
+                <TableHeaderCell numeric>Places</TableHeaderCell><TableHeaderCell>Code</TableHeaderCell><TableHeaderCell>Status</TableHeaderCell>
+                <TableHeaderCell labelHidden>Actions</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {data.guests.map((g) => (
-                <tr key={g.id}>
-                  <td><input type="checkbox" aria-label={`Select ${g.name}`} checked={selected.has(g.id)} onChange={() => toggle(g.id)} /></td>
-                  <td>{g.name}</td><td>{g.email}</td><td>{g.group}</td><td>{g.plusOnes + 1}</td><td>{g.code}</td><td>{g.status}</td>
-                  <td><button className="btn btn--ghost" type="button" onClick={() => setEditing(g)}>Edit {g.name}</button></td>
-                </tr>
+                <TableRow key={g.id} selected={selected.has(g.id)}>
+                  <TableCell><Checkbox label={`Select ${g.name}`} hideLabel checked={selected.has(g.id)} onChange={() => toggle(g.id)} /></TableCell>
+                  <TableCell>{g.name}</TableCell><TableCell>{g.email}</TableCell><TableCell>{g.group}</TableCell>
+                  <TableCell numeric>{g.plusOnes + 1}</TableCell><TableCell>{g.code}</TableCell><TableCell>{g.status}</TableCell>
+                  <TableCell actions><Button variant="ghost" size="sm" onClick={() => setEditing(g)}>Edit {g.name}</Button></TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-          <div className="cluster">
-            <button className="btn" type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>
-            <span>Page {page} of {Math.max(1, Math.ceil(data.total / data.pageSize))}</span>
-            <button className="btn" type="button" disabled={page * data.pageSize >= data.total} onClick={() => setPage(page + 1)}>Next</button>
-          </div>
-        </div>
+            </TableBody>
+          </Table>
+          <Pagination page={page} pageCount={Math.max(1, Math.ceil(data.total / data.pageSize))} onPageChange={setPage} />
+        </>
       )}
 
       {editing && (
@@ -145,15 +142,16 @@ export function GuestsTab({ eventId, showToast }: { eventId: number; showToast: 
         />
       )}
       {removing && (
-        <Dialog title={`Remove ${selected.size} ${selected.size === 1 ? 'guest' : 'guests'}?`} onClose={() => setRemoving(false)}>
+        <Dialog
+          title={`Remove ${selected.size} ${selected.size === 1 ? 'guest' : 'guests'}?`}
+          tone="danger"
+          onClose={() => setRemoving(false)}
+          footer={<><Button onClick={() => setRemoving(false)}>Cancel</Button><Button variant="danger" onClick={remove}>Remove</Button></>}
+        >
           <p>Their personal links stop working and their replies are deleted.</p>
-          <div className="form-actions">
-            <button className="btn" type="button" onClick={() => setRemoving(false)}>Cancel</button>
-            <button className="btn btn--danger" type="button" onClick={remove}>Remove</button>
-          </div>
         </Dialog>
       )}
-    </div>
+    </Stack>
   );
 }
 
@@ -188,18 +186,18 @@ function GuestDialog(props: { eventId: number; guest: Guest | null; onClose: () 
   }
 
   return (
-    <Dialog title={props.guest ? 'Edit guest' : 'Add guest'} onClose={props.onClose}>
-      <form className="stack" onSubmit={submit} noValidate>
-        {failure && <p role="alert" className="field__error">{failure} <button className="btn" type="submit">Try again</button></p>}
-        <Field label="Full name" id="g-name" error={errors.name}><input className="input" id="g-name" value={form.name} onChange={set('name')} /></Field>
-        <Field label="Email" id="g-email" error={errors.email}><input className="input" id="g-email" type="email" value={form.email} onChange={set('email')} /></Field>
-        <Field label="Group" id="g-group" optional><input className="input" id="g-group" value={form.group} onChange={set('group')} /></Field>
-        <Field label="Plus-ones" id="g-plus" error={errors.plusOnes}><input className="input" id="g-plus" type="number" min={0} max={9} value={form.plusOnes} onChange={set('plusOnes')} /></Field>
-        <div className="form-actions">
-          <button className="btn" type="button" onClick={props.onClose}>Cancel</button>
-          <button className="btn btn--primary" type="submit" disabled={busy}>{props.guest ? 'Save' : 'Add guest'}</button>
-        </div>
-      </form>
+    <Dialog title={props.guest ? 'Edit guest' : 'Add guest'} onClose={props.onClose} busy={busy}>
+      <Stack as="form" onSubmit={submit} noValidate>
+        {failure && <Alert tone="danger" live actions={<Button type="submit">Try again</Button>}>{failure}</Alert>}
+        <TextField label="Full name" id="g-name" error={errors.name} value={form.name} onChange={set('name')} />
+        <TextField label="Email" id="g-email" type="email" error={errors.email} value={form.email} onChange={set('email')} />
+        <TextField label="Group" id="g-group" optional value={form.group} onChange={set('group')} />
+        <TextField label="Plus-ones" id="g-plus" type="number" min={0} max={9} error={errors.plusOnes} value={form.plusOnes} onChange={set('plusOnes')} />
+        <FormActions>
+          <Button onClick={props.onClose}>Cancel</Button>
+          <Button variant="primary" type="submit" disabled={busy}>{props.guest ? 'Save' : 'Add guest'}</Button>
+        </FormActions>
+      </Stack>
     </Dialog>
   );
 }

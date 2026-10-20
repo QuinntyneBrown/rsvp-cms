@@ -36,3 +36,11 @@ describe('Checkbox', () => {
     expect((screen.getByRole('checkbox', { name: 'B' }) as HTMLInputElement).disabled).toBe(true);
   });
 });
+
+describe('Checkbox with a hidden label', () => {
+  it('keeps its accessible name but shows no visible text', () => {
+    render(<Checkbox label="Select Jonah Adeyemi" hideLabel />);
+    const box = screen.getByRole('checkbox', { name: 'Select Jonah Adeyemi' });
+    expect(box.closest('label')?.querySelector('.choice__text')).toBeNull();
+  });
+});
