@@ -34,11 +34,11 @@ test.describe('L2-012 Events list', () => {
     await expect(admin.newEvent.heading).toBeVisible();
   });
 
-  test('the brand link returns to Events', async ({ admin, api }) => {
+  test('the brand link returns to the dashboard', async ({ admin, api }) => {
     const event = api.addEvent();
     await admin.event.goto(event.id);
     await admin.shell.brand.click();
-    await expect(admin.events.heading).toBeVisible();
+    await expect(admin.dashboard.heading).toBeVisible();
   });
 
   test('a failed load shows an error with Try again, which reloads the list', async ({ admin, api }) => {

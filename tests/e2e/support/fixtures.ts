@@ -1,5 +1,6 @@
 import { test as base, expect, type Page } from '@playwright/test';
 import { AdminShell } from '../pages/admin/AdminShell.js';
+import { DashboardPage } from '../pages/admin/DashboardPage.js';
 import { EventPage } from '../pages/admin/EventPage.js';
 import { EventsPage } from '../pages/admin/EventsPage.js';
 import { NewEventPage } from '../pages/admin/NewEventPage.js';
@@ -12,6 +13,7 @@ import { FakeBackend } from './fake-backend.js';
 export class AdminApp {
   readonly shell: AdminShell;
   readonly signIn: SignInPage;
+  readonly dashboard: DashboardPage;
   readonly events: EventsPage;
   readonly newEvent: NewEventPage;
   readonly event: EventPage;
@@ -19,6 +21,7 @@ export class AdminApp {
   constructor(readonly page: Page) {
     this.shell = new AdminShell(page);
     this.signIn = new SignInPage(page);
+    this.dashboard = new DashboardPage(page);
     this.events = new EventsPage(page);
     this.newEvent = new NewEventPage(page);
     this.event = new EventPage(page);

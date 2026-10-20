@@ -9,12 +9,12 @@ test.describe('L2-001 Organiser sign-in', () => {
     await expect(admin.signIn.submit).toHaveText('Sign in');
   });
 
-  test('AC1 signs in and lands on Events with the organiser named in the top bar', async ({ admin, api }) => {
+  test('AC1 signs in and lands on the dashboard with the organiser named in the top bar', async ({ admin, api }) => {
     await admin.signIn.goto();
     await admin.signIn.signIn(ORGANISER.email, ORGANISER.password);
-    await expect(admin.events.heading).toBeVisible();
+    await expect(admin.dashboard.heading).toBeVisible();
     await expect(admin.shell.userName(ORGANISER.name)).toBeVisible();
-    await expect(admin.page).toHaveURL(/#\/events$/);
+    await expect(admin.page).toHaveURL(/#\/dashboard$/);
     expect(api.calls('POST', '/api/auth/sign-in')[0]!.body).toEqual({ email: ORGANISER.email, password: ORGANISER.password, keepSignedIn: false });
   });
 
@@ -42,7 +42,7 @@ test.describe('L2-001 Organiser sign-in', () => {
   test('trims the email before sending it', async ({ admin, api }) => {
     await admin.signIn.goto();
     await admin.signIn.signIn(`  ${ORGANISER.email}  `, ORGANISER.password);
-    await expect(admin.events.heading).toBeVisible();
+    await expect(admin.dashboard.heading).toBeVisible();
     expect(api.calls('POST', '/api/auth/sign-in')[0]!.body.email).toBe(ORGANISER.email);
   });
 
@@ -54,7 +54,7 @@ test.describe('L2-001 Organiser sign-in', () => {
     await expect(admin.signIn.submit).toBeDisabled();
     await expect(admin.signIn.submit).toHaveAttribute('aria-busy', 'true');
     held.release();
-    await expect(admin.events.heading).toBeVisible();
+    await expect(admin.dashboard.heading).toBeVisible();
     expect(api.calls('POST', '/api/auth/sign-in')).toHaveLength(1);
   });
 
@@ -64,7 +64,7 @@ test.describe('L2-001 Organiser sign-in', () => {
     await admin.signIn.signIn(ORGANISER.email, ORGANISER.password);
     await expect(admin.signIn.alert).toContainText('Something went wrong. Check your connection and try again.');
     await admin.signIn.submit.click();
-    await expect(admin.events.heading).toBeVisible();
+    await expect(admin.dashboard.heading).toBeVisible();
   });
 });
 
@@ -72,7 +72,7 @@ test.describe('L2-005 Session lifetime and sign-out', () => {
   test('AC1 "Keep me signed in" is sent with the sign-in', async ({ admin, api }) => {
     await admin.signIn.goto();
     await admin.signIn.signIn(ORGANISER.email, ORGANISER.password, { keep: true });
-    await expect(admin.events.heading).toBeVisible();
+    await expect(admin.dashboard.heading).toBeVisible();
     expect(api.calls('POST', '/api/auth/sign-in')[0]!.body.keepSignedIn).toBe(true);
   });
 

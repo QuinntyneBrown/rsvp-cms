@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ApiError, get, post, setUnauthorizedHandler } from '../shared/ui/api.js';
 import { Avatar, Button, Container, Sidebar, SidebarLayout, SkipLink, Skeleton, TopBar, TopBarBrand } from '../shared/ui/components/index.js';
 import { Icon, Text } from '../shared/ui/primitives/index.js';
+import { DashboardPage } from './pages/Dashboard.js';
 import { EventShell } from './pages/EventShell.js';
 import { EventsPage } from './pages/Events.js';
 import { NewEventPage } from './pages/NewEvent.js';
@@ -37,7 +38,7 @@ export function App() {
   }
 
   if (auth.state === 'out') {
-    return <SignInPage notice={auth.notice} onSignedIn={(name) => { setAuth({ state: 'in', name }); go('events'); }} />;
+    return <SignInPage notice={auth.notice} onSignedIn={(name) => { setAuth({ state: 'in', name }); go('dashboard'); }} />;
   }
 
   const signOut = async () => {
@@ -56,8 +57,13 @@ export function App() {
             open={menuOpen}
             onClose={() => setMenuOpen(false)}
             onNavigate={() => setMenuOpen(false)}
-            brand={<TopBarBrand href="#/events" logo={<Icon name="gift" />}>Invitely</TopBarBrand>}
-            groups={[{ items: [{ href: '#/events', label: 'Events', icon: <Icon name="calendar" />, current: section === 'events' || !section }] }]}
+            brand={<TopBarBrand href="#/dashboard" logo={<Icon name="gift" />}>Invitely</TopBarBrand>}
+            groups={[{
+              items: [
+                { href: '#/dashboard', label: 'Dashboard', icon: <Icon name="home" />, current: section === 'dashboard' || !section },
+                { href: '#/events', label: 'Events', icon: <Icon name="calendar" />, current: section === 'events' },
+              ],
+            }]}
           />
         }
       >
@@ -78,8 +84,10 @@ export function App() {
             <NewEventPage />
           ) : section === 'events' && id ? (
             <EventShell eventId={Number(id)} tab={tab ?? 'overview'} />
-          ) : (
+          ) : section === 'events' ? (
             <EventsPage />
+          ) : (
+            <DashboardPage name={auth.name} />
           )}
         </Container>
       </SidebarLayout>

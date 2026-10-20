@@ -24,6 +24,15 @@ The feature spans the organiser UI, the API, the domain and the data layer.
 - **`UpcomingEvent`** — read model in `src/domain/dashboard` holding the name, date, invitee count, attending count and status of one row.
 - **`DashboardReadRepository`** — read component in `src/data/dashboard` that aggregates the totals and lists the rows over the events the caller can access.
 
+The code places each design component as follows.
+
+| Design component | Where it lives |
+|------------------|----------------|
+| `DashboardPage`, `SummaryTiles`, `UpcomingEventsList` | `DashboardPage` in `src/admin/pages/Dashboard.tsx`, the page sign-in lands on (`#/dashboard`) |
+| `DashboardSummaryClient`, `UpcomingEventsClient` | The shared `get` helper, one call per section so each loads and fails on its own |
+| `DashboardController`, `DashboardSummaryService`, `UpcomingEventService` | `GET /api/dashboard/summary` and `GET /api/dashboard/upcoming-events` in `src/api/events/dashboard.ts` |
+| `DashboardReadRepository` | The existing `Store` calls (`listEvents`, `countGuests`, `responseTotals`, `listEmails`), so the dashboard and the event pages count the same way |
+
 ## Requirements
 
 The feature realizes the following level-2 (L2) requirements. Each L2 requirement refines the level-1 (L1) requirement cited in its row.

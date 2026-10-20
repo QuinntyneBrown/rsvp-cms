@@ -292,8 +292,16 @@ export class FakeBackend {
     const { method, path } = r;
     if (path.startsWith('/api/auth/')) return this.auth(r);
     if (path.startsWith('/api/public/')) return this.public(r);
-    if (!path.startsWith('/api/events')) return null;
+    if (!path.startsWith('/api/events') && !path.startsWith('/api/dashboard/')) return null;
     if (this.session !== 'active') return { status: 401, body: { error: this.session === 'ended' ? SESSION_ENDED : 'Sign in to continue' } };
+    if (method === 'GET' && path === '/api/dashboard/summary') return ok(this.dashboardSummary());
+    if (method === 'GET' && path === '/api/dashboard/upcoming-events') {
+      const events = this.events
+        .filter((e) => e.date >= this.today)
+        .sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id)
+        .map((e) => ({ id: e.id, name: e.name, date: e.date, invitees: this.guestsOf(e.id).length, attending: this.attendingOf(e.id), status: e.status }));
+      return ok({ events });
+    }
 
     if (path === '/api/events') {
       if (method === 'GET') return ok({ events: [...this.events].sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id) });
@@ -586,6 +594,20 @@ export class FakeBackend {
         meals,
       },
     });
+  }
+
+  private attendingOf(eventId: number) {
+    return this.guestsOf(eventId).filter((g) => this.replies.get(g.id)?.attending).length;
+  }
+
+  private dashboardSummary() {
+    const guests = this.events.flatMap((e) => this.guestsOf(e.id));
+    return {
+      invitees: guests.length,
+      attending: this.events.reduce((n, e) => n + this.attendingOf(e.id), 0),
+      waiting: guests.filter((g) => !this.replies.has(g.id)).length,
+      emailsScheduled: this.events.flatMap((e) => this.emailsOf(e.id)).filter((m) => m.status === 'Scheduled').length,
+    };
   }
 
   private windowState(event: FakeEvent): 'open' | 'not-open' | 'closed' {

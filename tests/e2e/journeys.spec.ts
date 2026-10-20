@@ -12,10 +12,10 @@ test('organiser sets up an event, a guest replies by code, the organiser sees it
   await admin.signIn.signIn(ORGANISER.email, 'wrong');
   await expect(admin.signIn.alert).toContainText('Email or password is not right');
   await admin.signIn.signIn(ORGANISER.email, ORGANISER.password);
-  await expect(admin.events.heading).toBeVisible();
+  await expect(admin.dashboard.heading).toBeVisible();
 
   // J6 create event
-  await admin.events.newEvent.click();
+  await admin.dashboard.newEvent.click();
   await admin.newEvent.createEvent({ name: 'Maya & Sam', date: '2027-06-12', startTime: '16:00' });
   await expect(admin.event.heading).toHaveText('Maya & Sam');
   await expect(admin.event.toast).toHaveText('Event created');
