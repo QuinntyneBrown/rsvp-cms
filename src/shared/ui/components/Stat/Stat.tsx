@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Card } from '../index.js';
+import { Card, VisuallyHidden } from '../index.js';
 import './Stat.css';
 
 export type StatTrend = 'up' | 'down';
@@ -26,7 +26,7 @@ export function Stat({ label, value, delta, trend, card }: StatProps) {
           {trend && (
             <>
               <span aria-hidden="true">{trend === 'up' ? '↑' : '↓'}</span>
-              <span className="visually-hidden">{trend === 'up' ? 'Up' : 'Down'}</span>
+              <VisuallyHidden>{trend === 'up' ? 'Up' : 'Down'}</VisuallyHidden>
             </>
           )}
           {delta}

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { ApiError, post } from '../../shared/ui/api.js';
-import { Field } from '../../shared/ui/components.js';
+import { Alert, AuthLayout, Button, Checkbox, Stack, TextField } from '../../shared/ui/components/index.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -33,29 +33,16 @@ export function SignInPage({ onSignedIn, notice }: { onSignedIn: (name: string) 
   }
 
   return (
-    <main id="main" className="auth-layout">
-      <div className="auth-card card stack">
-        <div>
-          <h1>Sign in to Invitely</h1>
-          <p className="text-muted">Organisers manage events here. Guests use their invitation link.</p>
-        </div>
-        {(notice || formError) && <p role="alert" className="field__error">{formError ?? notice}</p>}
-        <form className="stack" aria-label="Sign in" onSubmit={submit} noValidate>
-          <Field label="Email" id="si-email" error={emailError}>
-            <input className="input" id="si-email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </Field>
-          <Field label="Password" id="si-pass">
-            <input className="input" id="si-pass" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </Field>
-          <label className="choice">
-            <input type="checkbox" checked={keep} onChange={(e) => setKeep(e.target.checked)} />
-            <span className="choice__text">Keep me signed in</span>
-          </label>
-          <button className="btn btn--primary btn--block" type="submit" disabled={busy} aria-busy={busy}>
-            {busy ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
-      </div>
-    </main>
+    <AuthLayout title="Sign in to Invitely" description="Organisers manage events here. Guests use their invitation link.">
+      {(notice || formError) && <Alert tone="danger" live>{formError ?? notice}</Alert>}
+      <Stack as="form" aria-label="Sign in" onSubmit={submit} noValidate>
+        <TextField label="Email" id="si-email" type="email" autoComplete="username" error={emailError} value={email} onChange={(e) => setEmail(e.target.value)} />
+        <TextField label="Password" id="si-pass" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <Checkbox label="Keep me signed in" checked={keep} onChange={(e) => setKeep(e.target.checked)} />
+        <Button variant="primary" type="submit" block disabled={busy} loading={busy}>
+          {busy ? 'Signing in…' : 'Sign in'}
+        </Button>
+      </Stack>
+    </AuthLayout>
   );
 }

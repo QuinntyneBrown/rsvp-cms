@@ -1,3 +1,4 @@
+import { Container, SkipLink } from '../shared/ui/components/index.js';
 import { CodeEntry } from './CodeEntry.js';
 import { InvitePage } from './InvitePage.js';
 
@@ -6,10 +7,10 @@ export function App() {
   const match = window.location.pathname.match(/^\/i\/([^/]+)/);
   return (
     <>
-      <a className="skip-link" href="#main">Skip to content</a>
-      <main id="main" className="container container--narrow">
+      <SkipLink />
+      <Container as="main" id="main" narrow>
         {match ? <InvitePage token={decodeURIComponent(match[1]!)} /> : <CodeEntry />}
-      </main>
+      </Container>
     </>
   );
 }

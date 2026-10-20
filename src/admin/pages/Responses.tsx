@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { get } from '../../shared/ui/api.js';
-import { ErrorState, Skeleton } from '../../shared/ui/components.js';
+import {
+  Button, Card, Chip, Cluster, EmptyState, Grid, Pagination, Skeleton, Stack, Stat,
+  Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, TextField,
+} from '../../shared/ui/components/index.js';
 import { useDebounced, useLoad } from '../../shared/ui/hooks.js';
 
 interface ResponseRow {
@@ -24,6 +27,12 @@ interface ResponsesData {
 
 const POLL_MS = 5000;
 
+const FILTERS = [
+  ['', 'All'],
+  ['attending', 'Attending'],
+  ['declined', 'Declined'],
+] as const;
+
 export function ResponsesTab({ eventId }: { eventId: number }) {
   const [search, setSearch] = useState('');
   const q = useDebounced(search, 300);
@@ -44,58 +53,56 @@ export function ResponsesTab({ eventId }: { eventId: number }) {
   const totals = data?.totals;
 
   return (
-    <div className="stack">
+    <Stack>
       <h2>Responses</h2>
       {totals && (
-        <dl className="cluster" aria-label="Totals">
-          <div><dt>Attending</dt><dd>{totals.attending}</dd></div>
-          <div><dt>Guests coming</dt><dd>{totals.guestsComing}</dd></div>
-          <div><dt>Declined</dt><dd>{totals.declined}</dd></div>
-          <div><dt>Waiting</dt><dd>{totals.waiting}</dd></div>
-          {Object.entries(totals.meals).map(([meal, n]) => <div key={meal}><dt>{meal}</dt><dd>{n}</dd></div>)}
-        </dl>
+        <Grid as="section" auto compact aria-label="Totals">
+          <Stat card label="Attending" value={totals.attending} />
+          <Stat card label="Guests coming" value={totals.guestsComing} />
+          <Stat card label="Declined" value={totals.declined} />
+          <Stat card label="Waiting" value={totals.waiting} />
+          {Object.entries(totals.meals).map(([meal, n]) => <Stat card key={meal} label={meal} value={n} />)}
+        </Grid>
       )}
-      <div className="cluster">
-        <label className="visually-hidden" htmlFor="resp-search">Search responses</label>
-        <input id="resp-search" className="input" type="search" placeholder="Search by guest name" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
-        {[['', 'All'], ['attending', 'Attending'], ['declined', 'Declined']].map(([value, label]) => (
-          <button key={label} type="button" className={`btn ${status === value ? 'btn--primary' : ''}`} aria-pressed={status === value} onClick={() => { setStatus(value!); setPage(1); }}>{label}</button>
+      <Cluster>
+        <TextField label="Search responses" hideLabel id="resp-search" type="search" variant="search" placeholder="Search by guest name" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+        {FILTERS.map(([value, label]) => (
+          <Chip key={label} pressed={status === value} onToggle={() => { setStatus(value); setPage(1); }}>{label}</Chip>
         ))}
-      </div>
+      </Cluster>
       {loading && <Skeleton rows={5} />}
-      {error && <ErrorState message={error} onRetry={reload} />}
+      {error && <EmptyState tone="error" title={error} actions={<Button onClick={reload}>Try again</Button>} />}
       {data && data.total === 0 && !filtered && (
-        <div className="card stack">
-          <h3>No replies yet</h3>
-          <p className="text-muted">Replies appear here as guests respond on the public page.</p>
-        </div>
+        <Card>
+          <EmptyState compact title="No replies yet" headingLevel={3} text="Replies appear here as guests respond on the public page." />
+        </Card>
       )}
       {data && data.total === 0 && filtered && (
-        <div className="card stack">
-          <h3>No replies match</h3>
-          <div><button className="btn" type="button" onClick={() => { setSearch(''); setStatus(''); }}>Clear search</button></div>
-        </div>
+        <Card>
+          <EmptyState compact title="No replies match" headingLevel={3} actions={<Button onClick={() => { setSearch(''); setStatus(''); }}>Clear search</Button>} />
+        </Card>
       )}
       {data && data.total > 0 && (
-        <div className="table-wrap">
-          <table className="table">
-            <thead><tr><th>Guest</th><th>Reply</th><th>Guests</th><th>Meal</th><th>Dietary note</th><th>Message</th><th>Updated</th></tr></thead>
-            <tbody>
+        <>
+          <Table caption="Responses" captionHidden>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell>Guest</TableHeaderCell><TableHeaderCell>Reply</TableHeaderCell><TableHeaderCell numeric>Guests</TableHeaderCell>
+                <TableHeaderCell>Meal</TableHeaderCell><TableHeaderCell>Dietary note</TableHeaderCell><TableHeaderCell>Message</TableHeaderCell><TableHeaderCell>Updated</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {data.responses.map((r) => (
-                <tr key={r.guestId}>
-                  <td>{r.guest}</td><td>{r.reply === 'attending' ? 'Attending' : 'Declined'}</td><td>{r.guestsCount || '–'}</td>
-                  <td>{r.meal ?? '–'}</td><td>{r.dietary || '–'}</td><td>{r.message || '–'}</td><td>{r.updatedAt.slice(0, 16).replace('T', ' ')}</td>
-                </tr>
+                <TableRow key={r.guestId}>
+                  <TableCell>{r.guest}</TableCell><TableCell>{r.reply === 'attending' ? 'Attending' : 'Declined'}</TableCell><TableCell numeric>{r.guestsCount || '–'}</TableCell>
+                  <TableCell>{r.meal ?? '–'}</TableCell><TableCell>{r.dietary || '–'}</TableCell><TableCell>{r.message || '–'}</TableCell><TableCell>{r.updatedAt.slice(0, 16).replace('T', ' ')}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-          <div className="cluster">
-            <button className="btn" type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>
-            <span>Page {page} of {Math.max(1, Math.ceil(data.total / data.pageSize))}</span>
-            <button className="btn" type="button" disabled={page * data.pageSize >= data.total} onClick={() => setPage(page + 1)}>Next</button>
-          </div>
-        </div>
+            </TableBody>
+          </Table>
+          <Pagination page={page} pageCount={Math.max(1, Math.ceil(data.total / data.pageSize))} onPageChange={setPage} />
+        </>
       )}
-    </div>
+    </Stack>
   );
 }
