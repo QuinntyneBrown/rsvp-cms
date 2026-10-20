@@ -186,8 +186,9 @@ pre code { background: none; padding: 0; }
 /* Containers pages: static dialog frames and roomy canvases for tooltips. */
 .ds-frame--dialog { display: grid; place-items: center; padding: var(--space-6) var(--space-4); background: var(--color-bg-backdrop); }
 .ds-frame--dialog .dialog__panel { max-height: none; }
-.ds-frame--phone { max-width: 22.5rem; margin-inline: auto; display: grid; align-items: end; padding: var(--space-12) 0 0; background: var(--color-bg-backdrop); min-height: 24rem; }
-.ds-frame--phone .dialog__panel { border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
+.ds-frame--phone { max-width: 22.5rem; margin-inline: auto; display: grid; background: var(--color-bg-backdrop); min-height: 32rem; }
+.ds-frame--phone .dialog__panel { border-radius: 0; max-width: none; }
+.ds-frame--phone .dialog__body { flex: 1; }
 .ds-example__canvas--roomy { padding-top: var(--space-12); }
 .ds-example__canvas--roomy-below { padding-bottom: var(--space-12); }
 .ds-grid-demo--live { margin-block: var(--space-4); }
@@ -195,12 +196,15 @@ pre code { background: none; padding: 0; }
 .ds-shell-demo { border: var(--border-width-hairline) dashed var(--color-border-strong); border-radius: var(--radius-md); overflow: hidden; background: var(--color-bg-canvas); }
 .ds-shell-demo .sidebar-layout, .ds-shell-demo .auth-layout { min-height: 14rem; }
 .ds-shell-demo .sidebar { position: static; height: auto; }
+.ds-grid-wide { display: grid; gap: var(--space-6); grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr)); }
+.ds-matrix--roomy td { padding-block: var(--space-10) var(--space-3); }
 
 /* Feedback pages (docs only): freeze the leaving toast mid-exit and give matrix cells room. */
 .ds-matrix .toast-region--static { min-width: 17rem; }
 .ds-matrix .toast[data-state="leaving"] { animation: none; opacity: 0.45; translate: 0 var(--space-1); }
 .ds-matrix .skeleton, .ds-matrix .progress { min-width: 10rem; }
 .ds-example .empty, .ds-themes .empty { padding-block: var(--space-6); }
+.ds-frame .error-page.ds-error-preview { min-height: 22rem; }
 
 /* ---------- Foundations A (color, typography, spacing, layout, elevation, shape) ---------- */
 .fa-pair { display: inline-flex; align-items: center; gap: var(--space-2); white-space: nowrap; }
@@ -250,13 +254,7 @@ pre code { background: none; padding: 0; }
 .fa-radius-row { display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: flex-end; }
 .fa-radius-row figure { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); font: var(--text-caption); color: var(--color-fg-muted); }
 .fa-border-sample { width: 6rem; height: 3rem; border-radius: var(--radius-md); background: var(--color-bg-surface); }
-/* Breakpoint ruler: highlight the band that matches the window (min-width only). */
-.fa-bp--base { background: var(--color-accent-subtle); color: var(--color-fg-accent); }
-@media (min-width: 40rem) { .fa-bp--base { background: var(--color-bg-surface); color: inherit; } .fa-bp--sm { background: var(--color-accent-subtle); color: var(--color-fg-accent); } }
-@media (min-width: 48rem) { .fa-bp--sm { background: var(--color-bg-surface); color: inherit; } .fa-bp--md { background: var(--color-accent-subtle); color: var(--color-fg-accent); } }
-@media (min-width: 64rem) { .fa-bp--md { background: var(--color-bg-surface); color: inherit; } .fa-bp--lg { background: var(--color-accent-subtle); color: var(--color-fg-accent); } }
-@media (min-width: 80rem) { .fa-bp--lg { background: var(--color-bg-surface); color: inherit; } .fa-bp--xl { background: var(--color-accent-subtle); color: var(--color-fg-accent); } }
-@media (min-width: 96rem) { .fa-bp--xl { background: var(--color-bg-surface); color: inherit; } .fa-bp--2xl { background: var(--color-accent-subtle); color: var(--color-fg-accent); } }
+/* Breakpoint ruler: the highlight rules are generated into foundations/layout.html from tokens.css. */
 .fa-ruler { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (min-width: 40rem) { .fa-ruler { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 
@@ -299,10 +297,10 @@ pre code { background: none; padding: 0; }
 .ds-bp { display: inline-flex; gap: var(--space-2); align-items: center; padding: var(--space-2) var(--space-4); border-radius: var(--radius-full); background: var(--color-accent-subtle); color: var(--color-fg-accent); font: var(--text-label); }
 .ds-bp span { display: none; }
 .ds-bp .ds-bp--base { display: inline; }
-@media (min-width: 40rem) { .ds-bp .ds-bp--base { display: none; } .ds-bp .ds-bp--sm { display: inline; } }
+@media (min-width: 36rem) { .ds-bp .ds-bp--base { display: none; } .ds-bp .ds-bp--sm { display: inline; } }
 @media (min-width: 48rem) { .ds-bp .ds-bp--sm { display: none; } .ds-bp .ds-bp--md { display: inline; } }
-@media (min-width: 64rem) { .ds-bp .ds-bp--md { display: none; } .ds-bp .ds-bp--lg { display: inline; } }
-@media (min-width: 80rem) { .ds-bp .ds-bp--lg { display: none; } .ds-bp .ds-bp--xl { display: inline; } }
+@media (min-width: 62rem) { .ds-bp .ds-bp--md { display: none; } .ds-bp .ds-bp--lg { display: inline; } }
+@media (min-width: 75rem) { .ds-bp .ds-bp--lg { display: none; } .ds-bp .ds-bp--xl { display: inline; } }
 @media (min-width: 96rem) { .ds-bp .ds-bp--xl { display: none; } .ds-bp .ds-bp--2xl { display: inline; } }
 
 /* Theming: tier diagram */
@@ -320,19 +318,24 @@ pre code { background: none; padding: 0; }
 .ds-table--usage td:last-child { min-width: 16rem; }
 .ds-section > .ds-icon-sheet { max-width: none; padding-left: 0; }
 
-/* Index page previews. */
+/* Index page previews. .ds-card span (muted body text) must not restyle the live components inside a preview. */
 .ds-index-col { width: 2.5rem; height: 2.5rem; }
-.ds-index-input { display: inline-flex; align-items: center; width: 10rem; color: var(--color-fg-default); }
-.ds-card__preview .cluster { flex-wrap: nowrap; }
+.ds-index-input { display: inline-flex; align-items: center; width: 10rem; }
+.ds-card .ds-card__preview .btn { color: var(--btn-fg); font: var(--text-label); font-size: var(--btn-font-size); }
+.ds-card .ds-card__preview .badge { color: var(--badge-fg); font: var(--text-overline); letter-spacing: var(--letter-spacing-wide); }
+.ds-card .ds-card__preview .input { color: var(--color-fg-default); font: var(--text-body); }
+.ds-card .ds-card__preview .card__title { color: var(--color-fg-default); font: var(--text-h4); }
+.ds-card .ds-card__preview .cluster { flex-wrap: wrap; justify-content: center; gap: var(--space-2); }
 
 /* Pattern pages: composed, static examples (doc-only). */
 .ds-pattern-frame { position: relative; overflow: hidden; border: 1px dashed var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-bg-canvas); }
 .ds-pattern-frame--pad { padding: var(--space-6) var(--space-4); }
 .ds-pattern-frame--center { display: grid; place-items: center; padding: var(--space-6) var(--space-4); }
-.ds-pattern-frame--sheet { display: flex; flex-direction: column; justify-content: flex-end; min-height: 22rem; padding-top: var(--space-12); background: var(--color-bg-backdrop); }
+.ds-pattern-frame--sheet { display: flex; flex-direction: column; max-width: 22.5rem; min-height: 32rem; margin-inline: auto; }
 .ds-pattern-frame--dim { background: var(--color-bg-backdrop); }
 .ds-pattern-frame .dialog__panel--static { margin-inline: auto; }
-.ds-pattern-frame--sheet .dialog__panel--static { border-radius: var(--radius-xl) var(--radius-xl) 0 0; max-width: none; }
+.ds-pattern-frame--sheet .dialog__panel--static { flex: 1; border-radius: 0; max-width: none; max-height: none; box-shadow: none; }
+.ds-pattern-frame--sheet .dialog__body { flex: 1; }
 .ds-pattern-frame .sidebar-layout { min-height: 0; }
 .ds-pattern-frame .sidebar { position: static; height: auto; }
 .ds-pattern-frame .container { padding-block: var(--space-2) var(--space-6); }

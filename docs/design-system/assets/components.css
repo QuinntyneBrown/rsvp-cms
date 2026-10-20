@@ -13,7 +13,7 @@
      <button class="btn" data-state="hover">
 
    Mobile first: base rules target 360px; min-width queries in rem add room
-   (40rem sm, 48rem md, 64rem lg). Never a max-width query.
+   (36rem sm, 48rem md, 62rem lg, 75rem xl; docs/specs L2-080..L2-084). Never a max-width query.
    ========================================================================== */
 
 /* ---------- Base --------------------------------------------------------- */
@@ -68,12 +68,13 @@ img, svg, video { max-width: 100%; height: auto; display: block; }
 /* ---------- Link ----------------------------------------------------------- */
 a, .link { color: var(--color-fg-link); text-decoration: underline; text-underline-offset: 0.15em; text-decoration-thickness: var(--border-width-hairline); border-radius: var(--radius-xs); }
 a:hover, a[data-state="hover"], .link:hover { color: var(--color-fg-link-hover); text-decoration-thickness: var(--border-width-thick); }
-.link--standalone { display: inline-flex; align-items: center; gap: var(--space-1); font: var(--text-label); min-height: var(--target-min); }
+.link--standalone { position: relative; display: inline-flex; align-items: center; gap: var(--space-1); font: var(--text-label); min-height: var(--target-min); }
 .link--standalone .icon { width: 1em; height: 1em; }
 .link:active, a[data-state="active"] { color: var(--color-fg-link-hover); text-decoration-thickness: var(--border-width-thick); }
 .link--quiet { color: inherit; }
 .link--quiet:hover { color: inherit; }
-
+/* L2-084: 44px hit area on coarse pointers. */
+@media (pointer: coarse) { .link--standalone { min-height: var(--target-comfortable); } }
 /* ---------- Skip link ------------------------------------------------------ */
 .skip-link {
   position: absolute; left: var(--space-4); top: calc(-1 * var(--space-24));
@@ -85,9 +86,16 @@ a:hover, a[data-state="hover"], .link:hover { color: var(--color-fg-link-hover);
 .skip-link:focus-visible, .skip-link[data-state="focus"] { top: var(--space-4); }
 .skip-link--static { position: static; display: inline-block; }
 
+
+/* L2-084: 44px hit area under coarse pointers (keyboards attached to tablets). */
+@media (pointer: coarse) { .skip-link { min-height: var(--target-comfortable); display: inline-flex; align-items: center; } }
 /* ---------- Layout primitives --------------------------------------------- */
 .container { width: 100%; max-width: var(--layout-container-max); margin-inline: auto; padding-inline: var(--layout-margin); }
-.container--narrow { --container-narrow: 42rem; max-width: var(--container-narrow); }
+.container--narrow { max-width: var(--layout-container-narrow); }
+/* Guest pages (L2-082): narrow below 62rem, 60rem guest container from 62rem. */
+.container--guest { max-width: var(--layout-container-narrow); }
+@media (min-width: 62rem) { .container--guest { max-width: var(--layout-container-guest); } }
+.form-max { max-width: var(--layout-form-max); }
 .stack { display: flex; flex-direction: column; gap: var(--space-4); }
 .stack--sm { gap: var(--space-2); }
 .stack--lg { gap: var(--space-8); }
@@ -102,9 +110,9 @@ a:hover, a[data-state="hover"], .link:hover { color: var(--color-fg-link-hover);
 .grow { flex: 1; min-width: 0; }
 /* Main + aside (the CMS editor and its live preview). Replaces the local .cms-grid. */
 .split { --split-aside: 22rem; display: grid; gap: var(--layout-gutter); grid-template-columns: minmax(0, 1fr); align-items: start; }
-@media (min-width: 64rem) { .split { grid-template-columns: minmax(0, 1fr) minmax(0, var(--split-aside)); } }
+@media (min-width: 62rem) { .split { grid-template-columns: minmax(0, 1fr) minmax(0, var(--split-aside)); } }
 .sidebar-layout { display: grid; grid-template-columns: minmax(0, 1fr); min-height: 100dvh; }
-@media (min-width: 64rem) { .sidebar-layout { grid-template-columns: var(--layout-sidebar-width) minmax(0, 1fr); } }
+@media (min-width: 48rem) { .sidebar-layout { grid-template-columns: var(--layout-sidebar-width) minmax(0, 1fr); } }
 .auth-layout { min-height: 100dvh; display: grid; place-items: center; padding: var(--space-6) var(--layout-margin); }
 .auth-card { --auth-card-max: 26rem; width: 100%; max-width: var(--auth-card-max); }
 .auth-card .logo { display: flex; justify-content: center; margin-bottom: var(--space-6); }
@@ -166,6 +174,7 @@ hr, .divider { border: 0; border-top: var(--border-width-hairline) solid var(--c
 /* ---------- Menu ----------------------------------------------------------- */
 .menu-anchor { position: relative; display: inline-block; }
 .menu { --menu-min-width: 12rem; position: absolute; right: 0; z-index: var(--z-dropdown); min-width: var(--menu-min-width); padding: var(--space-1); margin: var(--space-1) 0 0; list-style: none; background: var(--color-bg-surface-raised); border: var(--border-width-hairline) solid var(--color-border-default); border-radius: var(--radius-md); box-shadow: var(--shadow-3); animation: scale-in var(--duration-fast) var(--ease-enter); transform-origin: top right; }
+.menu { max-width: calc(100vw - 2 * var(--layout-margin)); }
 .menu--static { position: static; display: inline-block; animation: none; }
 .menu__label { padding: var(--space-2) var(--space-3) var(--space-1); font: var(--text-overline); letter-spacing: var(--letter-spacing-wide); text-transform: uppercase; color: var(--color-fg-subtle); }
 .menu__item { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: var(--control-height-sm); padding: 0 var(--space-3); border: 0; border-radius: var(--radius-sm); background: none; color: var(--color-fg-default); font: var(--text-body-sm); text-align: left; text-decoration: none; cursor: pointer; }
@@ -175,7 +184,8 @@ hr, .divider { border: 0; border-top: var(--border-width-hairline) solid var(--c
 .menu__item--danger, .menu__item--danger:hover { color: var(--color-danger-fg); }
 .menu__item kbd { margin-left: auto; font-size: var(--font-size-xs); }
 .menu__divider { border-top: var(--border-width-hairline) solid var(--color-border-default); margin: var(--space-1) 0; }
-
+/* L2-084: 44px items on coarse pointers. */
+@media (pointer: coarse) { .menu__item { min-height: var(--target-comfortable); } }
 /* ---------- Form field ----------------------------------------------------- */
 .field { display: flex; flex-direction: column; gap: var(--space-1); }
 .field__label { font: var(--text-label); color: var(--color-fg-default); display: flex; flex-wrap: wrap; gap: var(--space-1); }
@@ -221,7 +231,8 @@ hr, .divider { border: 0; border-top: var(--border-width-hairline) solid var(--c
 .search { position: relative; min-width: 0; }
 .search .input { padding-left: var(--space-10); }
 .search .icon { position: absolute; left: var(--space-3); top: 50%; translate: 0 -50%; width: 1.25rem; height: 1.25rem; color: var(--color-fg-subtle); pointer-events: none; }
-
+/* L2-084: every field size is at least 44px tall on coarse pointers. */
+@media (pointer: coarse) { .input, .select, .input--sm, .select--sm { --field-height: var(--target-comfortable); } }
 /* ---------- Checkbox and radio --------------------------------------------- */
 .choice { display: flex; gap: var(--space-3); align-items: flex-start; cursor: pointer; font: var(--text-body); padding-block: var(--space-1); min-height: var(--target-min); }
 .choice input, input.checkbox {
@@ -263,7 +274,7 @@ input.checkbox[aria-invalid="true"] { border-color: var(--color-danger-solid); b
 /* A group's error sits under its options, inside the fieldset. */
 fieldset > .field__error { margin-top: var(--space-2); }
 .choice-group--cards { display: grid; gap: var(--space-3); grid-template-columns: minmax(0, 1fr); }
-@media (min-width: 40rem) { .choice-group--cards { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); } }
+@media (min-width: 36rem) { .choice-group--cards { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); } }
 .choice--card:has(input:focus-visible) { outline: var(--focus-ring-width) solid var(--color-focus-ring); outline-offset: var(--focus-ring-offset); }
 .choice--card:has(input:focus-visible) input { outline: none; }
 .choice--card:has(input[aria-invalid="true"]) { border-color: var(--color-danger-solid); }
@@ -341,7 +352,7 @@ button.card:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-s
 .card--selected, .card[aria-pressed="true"], .card[data-state="selected"] { --card-border: var(--color-accent); --card-bg: var(--color-accent-subtle); box-shadow: 0 0 0 var(--border-width-hairline) var(--color-accent); }
 .card__header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: var(--space-4); margin-bottom: var(--space-4); }
 .card__title { font: var(--text-h4); }
-.card__header > :first-child { flex: 1 1 12rem; min-width: 0; }
+.card__header > :first-child { flex: 1 1 auto; min-width: 0; }
 .card__footer { margin-top: var(--space-4); padding-top: var(--space-4); border-top: var(--border-width-hairline) solid var(--color-border-default); display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: flex-end; }
 .well { background: var(--color-bg-surface-sunken); border-radius: var(--radius-md); padding: var(--space-4); }
 
@@ -383,6 +394,12 @@ span.chip:hover { background: var(--color-bg-surface); }
 .chip .remove:hover, .chip .remove[data-state="hover"] { background: var(--color-bg-subtle-hover); }
 .chip .remove .icon { width: 1rem; height: 1rem; }
 
+/* L2-084: 44px hit areas under coarse pointers. */
+@media (pointer: coarse) {
+  .chip { --chip-height: var(--target-comfortable); }
+  .chip .remove { width: var(--target-comfortable); height: var(--target-comfortable); margin-block: calc(-1 * var(--space-2)); }
+}
+
 /* ---------- Avatar ----------------------------------------------------------- */
 .avatar { --avatar-size: 2.5rem; display: inline-grid; place-items: center; width: var(--avatar-size); height: var(--avatar-size); border-radius: var(--radius-full); background: var(--color-accent-subtle); color: var(--color-fg-accent); font: var(--text-label); overflow: hidden; flex: none; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -396,6 +413,13 @@ button.avatar:hover, button.avatar[data-state="hover"] { box-shadow: 0 0 0 var(-
 .avatar-group .avatar:first-child { margin-left: 0; }
 .avatar-group .avatar--more { background: var(--color-bg-subtle); color: var(--color-fg-muted); }
 
+/* L2-084: the 32px account button gets a 44px hit area under coarse pointers without growing visually. */
+button.avatar { position: relative; overflow: visible; }
+@media (pointer: coarse) {
+  button.avatar::after { content: ""; position: absolute; inset: calc((var(--avatar-size) - var(--target-comfortable)) / 2); border-radius: var(--radius-full); }
+}
+
+button.avatar img { border-radius: inherit; }
 /* ---------- Dot and inline status -------------------------------------------- */
 .dot { width: 0.5rem; height: 0.5rem; border-radius: var(--radius-full); background: currentColor; flex: none; }
 .dot--accent { color: var(--color-accent); }
@@ -416,7 +440,8 @@ button.avatar:hover, button.avatar[data-state="hover"] { box-shadow: 0 0 0 var(-
 @media (min-width: 48rem) { .topbar__nav { display: flex; } }
 .topbar__spacer { flex: 1; }
 .topbar__menu { display: inline-flex; }
-@media (min-width: 64rem) { .topbar__menu { display: none; } }
+/* L2-080: the sidebar is persistent from 48rem, so the menu button goes. */
+@media (min-width: 48rem) { .topbar__menu { display: none; } }
 .topbar .search { flex: 1; min-width: 0; max-width: 28rem; }
 
 /* ---------- Sidebar navigation --------------------------------------------- */
@@ -429,10 +454,17 @@ button.avatar:hover, button.avatar[data-state="hover"] { box-shadow: 0 0 0 var(-
 button.nav-link { border: 0; background: none; cursor: pointer; text-align: start; }
 .sidebar form { display: contents; }
 .sidebar { background: var(--color-bg-surface); border-right: var(--border-width-hairline) solid var(--color-border-default); padding: var(--space-4); display: none; flex-direction: column; gap: var(--space-1); }
-.sidebar[data-open="true"], .sidebar--static { display: flex; }
-/* Below lg the menu button opens the sidebar as a drawer over the page. */
-.sidebar[data-open="true"]:not(.sidebar--static) { position: fixed; inset: 0 auto 0 0; z-index: var(--z-modal); width: min(var(--layout-sidebar-width), 85vw); overflow: auto; box-shadow: var(--shadow-4); }
-@media (min-width: 64rem) { .sidebar, .sidebar[data-open="true"]:not(.sidebar--static) { display: flex; position: sticky; top: 0; height: 100dvh; width: auto; overflow: auto; box-shadow: none; z-index: var(--z-base); } .sidebar--static { position: static; height: auto; } }
+.sidebar--static { display: flex; }
+/* L2-080 shell. Below 48rem the sidebar sits behind the top bar's menu button:
+   below 36rem it opens as a full-width panel, from 36rem as a 20rem drawer from the left.
+   From 48rem it is a persistent, sticky column. Entrance uses --duration-base (L2-089). */
+.sidebar[data-open="true"]:not(.sidebar--static) { display: flex; position: fixed; inset: 0; z-index: var(--z-modal); overflow: auto; border-right: 0; animation: sidebar-in var(--duration-base) var(--ease-enter); }
+@media (min-width: 36rem) { .sidebar[data-open="true"]:not(.sidebar--static) { right: auto; width: var(--layout-drawer-width); border-right: var(--border-width-hairline) solid var(--color-border-default); box-shadow: var(--shadow-4); } }
+@media (min-width: 48rem) {
+  .sidebar, .sidebar[data-open="true"]:not(.sidebar--static) { display: flex; position: sticky; top: 0; right: auto; height: 100dvh; width: auto; overflow: auto; box-shadow: none; z-index: var(--z-base); animation: none; border-right: var(--border-width-hairline) solid var(--color-border-default); }
+  .sidebar--static { position: static; height: auto; }
+}
+@keyframes sidebar-in { from { translate: -100% 0; } }
 .sidebar .nav-link { width: 100%; }
 .sidebar__group { font: var(--text-overline); letter-spacing: var(--letter-spacing-wide); text-transform: uppercase; color: var(--color-fg-subtle); padding: var(--space-4) var(--space-3) var(--space-1); }
 
@@ -452,10 +484,13 @@ button.nav-link { border: 0; background: none; cursor: pointer; text-align: star
 .tab:disabled, .tab[aria-disabled="true"] { color: var(--color-fg-disabled); cursor: not-allowed; }
 .tab:disabled::after { background: transparent; }
 .tab .badge { margin-left: var(--space-1); }
+.tab .badge::before { display: none; }
 .tab-panel { padding-block: var(--space-2); }
 .tab-panel[hidden] { display: none; }
 .tabs--sm .tab { min-height: var(--control-height-sm); font-size: var(--font-size-xs); }
 
+
+@media (pointer: coarse) { .tabs--sm .tab { min-height: var(--target-comfortable); } }
 /* ---------- Breadcrumb ------------------------------------------------------- */
 .breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); list-style: none; padding: 0; margin: var(--space-4) 0 0; font: var(--text-body-sm); color: var(--color-fg-muted); }
 .breadcrumb li + li::before { content: "/"; margin-right: var(--space-2); color: var(--color-fg-subtle); }
@@ -466,18 +501,21 @@ button.nav-link { border: 0; background: none; cursor: pointer; text-align: star
 .breadcrumb li:not(:nth-last-child(2)) { display: none; }
 .breadcrumb li:nth-last-child(2)::before { content: "‹"; margin-right: var(--space-1); }
 @media (min-width: 48rem) {
-  .breadcrumb li:not(:nth-last-child(2)) { display: list-item; }
+  .breadcrumb li:not(:nth-last-child(2)) { display: block; }
   .breadcrumb li:nth-last-child(2):first-child::before, .breadcrumb li:first-child::before { content: none; }
   .breadcrumb li:nth-last-child(2):not(:first-child)::before { content: "/"; margin-right: var(--space-2); }
 }
 
 /* Force one form regardless of width: previews, narrow cards, documentation. */
-.breadcrumb--expanded li:not(:nth-last-child(2)) { display: list-item; }
+.breadcrumb--expanded li:not(:nth-last-child(2)) { display: block; }
 .breadcrumb.breadcrumb--expanded li:nth-last-child(2):first-child::before { content: none; }
 .breadcrumb.breadcrumb--expanded li:nth-last-child(2):not(:first-child)::before { content: "/"; margin-right: var(--space-2); }
 .breadcrumb--collapsed li:not(:nth-last-child(2)) { display: none; }
 .breadcrumb.breadcrumb--collapsed li:nth-last-child(2):not(:first-child)::before,
 .breadcrumb.breadcrumb--collapsed li:nth-last-child(2):first-child::before { content: "‹"; margin-right: var(--space-1); }
+
+/* L2-084: 44px hit areas under coarse pointers. */
+@media (pointer: coarse) { .breadcrumb a { display: inline-flex; align-items: center; min-height: var(--target-comfortable); } }
 /* ---------- Pagination ------------------------------------------------------- */
 .pagination { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); list-style: none; padding: 0; margin: 0; }
 .pagination a, .pagination button { display: inline-grid; place-items: center; min-width: var(--control-height-sm); height: var(--control-height-sm); padding-inline: var(--space-2); border-radius: var(--radius-md); border: var(--border-width-hairline) solid transparent; background: none; color: var(--color-fg-muted); font: var(--text-label); text-decoration: none; cursor: pointer; font-variant-numeric: tabular-nums; }
@@ -488,9 +526,12 @@ button.nav-link { border: 0; background: none; cursor: pointer; text-align: star
 .pagination__gap { color: var(--color-fg-subtle); padding-inline: var(--space-1); }
 .pagination-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-4); }
 
+
+/* L2-084: 44px hit areas under coarse pointers. */
+@media (pointer: coarse) { .pagination a, .pagination button { min-width: var(--target-comfortable); height: var(--target-comfortable); } }
 /* ---------- Stepper ---------------------------------------------------------- */
 .stepper { display: flex; gap: var(--space-4); list-style: none; padding: 0; margin: 0 0 var(--space-6); counter-reset: step; }
-.stepper li { flex: 1; display: flex; align-items: center; gap: var(--space-2); font: var(--text-label); color: var(--color-fg-muted); }
+.stepper li { position: relative; flex: 1; display: flex; align-items: center; gap: var(--space-2); font: var(--text-label); color: var(--color-fg-muted); }
 .stepper li::before { counter-increment: step; content: counter(step); display: grid; place-items: center; width: 1.75rem; height: 1.75rem; border-radius: var(--radius-full); border: var(--border-width-thick) solid var(--color-border-strong); font: var(--text-caption); font-weight: var(--font-weight-semibold); flex: none; }
 .stepper li[aria-current="step"] { color: var(--color-fg-accent); }
 .stepper li[aria-current="step"]::before { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-fg-on-accent); }
@@ -512,6 +553,9 @@ button.nav-link { border: 0; background: none; cursor: pointer; text-align: star
 .footer a:hover { color: var(--color-fg-default); }
 .footer__links { display: flex; flex-wrap: wrap; gap: var(--space-4); list-style: none; margin: 0; padding: 0; }
 
+
+/* L2-084: 44px hit areas under coarse pointers. */
+@media (pointer: coarse) { .footer a { display: inline-flex; align-items: center; min-height: var(--target-comfortable); } }
 /* ---------- Table ------------------------------------------------------------ */
 .table-wrap { overflow-x: auto; border: var(--border-width-hairline) solid var(--color-border-default); border-radius: var(--radius-lg); background: var(--color-bg-surface); }
 /* A bounded wrap lets the header stick while the body scrolls. */
@@ -535,7 +579,6 @@ button.nav-link { border: 0; background: none; cursor: pointer; text-align: star
 .table .row-actions { text-align: right; white-space: nowrap; opacity: 0; transition: opacity var(--duration-fast) var(--ease-standard); }
 .table .row-actions .btn + .btn { margin-left: var(--space-1); }
 .table tr:hover .row-actions, .table tr:focus-within .row-actions, .table tr[data-state="hover"] .row-actions, .table .row-actions[data-state="visible"] { opacity: 1; }
-@media (hover: none) { .table .row-actions { opacity: 1; } }
 .table th[aria-sort] button { all: unset; cursor: pointer; display: inline-flex; gap: var(--space-1); align-items: center; border-radius: var(--radius-xs); }
 .table th[aria-sort] button:hover, .table th[aria-sort] button[data-state="hover"] { color: var(--color-fg-default); }
 .table th[aria-sort] button:focus-visible, .table th[aria-sort] button[data-state="focus"] { outline: var(--focus-ring-width) solid var(--color-focus-ring); outline-offset: var(--focus-ring-offset); }
@@ -551,6 +594,45 @@ button.nav-link { border: 0; background: none; cursor: pointer; text-align: star
 /* Bulk actions bar: replaces the info alert the mocks used for "2 guests selected". */
 .bulk-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-2) var(--space-4); background: var(--color-accent-subtle); color: var(--color-fg-accent); border: var(--border-width-hairline) solid var(--color-accent); border-radius: var(--radius-md); font: var(--text-label); margin-bottom: var(--space-3); }
 .bulk-bar__count { margin-right: auto; }
+
+/* Stacked tables (L2-081): mobile first, a .table--stack table is a list of cards with
+   labelled fields (td[data-label]) and every action visible; from 48rem it is a normal
+   table with headers and sorting. Tables without the modifier scroll inside .table-wrap. */
+.table--stack thead { display: none; }
+.table--stack, .table--stack tbody, .table--stack tbody tr, .table--stack tbody td, .table--stack tbody th { display: block; }
+.table--stack tbody tr { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-2) var(--space-3); padding: var(--space-3) var(--space-4); border-bottom: var(--border-width-hairline) solid var(--color-border-default); }
+.table--stack tbody tr:last-child { border-bottom: 0; }
+.table--stack tbody td, .table--stack tbody th { padding: 0; border-bottom: 0; min-width: 0; }
+.table--stack tbody th, .table--stack tbody .row-actions { grid-column: 2 / -1; }
+.table--stack tbody .col-select { grid-column: 1; grid-row: 1 / span 4; width: auto; padding: 0; }
+.table--stack tbody .col-select ~ td:not(.row-actions) { grid-column: auto; }
+.table--stack tbody tr > td:not(.col-select):not(.row-actions):nth-of-type(even) { grid-column: 2; }
+.table--stack tbody tr > td:not(.col-select):not(.row-actions):nth-of-type(odd) { grid-column: 3; }
+.table--stack td[data-label]::before { content: attr(data-label); display: block; font: var(--text-caption); color: var(--color-fg-muted); }
+.table--stack td.num { text-align: left; }
+.table--stack .row-actions { opacity: 1; text-align: left; }
+.table--stack .row-actions .btn:first-child { margin-left: calc(-1 * var(--space-3)); }
+@media (min-width: 48rem) {
+  .table--stack { display: table; }
+  .table--stack thead { display: table-header-group; }
+  .table--stack tbody { display: table-row-group; }
+  .table--stack tbody tr { display: table-row; padding: 0; border-bottom: 0; }
+  .table--stack tbody td, .table--stack tbody th { display: table-cell; padding: var(--table-cell-y) var(--table-cell-x); border-bottom: var(--border-width-hairline) solid var(--color-border-default); }
+  .table--stack tbody .col-select { width: 1px; padding: var(--table-cell-y) 0 var(--table-cell-y) var(--table-cell-x); }
+  .table--stack .row-actions .btn:first-child { margin-left: 0; }
+  .table--stack tbody tr:last-child td, .table--stack tbody tr:last-child th { border-bottom: 0; }
+  .table--stack td[data-label]::before { content: none; }
+  .table--stack td.num { text-align: right; }
+  .table--stack .row-actions { opacity: 0; text-align: right; padding-top: var(--table-cell-y); }
+  .table--stack tr:hover .row-actions, .table--stack tr:focus-within .row-actions, .table--stack tr[data-state="hover"] .row-actions { opacity: 1; }
+}
+/* L2-084: hover-only row actions are always visible without hover; coarse pointers get 44px targets. */
+@media (hover: none) { .table .row-actions, .table--stack .row-actions { opacity: 1; } }
+.table .col-select label { display: inline-grid; place-items: center; cursor: pointer; }
+@media (pointer: coarse) {
+  .table .row-actions .btn, .table th[aria-sort] button { min-height: var(--target-comfortable); min-width: var(--target-comfortable); }
+  .table .col-select label { min-width: var(--target-comfortable); min-height: var(--target-comfortable); }
+}
 
 /* ---------- List ------------------------------------------------------------- */
 .list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
@@ -572,11 +654,13 @@ a.list__title { color: var(--color-fg-link); }
 .list__time { font: var(--text-label); font-variant-numeric: tabular-nums; flex: none; min-width: 4.5rem; }
 .list__item > .dot { align-self: center; }
 
+@media (pointer: coarse) { .list__item--interactive { min-height: var(--target-comfortable); } .list__item .btn--sm { min-height: var(--target-comfortable); } }
+
 /* ---------- Description list ------------------------------------------------- */
 .dl { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); margin: 0; }
 .dl dt { font: var(--text-label); color: var(--color-fg-muted); }
 .dl dd { margin: 0 0 var(--space-2); }
-@media (min-width: 40rem) {
+@media (min-width: 36rem) {
   .dl { grid-template-columns: max-content minmax(0, 1fr); gap: var(--space-2) var(--space-6); }
   .dl dd { margin: 0; }
 }
@@ -596,13 +680,16 @@ a.list__title { color: var(--color-fg-link); }
 
 /* ---------- Dialog ----------------------------------------------------------- */
 .backdrop { position: fixed; inset: 0; background: var(--color-bg-backdrop); z-index: var(--z-overlay); animation: fade-in var(--duration-base) var(--ease-enter); }
-.dialog { position: fixed; inset: 0; z-index: var(--z-modal); display: grid; place-items: end center; padding: 0; }
-@media (min-width: 40rem) { .dialog { place-items: center; padding: var(--space-6); } }
-.dialog__panel { --dialog-width: 32rem; width: 100%; max-width: var(--dialog-width); max-height: calc(100dvh - var(--space-12)); overflow: auto; background: var(--color-bg-surface-raised); color: var(--color-fg-default); border-radius: var(--radius-xl) var(--radius-xl) 0 0; box-shadow: var(--shadow-4); animation: slide-up var(--duration-slow) var(--ease-enter); display: flex; flex-direction: column; text-align: start; }
-@media (min-width: 40rem) { .dialog__panel { border-radius: var(--radius-lg); animation-name: scale-in; } }
+/* L2-083: below 36rem the dialog fills the screen (full height, no radius) with a sticky footer;
+   from 36rem it is centred, at most --layout-dialog-max wide. Entrance uses --duration-base (L2-089). */
+.dialog { position: fixed; inset: 0; z-index: var(--z-modal); display: grid; place-items: stretch; padding: 0; }
+@media (min-width: 36rem) { .dialog { place-items: center; padding: var(--space-6); } }
+.dialog__panel { --dialog-width: var(--layout-dialog-max); width: 100%; height: 100dvh; max-width: none; overflow: auto; background: var(--color-bg-surface-raised); color: var(--color-fg-default); border-radius: 0; box-shadow: var(--shadow-4); animation: slide-up var(--duration-base) var(--ease-enter); display: flex; flex-direction: column; text-align: start; }
+@media (min-width: 36rem) { .dialog__panel { height: auto; max-width: var(--dialog-width); max-height: calc(100dvh - var(--space-12)); border-radius: var(--radius-lg); animation-name: scale-in; } }
 .dialog__panel--sm { --dialog-width: 24rem; }
-.dialog__panel--lg { --dialog-width: 48rem; }
-.dialog__panel--static { animation: none; box-shadow: var(--shadow-4); border-radius: var(--radius-lg); }
+/* Kept for the block picker and email preview; capped at the spec maximum (was 48rem). */
+.dialog__panel--lg { --dialog-width: var(--layout-dialog-max); }
+.dialog__panel--static { animation: none; box-shadow: var(--shadow-4); border-radius: var(--radius-lg); height: auto; max-width: var(--dialog-width); }
 .dialog__header { display: flex; align-items: flex-start; gap: var(--space-4); padding: var(--space-6) var(--space-6) 0; }
 .dialog__heading { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); }
 .dialog__title { font: var(--text-h3); flex: 1; }
@@ -619,7 +706,13 @@ a.list__title { color: var(--color-fg-link); }
 .has-tooltip { position: relative; }
 .has-tooltip .tooltip { bottom: calc(100% + var(--space-2)); left: 50%; translate: -50% 0; opacity: 0; transition: opacity var(--duration-fast) var(--ease-standard); }
 .has-tooltip:hover .tooltip, .has-tooltip:focus-within .tooltip, .has-tooltip[data-state="hover"] .tooltip, .has-tooltip[data-state="focus"] .tooltip { opacity: 1; transition-delay: var(--delay-tooltip); }
+/* WCAG 1.4.13 hoverable: a visible tooltip takes the pointer, and a bridge covers the gap to the trigger. */
+.has-tooltip:hover .tooltip { pointer-events: auto; }
+.has-tooltip .tooltip::before { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: var(--space-2); }
+.has-tooltip--below .tooltip::before { top: auto; bottom: 100%; }
 .has-tooltip[data-state] .tooltip { transition-delay: var(--duration-instant); }
+/* Escape dismisses: script sets data-tooltip-hidden on the trigger until focus or the pointer leaves. */
+.has-tooltip[data-tooltip-hidden] .tooltip { opacity: 0; transition-delay: var(--duration-instant); }
 /* Below the trigger: for triggers near the top of the viewport (the sticky top bar), where an upward tooltip is clipped. */
 .has-tooltip--below .tooltip { bottom: auto; top: calc(100% + var(--space-2)); }
 .has-tooltip--below .tooltip::after, .tooltip--below::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--color-bg-inverse); }
@@ -645,7 +738,7 @@ a.list__title { color: var(--color-fg-link); }
 
 /* ---------- Toast ------------------------------------------------------------ */
 .toast-region { position: fixed; z-index: var(--z-toast); bottom: calc(var(--space-4) + env(safe-area-inset-bottom)); left: var(--space-4); right: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); pointer-events: none; }
-@media (min-width: 40rem) { .toast-region { --toast-width: 24rem; left: auto; width: var(--toast-width); bottom: var(--space-6); right: var(--space-6); } }
+@media (min-width: 36rem) { .toast-region { --toast-width: 24rem; left: auto; width: var(--toast-width); bottom: var(--space-6); right: var(--space-6); } }
 .toast-region--static { position: static; width: auto; max-width: 24rem; }
 .toast { --toast-icon: var(--color-info-icon-on-inverse); pointer-events: auto; position: relative; overflow: hidden; display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-4); background: var(--color-bg-inverse); color: var(--color-fg-inverse); border-radius: var(--radius-md); box-shadow: var(--shadow-3); animation: slide-up var(--duration-base) var(--ease-enter); }
 .toast .icon { width: 1.25rem; height: 1.25rem; flex: none; margin-top: var(--space-0-5); color: var(--toast-icon); }
@@ -707,7 +800,7 @@ a.list__title { color: var(--color-fg-link); }
 .empty--neutral .empty__icon { background: var(--color-bg-subtle); color: var(--color-fg-muted); }
 
 /* ---------- Error page ------------------------------------------------------- */
-.error-page { min-height: 100dvh; display: grid; place-items: center; padding: var(--space-6) var(--layout-margin); }
+.error-page { min-height: calc(100dvh - var(--layout-topbar-height)); display: grid; place-items: center; padding: var(--space-6) var(--layout-margin); }
 .error-page__code { font: var(--text-code); color: var(--color-fg-muted); }
 
 .error-page__code { margin-top: var(--space-1); }
@@ -723,6 +816,8 @@ a.list__title { color: var(--color-fg-link); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: var(--duration-fast) !important; animation-iteration-count: 1 !important; transition-duration: var(--duration-fast) !important; }
   .skeleton { animation: none; }
+  /* L2-089: toasts, dialogs and banners appear without slide or fade. */
+  .backdrop, .dialog__panel, .toast, .toast[data-state="leaving"], .banner, .menu { animation: none !important; }
   .progress--indeterminate .progress__bar { animation: none; width: 100%; opacity: 0.6; }
   /* Spinners keep turning slowly: they are status, not decoration. */
   .spinner, .btn[aria-busy="true"]::after { animation: spin calc(var(--duration-spin) * 3) linear infinite !important; }
@@ -733,3 +828,14 @@ a.list__title { color: var(--color-fg-link); }
   .nav-link[aria-current="page"], .tab[aria-selected="true"], .tab[aria-current="page"] { outline: var(--border-width-thick) solid Highlight; }
 }
 @media print { .topbar, .sidebar, .toast-region, .skip-link { display: none !important; } }
+/* ---------- Touch targets (L2-084) ------------------------------------------ */
+/* On a coarse pointer every control's hit area is at least 44x44 CSS px.
+   Visual sizes stay; small controls grow their box, not their look. */
+@media (pointer: coarse) {
+  .btn, .chip, .nav-link, .tab, .menu__item, .pagination a, .pagination button,
+  .input, .select, .toast__action, .link--standalone, .accordion summary { min-height: var(--target-comfortable); }
+  .btn--icon, .pagination a, .pagination button { min-width: var(--target-comfortable); }
+  .alert .close, .toast .close, .chip .remove { width: var(--target-comfortable); height: var(--target-comfortable); }
+  .choice, .switch { min-height: var(--target-comfortable); align-items: center; }
+  button.avatar { --avatar-size: var(--target-comfortable); }
+}

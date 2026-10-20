@@ -28,7 +28,8 @@
      3. otherwise, including when the OS reports no preference, light.
    ========================================================================== */
 
-:root {
+:root,
+[data-theme="light"] {
   /* ---------- Primitives: colour --------------------------------------- */
   --palette-white: #ffffff;
   --palette-black: #000000;
@@ -48,8 +49,8 @@
   /* Dark-theme greys (in-between steps used only by the dark theme) */
   --palette-gray-125: #e9ecf1;  /* dark fg-default */
   --palette-gray-350: #bac1cc;  /* dark fg-muted; was #b3bac5, lightened for 4.5:1 on subtle-hover */
-  --palette-gray-425: #8d97a5;  /* dark border-strong */
-  --palette-gray-450: #959eab;  /* dark fg-subtle */
+  --palette-gray-425: #959eab;  /* dark fg-subtle */
+  --palette-gray-450: #8d97a5;  /* dark border-strong */
   --palette-gray-775: #2f3640;  /* dark border-default */
   --palette-gray-925: #14181e;  /* dark surface-sunken */
 
@@ -263,6 +264,12 @@
   --ease-enter: cubic-bezier(0, 0, 0, 1);
   --ease-exit: cubic-bezier(0.3, 0, 1, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Loops and delays. Loops are status indicators, so reduced motion slows
+     rather than stops the spinner (components.css), and stops the rest. */
+  --duration-spin: 800ms;       /* spinner and busy-button rotation */
+  --duration-shimmer: 1400ms;   /* skeleton shimmer, indeterminate progress */
+  --duration-pulse: 1600ms;     /* live "dot" pulse */
+  --delay-tooltip: 300ms;       /* hover/focus before a tooltip shows */
 
   /* ---------- Semantic: z-order ---------------------------------------- */
   --z-base: 0;
@@ -317,14 +324,14 @@
 
   --color-fg-default: var(--palette-gray-125);
   --color-fg-muted: var(--palette-gray-350);
-  --color-fg-subtle: var(--palette-gray-450);
+  --color-fg-subtle: var(--palette-gray-425);
   --color-fg-disabled: var(--palette-gray-600);
   --color-fg-inverse: var(--palette-gray-900);
   --color-fg-link: var(--palette-blue-300);
   --color-fg-link-hover: var(--palette-blue-200);
 
   --color-border-default: var(--palette-gray-775);
-  --color-border-strong: var(--palette-gray-425);
+  --color-border-strong: var(--palette-gray-450);
   --color-border-inverse: var(--palette-gray-300);
 
   --color-accent: var(--palette-blue-300);
@@ -389,13 +396,13 @@
     --color-bg-backdrop: rgba(0, 0, 0, 0.65);
     --color-fg-default: var(--palette-gray-125);
     --color-fg-muted: var(--palette-gray-350);
-    --color-fg-subtle: var(--palette-gray-450);
+    --color-fg-subtle: var(--palette-gray-425);
     --color-fg-disabled: var(--palette-gray-600);
     --color-fg-inverse: var(--palette-gray-900);
     --color-fg-link: var(--palette-blue-300);
     --color-fg-link-hover: var(--palette-blue-200);
     --color-border-default: var(--palette-gray-775);
-    --color-border-strong: var(--palette-gray-425);
+    --color-border-strong: var(--palette-gray-450);
     --color-border-inverse: var(--palette-gray-300);
     --color-accent: var(--palette-blue-300);
     --color-accent-hover: var(--palette-blue-200);
